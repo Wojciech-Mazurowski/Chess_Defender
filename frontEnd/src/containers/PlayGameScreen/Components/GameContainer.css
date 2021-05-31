@@ -1,0 +1,9 @@
+:root{
+    --board-size:50vw;
+}
+
+.GameContainer{
+    width: var(--board-size);
+    height: var(--board-size);
+    background-color: #8ca2ad;
+}

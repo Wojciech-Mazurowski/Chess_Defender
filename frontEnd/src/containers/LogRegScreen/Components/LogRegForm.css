@@ -1,0 +1,87 @@
+:root{
+    --textfield-bg-color: #666666;
+}
+
+.LogRegForm {
+    display: block;
+    width: 55%;
+    position: relative;
+}
+
+.LogRegForm form{
+    margin-top:1.5rem;
+    margin-left: 1rem;
+    font-size:1.1rem;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.LogRegForm .form-control{
+    all:unset;
+    padding: 0.7rem 1rem;
+    width: 90%;
+
+    margin-top: 0.5rem;
+    color: var(--text-color);
+    background-color: var(--textfield-bg-color);
+    text-align: left;
+}
+
+.LogRegForm .pass-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+}
+
+.LogRegForm i {
+    position: absolute;
+    top: 38%;
+    right: 10%;
+}
+.LogRegForm i:hover{
+    color: var(--sec-color);
+    cursor: pointer;
+}
+
+.errorMessage{
+    margin-top:1rem;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    width: 100%;
+}
+.errorMessage ul{
+    margin-top: 0.2rem;
+}
+.errorMessage li{
+   font-size: 1rem;
+}
+
+.errorMessage:before{
+    content: "Operation failed: ";
+    color: var(--fail-color);
+}
+.LogRegForm Button{
+    all:unset;
+
+    padding: 0.7rem 3rem;
+    border-radius: 0.8rem;
+    background-color: var(--primary-color);
+    color:var(--text-color);
+}
+.LogRegForm Button:hover{
+    transition:200ms;
+    transform: scale(1.1);
+    background-color: var( --primary-color-dark) ;
+}
+
+p{
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 70%;
+    margin: 0.4rem 0rem;
+}
+
+@media all and (min-width: 480px) {
+
+}

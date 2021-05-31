@@ -1,0 +1,31 @@
+.WatchLiveWidget {
+    margin-left: auto;
+    order: 2;
+    direction: rtl;
+}
+
+
+.WatchLiveWidget .LivePreview {
+    background-color: white;
+    width: 250px;
+    height: 250px;
+    flex-basis: 100%;
+}
+
+
+/*Player Names*/
+.WatchLiveWidget h2 {
+    font-size: 1rem;
+    display: block;
+    color: var(--sec-color-dark);
+    padding: 0.5rem 0.7rem 0.5rem 3rem;
+    background-color: var(--body-color);
+    text-align: right;
+}
+
+.WatchLiveWidget .vs {
+    font-size: 0.8rem;
+    margin: 0 0.3rem;
+    color: var(--text-color);
+    text-align: right;
+}
