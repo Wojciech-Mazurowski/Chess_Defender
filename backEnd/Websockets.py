@@ -304,7 +304,7 @@ def make_move(data):
     print(obj)
 
     # authorize player
-    if not check_auth(request.sid, data["playerId"]):
+    if not check_auth(request.sid, obj['playerId']):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
