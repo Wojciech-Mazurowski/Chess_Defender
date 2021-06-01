@@ -26,18 +26,26 @@ function importAll(r) {
 
 const images = importAll(require.context('./Pieces', false, /\.(png|jpe?g|svg)$/));
 export let playingAs;
+export let gameroomId;
+export let socket;
 export let sendMoveToServer;
+
 
 export default function sketch (p5) {
 
     p5.myCustomRedrawAccordingToNewPropsHandler = (props) => {
         console.log("IN P5js" + props.playingAs)
-        if (props.playingAs) {
-            playingAs = props.playingAs;
+        if (props.game) {
+            playingAs = props.game.playingAs;
+            gameroomId= props.game.gameId;
+        }
+        if (props.socket){
+            socket = props.socket;
         }
         if (props.sendMoveToServer){
             sendMoveToServer = props.sendMoveToServer;
         }
+
     }
 
 

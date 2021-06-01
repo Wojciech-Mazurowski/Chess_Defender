@@ -362,12 +362,12 @@ export function make_a_move(){
                         move.type==='r' ? Target = StartingSquare + 2 : Target = StartingSquare -2;
                         board.change_Turn();
 
-                        board.set_FEN_by_move(StartingSquare,Target); //przenies krola
+                        board.set_FEN_by_move(StartingSquare,Target,true); //przenies krola
                         piece.snap();
 
                         move.type==='r' ? rook_pos = StartingSquare + 3 : rook_pos = StartingSquare - 4;
                         move.type==='r' ? Target = rook_pos - 2 : Target = rook_pos + 3;
-                        board.set_FEN_by_move(rook_pos,Target); // przenies  wieze
+                        board.set_FEN_by_move(rook_pos,Target,true); // przenies  wieze
 
                         board.grid[Target].did_move=1;
                         board.grid[Target].snap_back();
@@ -391,7 +391,7 @@ export function make_a_move(){
                         }
 
                         board.change_Turn();
-                        board.set_FEN_by_move(StartingSquare,TargetSquare);
+                        board.set_FEN_by_move(StartingSquare,TargetSquare,true);
 
                         piece.snap();
                     }

@@ -1,12 +1,12 @@
-import {board, cols, pixel_positions, rows, size,sendMoveToServer} from "./Main";
+import {board, cols, pixel_positions, rows, size,sendMoveToServer,socket,playingAs,gameroomId} from "./Main";
 import Piece from "./Piece";
 import {moves} from "./moves";
 
 
 
 
-export default class Board {
 
+export default class Board {
 
     constructor(p5) {
         this.p5 = p5;
@@ -66,13 +66,15 @@ export default class Board {
         this.FEN = temp_fen;
     }
 
-    set_FEN_by_move(StartingSquare, TargetSquare) {
-        //TO DO send to flask
-        let data ={
-            'startingSquare':StartingSquare,
-            'targetSquare' : TargetSquare
+    set_FEN_by_move(StartingSquare, TargetSquare,sendFlag) {
+
+        if (sendFlag){
+            let data ={
+                'startingSquare':StartingSquare,
+                'targetSquare' : TargetSquare
+            }
+            sendMoveToServer(socket,data,gameroomId);
         }
-        sendMoveToServer(data);
 
 
         let temp = board.grid[StartingSquare];

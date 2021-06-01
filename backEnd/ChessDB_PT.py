@@ -5,9 +5,10 @@ import mysql.connector
 class ChessDB:
 
     def __init__(self):
-        self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
-                                            password="ChessDB1!",
-                                            database="ChessDB")
+        self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
+        # self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
+        #                                     password="ChessDB1!",
+        #                                     database="ChessDB")
 
     def create_db(self):
         mycursor = self.mydb.cursor()
@@ -60,7 +61,7 @@ class ChessDB:
                     "(Username, Password, Country, Joined, ELO) "
                     "VALUES (%s, %s, %s, %s, %s)")
 
-        date= self.get_curr_date()
+        date = self.get_curr_date()
         data_user = (Username, Password, Country, date, Elo)
         mycursor.execute(sql_user, data_user)
         self.mydb.commit()
@@ -83,12 +84,12 @@ class ChessDB:
                            "(GameID, UserID, Score, Color, currELO)"
                            "VALUES(%s, %s, %s, %s, %s)")
 
-        white_user =self.get_user_by_id(w_id)
-        black_user=self.get_user_by_id(b_id)
+        white_user = self.get_user_by_id(w_id)
+        black_user = self.get_user_by_id(b_id)
 
-        data_participant = (game_id, white_user[0], w_score, "White",white_user[5])
+        data_participant = (game_id, white_user[0], w_score, "White", white_user[5])
         mycursor.execute(sql_participant, data_participant)
-        data_participant = (game_id,black_user[0], b_score, "Black", black_user[5])
+        data_participant = (game_id, black_user[0], b_score, "Black", black_user[5])
         mycursor.execute(sql_participant, data_participant)
 
         sql_move = ("INSERT INTO Moves"

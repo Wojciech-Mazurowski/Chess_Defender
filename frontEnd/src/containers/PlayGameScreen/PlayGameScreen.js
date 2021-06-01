@@ -3,37 +3,42 @@ import GameContainer from "./Components/GameContainer"
 import Chat from "./Components/Chat"
 import "./PlayGameScreen.css"
 import P5Wrapper from "react-p5-wrapper"
-import sketch from "./Game/Main";
+import sketch, {sendMoveToServer} from "./Game/Main";
 import {withMyHooks} from "../../context/gameContext";
-
+import {board} from "./Game/Main"
 
 class PlayGameScreen extends Component{
 
     constructor(props) {
         super(props);
-        this.game = this.props.gameContext;
-        this.socket = this.props.socketContext;
-        this.socketResponses();
+        this.game=this.props.gameContext;
+        this.socket= this.props.socketContext;
+        this.socketSetup();
     }
 
-    // single websocket instance for the own application and constantly trying to reconnect.
-    componentDidMount() {
-
+    blackStyle={
+       // transform: 'rotateX(180deg)'
     }
 
+    whiteStyle={
+        transform: 'rotateX(0deg)'
+    }
 
-    async sendMove(move) {
-        if (!this.socket.is_connected) {
+    async sendMove(socket,move,gameroomId) {
+        if (socket ===undefined || !socket.is_connected) {
+            //try to recconect to socket
+            console.log("socket undefined")
             return;
         }
-        await this.socket.emit("make_move", move);
+        await socket.emit("make_move", JSON.stringify({move,gameroomId}));
     }
 
-    socketResponses(){
-        // this.socket.on("make_move", data => {
-        //     //make move
-        // });
+    socketSetup(){
+        this.socket.on("make_move", data => {
+            if (data === undefined) return;
 
+            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false)
+        });
     }
 
     render() {
@@ -41,8 +46,13 @@ class PlayGameScreen extends Component{
         return (
             <div className="PlayGameScreen">
                 <Chat/>
-                <GameContainer>
-                    <P5Wrapper sketch={sketch} playingAs={this.game.playingAs} sendMoveToServer={this.sendMove}/>
+                <GameContainer style={this.game.playingAs==='b' ? this.blackStyle :this.whiteStyle}>
+                    <P5Wrapper
+                        sketch={sketch}
+                        game={ this.game}
+                        socket={this.socket}
+                        sendMoveToServer={this.sendMove}
+                    />
                 </GameContainer>
 
             </div>

@@ -4,14 +4,9 @@ import TextWithWavyOrnament from "../../CommonComponents/TextWithWavyOrnament";
 import {formatTime} from "../../../serverLogic/Utils"
 import useTimer from "../../CommonComponents/Timer";
 import Dots from "../../CommonComponents/Dots"
-import WebSocketClient from "../../../serverLogic/WebSocket";
-import async from "async";
-import {MatchmakingManager} from "../../../serverLogic/MatchmakingManager";
 import {useHistory} from "react-router-dom";
-import socketIOClient from "socket.io-client";
-import SocketClient from "../../../serverLogic/WebSocket"
-import {SocketContext} from "../../../context/socketContext";
 import {useGame} from "../../../context/gameContext";
+import {SocketContext} from "../../../context/socketContext";
 
 
 export default function FindGameWidget() {
@@ -30,7 +25,7 @@ export default function FindGameWidget() {
     const routeToNext = (gameId) => history.push('/play?id=' +gameId );
 
     //socketIO Client
-    let socket = useContext(SocketContext);
+    const socket = useContext(SocketContext);
     const [socketConnected, setSocketConnected] = useState(false);
     const game = useGame();
 
@@ -64,6 +59,7 @@ export default function FindGameWidget() {
     async function setupSocket() {
         await socket.connect();
         await setSocketConnected(socket.is_connected);
+        //await socketProvider.changeSocket(socketProvider);
 
         socket.on("queue_info", data => {
             console.log("queue_data" + data);
@@ -80,6 +76,7 @@ export default function FindGameWidget() {
             console.log("game_found");
             console.log(data);
             game.changePlayingAs(data.playingAs);
+            game.changeGameId(data.gameId);
             routeToNext(data.gameId)
         });
 

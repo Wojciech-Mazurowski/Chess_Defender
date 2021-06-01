@@ -1,6 +1,4 @@
 import json
-
-import gevent
 from flask import Flask, render_template, session, request, copy_current_request_context, jsonify, make_response
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 import ChessDB_PT
@@ -28,6 +26,9 @@ q_max_wait_time = 10000  # in ms
 initial_scope = 50  # +-elo when looking for opponents
 scope_update_interval = 10000;  # time it takes for scope to widen (in ms)
 scope_update_ammount = 50;  # ammount by which scope widens every scope_update_interval
+
+# Gameplay variables
+games = {}
 
 # User login sessions
 Sessions = {}
@@ -223,6 +224,14 @@ def get_player_from_queue(player_id):
     return False
 
 
+def get_player_from_queue_by_sid(sid):
+    for item in queue:
+        if item[2] == sid:
+            return item
+
+    return False
+
+
 # def match_maker():
 #     while True:
 #         socketio.sleep(10)
@@ -232,7 +241,6 @@ def get_player_from_queue(player_id):
 
 @socketio.on('join_queue')
 def join_queue(player_id):
-
     @copy_current_request_context
     def run_match_maker():
         match_maker()
@@ -270,9 +278,57 @@ def leave_queue(player_id):
     # send back success message
     emit('queue_left', {'success': 'true'}, to='queue')
 
+
 @socketio.on('make_move')
-def make_move(move):
-    print(move)
+def make_move(data):
+    obj = json.loads(data)
+    print(obj)
+
+    game_room_id = obj['gameroomId']
+    move = obj['move']
+    player_sid = request.sid
+
+    # check if the game exists at all
+    if game_room_id not in games:
+        print("NO_SUCH_GAME_EXISTS")
+        return
+
+    # [0] white_sid,[1] black_sid,[2] current_turn (w/b)
+    room_info = games[game_room_id]
+    white_sid = room_info[0]
+    black_sid = room_info[1]
+    curr_turn = room_info[2]
+
+    # get opponent sid
+    opponent_sid = black_sid
+    if white_sid != player_sid:
+        opponent_sid = white_sid
+
+    # print(game_room_id)
+    # print(move)
+    # print(player_sid)
+    # print(room_info)
+
+    # check if it's coming from the wrong player
+    if (curr_turn == 'w' and player_sid != white_sid) or (curr_turn == 'b' and player_sid != black_sid):
+        # send not ur turn packet
+        return
+
+    # check for illegal moves?
+
+    # save move to db
+    # db.add_move(game_id,move)
+
+    # get opposite turn
+    opp_turn = 'w'
+    if curr_turn == 'w':
+        opp_turn = 'b'
+
+    games[game_room_id][2] = opp_turn
+
+    # send move to opponent
+    emit('make_move', move, to=opponent_sid)
+
 
 def match_maker():
     while True:
@@ -325,25 +381,39 @@ def find_match(player):
             leave_room('queue', player_sid)
             leave_room('queue', opponent_sid)
 
-            #randomise who plays as white 0 for player, 1 for opponent
-            white_player =random.randint(0,1)
+            # randomise who plays as white 0 for player, 1 for opponent
+            white_player = random.randint(0, 1)
 
-            # create gamein db to get gameID
-            if white_player==0:
-                game_id = db.add_game(player_id, player_elo, opponent_id, opponent_elo, 'NONE', [])
-                # notify the players
-                emit("game_found", {'gameId': game_id, 'playingAs':'w'}, to=player_sid)
-                emit("game_found", {'gameId': game_id, 'playingAs':'b'}, to=opponent_sid)
+            if white_player == 1:
+                white_sid = player_sid
+                white_id = player_id
+                white_elo = player_elo
+
+                black_sid = opponent_sid
+                black_id = opponent_id
+                black_elo = opponent_elo
             else:
-                game_id = db.add_game(opponent_id, opponent_elo,player_id, player_elo, 'NONE', [])
-                # notify the players
-                emit("game_found", {'gameId': game_id, 'playingAs':'b'}, to=player_sid)
-                emit("game_found", {'gameId': game_id, 'playingAs':'w'}, to=opponent_sid)
+                white_sid = opponent_sid
+                white_id = opponent_id
+                white_elo = opponent_elo
+
+                black_sid = player_sid
+                black_id = player_id
+                black_elo = player_elo
+
+            # create game in db
+            game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'NONE', [])
+
+            game_id_hash = hashlib.sha256(str(game_id).encode())
+            game_room_id = str(game_id_hash.hexdigest())
+            # notify the players
+            emit("game_found", {'gameId': game_room_id, 'playingAs': 'w'}, to=white_sid)
+            emit("game_found", {'gameId': game_room_id, 'playingAs': 'b'}, to=black_sid)
 
             # create gameroom for the two players and add both of them
-            game_room_id = "g_" + str(game_id)
             join_room(game_room_id, player_sid)
             join_room(game_room_id, opponent_sid)
+            games[game_room_id] = [white_sid, black_sid, 'w']
 
     time_taken = 1
     return time_taken
@@ -351,8 +421,14 @@ def find_match(player):
 
 @socketio.on('disconnect')
 def disconnect():
-    leave_room('queue')
-    # remove from room/queue if was in one
+    # delete player from queue if he's in it
+    to_be_removed = get_player_from_queue_by_sid(request.sid)
+    if to_be_removed != False:
+        leave_room('queue')
+        queue.remove(to_be_removed)
+
+    # remove from game he was in?
+
     print('Client disconnected ', request.sid)
 
 
