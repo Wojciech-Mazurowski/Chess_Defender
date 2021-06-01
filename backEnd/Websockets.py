@@ -163,8 +163,8 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    # game_history = db.get_games(id)
-    game_history = []
+    #game_history=[]
+    game_history = db.get_games(id)
     print(game_history)
 
     history = []
@@ -173,27 +173,28 @@ def get_history():
         black = db.get_participant('Black', game[0])
         if white[0] == id:
             if white[3] == '1':
-                result = "WIN"
+                result = "win"
             elif white[3] == '0':
-                result = "LOSS"
+                result = "loss"
             else:
-                result = "DRAW"
+                result = "draw"
         else:
             if black[3] == '1':
-                result = "WIN"
+                result = "win"
             elif black[3] == '0':
-                result = "LOSS"
+                result = "loss"
             else:
-                result = "DRAW"
+                result = "draw"
 
         match = {"matchResult": result,
-                 'p1Username': white[6], 'p1PlayedAs': 'White', 'p1ELO': white[5],
-                 'p2Username': black[6], 'p2PlayedAs': 'Black', 'p2ELO': black[5],
+                 'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
+                 'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
                  "hour": "21:37",
-                 "dayMonthYear": game[2]}
+                 "dayMonthYear": str(game[2])}
         history.append(match)
 
-    history = generate_example_match_data()
+    print(history)
+    #history = generate_example_match_data()
     resp = make_response(json.dumps(history), 200)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Headers'] = '*'
@@ -402,7 +403,7 @@ def find_match(player):
                 black_elo = player_elo
 
             # create game in db
-            game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'NONE', [])
+            game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
 
             game_id_hash = hashlib.sha256(str(game_id).encode())
             game_room_id = str(game_id_hash.hexdigest())

@@ -147,8 +147,8 @@ class ChessDB:
     def get_participant(self, Color, GameID):
         mycursor = self.mydb.cursor()
 
-        sql_find = ("""SELECT t1.*, Users.Username FROM (SELECT * FROM Participants WHERE Color = %s AND GameID = %s;)t1, Users
-                       WHERE t1.UserID == Users.UserID""")
+        sql_find = ("""SELECT t1.*, Users.Username FROM (SELECT * FROM Participants WHERE Color = %s AND GameID = %s)t1, Users
+                               WHERE t1.UserID = Users.UserID""")
 
         data_find = (Color, GameID)
         mycursor.execute(sql_find, data_find)
@@ -187,7 +187,7 @@ class ChessDB:
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
                        WHERE Participants.UserID = %s AND Games.GameID = participants.GameID""")
-
+        
         data_find = (UserID,)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
