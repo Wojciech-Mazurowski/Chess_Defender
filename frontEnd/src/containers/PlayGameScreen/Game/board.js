@@ -1,6 +1,6 @@
 import {board, cols, pixel_positions, rows, size,sendMoveToServer,socket,playingAs,gameroomId} from "./Main";
 import Piece from "./Piece";
-import {moves} from "./moves";
+import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
 
 
 
@@ -14,7 +14,8 @@ export default class Board {
         for (let i = 0; i < 64; i++) {
             this.grid.push(new Piece("e",this.p5));
         }
-        this.FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        this.FEN = "\n" +
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         this.load_FEN()
         this.color_to_move = "";
         this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
@@ -68,15 +69,7 @@ export default class Board {
         this.load_FEN();
     }
 
-    set_FEN_by_move(StartingSquare, TargetSquare,sendFlag) {
-
-        if (sendFlag){
-            let data ={
-                'startingSquare':StartingSquare,
-                'targetSquare' : TargetSquare
-            }
-            sendMoveToServer(socket,data,gameroomId);
-        }
+    set_FEN_by_move(StartingSquare, TargetSquare) {
 
 
         let temp = board.grid[StartingSquare];
@@ -86,6 +79,7 @@ export default class Board {
         board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
 
 
+        board.change_Turn();
         //print_board2();
         this.set_FEN_from_grid()
     }
@@ -133,7 +127,12 @@ export default class Board {
 
             let highlight = pixel_positions[moves[i].EndSquare];
             if (board.grid[moves[i].StartSquare].dragging) {
-                this.p5.rect(highlight[0], highlight[1], 100, 100);
+                this.p5.push()
+                this.p5.translate(size/2,size/2);
+                this.p5.noStroke();
+                this.p5.fill(this.p5.color(66,129,74));
+                this.p5.circle(highlight[0], highlight[1], size/3);
+                this.p5.pop();
             }
         }
 
