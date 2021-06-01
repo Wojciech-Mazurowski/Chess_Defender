@@ -42,7 +42,7 @@ export function Generate_moves(grid, ally_moves) {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && board.check === 0 && board.color_to_move === playingAs) { //TODO removed    for now
+        if (p.color === board.color_to_move && board.check === 0 ) { //TODO removed    for now  && board.color_to_move === playingAs
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, "moves", grid, ally_moves);
@@ -76,8 +76,8 @@ export function Generate_moves(grid, ally_moves) {
 }
 
 
-export function Generate_opponent_moves(grid) { //used for checks
-    opponent_moves = [];
+export function Generate_opponent_moves(grid,topponent_moves) { //used for checks
+    topponent_moves = [];
 
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
@@ -85,17 +85,18 @@ export function Generate_opponent_moves(grid) { //used for checks
         if (p.color !== board.color_to_move) {
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
-                Get_long_moves(startSquare, p, "black_moves", grid);
+                Get_long_moves(startSquare, p, "moves", grid,topponent_moves);
             } else if (type === 'p' || type === 'P') {
-                Get_Pawn_moves(startSquare, p, "black_moves", grid);
+                Get_Pawn_moves(startSquare, p, "moves", grid,topponent_moves);
             } else if (type === 'k' || type === 'K') {
-                Get_king_moves(startSquare, p, "black_moves", grid);
+                Get_king_moves(startSquare, p, "moves", grid,topponent_moves);
             } else if (type === 'n' || type === 'N') {
-                Get_Knight_moves(startSquare, p, "black_moves", grid);
+                Get_Knight_moves(startSquare, p, "moves", grid,topponent_moves);
             }
         }
 
     }
+    opponent_moves = topponent_moves;
 
 }
 
@@ -653,7 +654,6 @@ export function make_a_move() {
                         'targetSquare': TargetSquare,
                         'mtype': move.type
                     }
-                    console.log("WYSYLANKO");
                     sendMoveToServer(socket, data, gameroomId);
 
                     } else {

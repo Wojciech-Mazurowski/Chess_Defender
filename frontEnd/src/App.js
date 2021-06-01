@@ -27,15 +27,15 @@ function App() {
           <GameProvider>
               <SocketContext.Provider value={socket}>
                   <div className="App">
-                          <Router>
-                              <Route path="/" component={NavBar}/>
-                              <Switch>
-                                  <PrivateRoute path="/" exact component={MainPageScreen} />
-                                  <PrivateRoute path="/play" component={PlayGameScreen} />
-                                  <Route path="/login" component={LogRegScreen} />
-                                  <Redirect from="*" to="/" />
-                              </Switch>
-                          </Router>
+                      <Router>
+                          <Route path="/" component={NavBar}/>
+                          <Switch>
+                              <Route path="/" exact component={PlayGameScreen} />
+                              <Route path="/play" component={PlayGameScreen} />
+                              <Route path="/login" component={LogRegScreen} />
+                              <Redirect from="*" to="/" />
+                          </Switch>
+                      </Router>
                   </div>
               </SocketContext.Provider>
           </GameProvider>
