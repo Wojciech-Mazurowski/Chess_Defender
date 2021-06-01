@@ -2,7 +2,7 @@ import {board, pixel_positions, playingAs} from "./Main";
 
 
 export var moves = [];
-export var all_moves = [];
+export var opponent_moves = [];
 
 class move {
     constructor(starting_square, ending_square, type) {
@@ -59,26 +59,26 @@ export function Generate_moves() {
 }
 
 
-export function Generate_all_moves() { //used for checks
-    all_moves = [];
+export function Generate_opponent_moves() { //used for checks
+    opponent_moves = [];
 
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = board.grid[startSquare];
-
-        let type = p.type_letter;
-        if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
-            Get_long_moves(startSquare, p, "all_moves");
-        } else if (type === 'p' || type === 'P') {
-            Get_Pawn_moves(startSquare, p, "all_moves");
-        } else if (type === 'k' || type === 'K') {
-            Get_king_moves(startSquare, p, "all_moves");
-        } else if (type === 'n' || type === 'N') {
-            Get_Knight_moves(startSquare, p, "all_moves");
+        if (p.color !== board.color_to_move) {
+            let type = p.type_letter;
+            if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
+                Get_long_moves(startSquare, p, "all_moves");
+            } else if (type === 'p' || type === 'P') {
+                Get_Pawn_moves(startSquare, p, "all_moves");
+            } else if (type === 'k' || type === 'K') {
+                Get_king_moves(startSquare, p, "all_moves");
+            } else if (type === 'n' || type === 'N') {
+                Get_Knight_moves(startSquare, p, "all_moves");
+            }
         }
 
     }
-    console.log("test");
 
 }
 
@@ -97,9 +97,9 @@ function Get_Pawn_moves(startSquare, piece, mode) {
             } else {
                 if (mode === "all_moves") {
                     if (i === 0) {
-                        all_moves.push(new move(startSquare, Target));
+                        opponent_moves.push(new move(startSquare, Target));
                     } else {
-                        all_moves.push(new move(startSquare, Target, 'P'));
+                        opponent_moves.push(new move(startSquare, Target, 'P'));
                     }
 
                 } else {
@@ -117,7 +117,7 @@ function Get_Pawn_moves(startSquare, piece, mode) {
         let Piece_on_Target = board.grid[Target];
         if (mode === "all_moves") {
             if (Piece_on_Target.type_letter === 'e') {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             }
         } else {
             if (Piece_on_Target.type_letter === 'e') {
@@ -134,7 +134,7 @@ function Get_Pawn_moves(startSquare, piece, mode) {
             piece.color === 'w' ? Target = Target + Directions[1] : Target = Target + Directions[0];
 
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target, 'CP'));
+                opponent_moves.push(new move(startSquare, Target, 'CP'));
             } else {
                 moves.push(new move(startSquare, Target, 'CP'));
             }
@@ -149,7 +149,7 @@ function Get_Pawn_moves(startSquare, piece, mode) {
 
         if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target, 'C'));
+                opponent_moves.push(new move(startSquare, Target, 'C'));
             } else {
                 moves.push(new move(startSquare, Target, 'C'));
             }
@@ -159,7 +159,7 @@ function Get_Pawn_moves(startSquare, piece, mode) {
         Piece_on_Target = board.grid[Target];
         if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target, 'C'));
+                opponent_moves.push(new move(startSquare, Target, 'C'));
             } else {
                 moves.push(new move(startSquare, Target, 'C'));
             }
@@ -195,14 +195,14 @@ function Get_king_moves(startSquare, piece, mode) {
             let Piece_on_Target = board.grid[Target];
             if (!(Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color === piece.color)) {
                 if (mode === "all_moves") {
-                    all_moves.push(new move(startSquare, Target));
+                    opponent_moves.push(new move(startSquare, Target));
                 } else {
                     moves.push(new move(startSquare, Target));
                 }
                 if (Piece_on_Target.color !== piece.color) {
 
                     if (mode === "all_moves") {
-                        all_moves[all_moves.length - 1].type = 'C';
+                        opponent_moves[opponent_moves.length - 1].type = 'C';
                     } else {
                         moves[moves.length - 1].type = 'C';
                     }
@@ -220,7 +220,7 @@ function Get_king_moves(startSquare, piece, mode) {
             //roszada krótka
             if (board.grid[startSquare + Directions[3] * 2].type_letter === 'e' && board.grid[startSquare + Directions[3]].type_letter === 'e')
                 if (mode === "all_moves") {
-                    all_moves.push(new move(startSquare, target - 1, 'r'));
+                    opponent_moves.push(new move(startSquare, target - 1, 'r'));
                 } else {
                     moves.push(new move(startSquare, target - 1, 'r'));
                 }
@@ -233,7 +233,7 @@ function Get_king_moves(startSquare, piece, mode) {
             if (board.grid[startSquare + Directions[2] * 2].type_letter === 'e' && board.grid[startSquare + Directions[2]].type_letter === 'e'
                 && board.grid[startSquare + Directions[2] * 3].type_letter === 'e') {
                 if (mode === "all_moves") {
-                    all_moves.push(new move(startSquare, target + 2, 'R'));
+                    opponent_moves.push(new move(startSquare, target + 2, 'R'));
                 } else {
                     moves.push(new move(startSquare, target + 2, 'R'));
                 }
@@ -255,13 +255,13 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -276,13 +276,13 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -295,14 +295,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -315,14 +315,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -336,14 +336,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -357,14 +357,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -377,14 +377,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -398,14 +398,14 @@ function Get_Knight_moves(startSquare, piece, mode) {
         let Piece_on_target = board.grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 } else {
                     moves[moves.length - 1].type = 'C';
                 }
@@ -436,7 +436,7 @@ function Get_long_moves(startSquare, piece,mode) {
                 break;
             }
             if (mode === "all_moves") {
-                all_moves.push(new move(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
                 moves.push(new move(startSquare, Target));
             }
@@ -444,7 +444,7 @@ function Get_long_moves(startSquare, piece,mode) {
             //przez oponenta
             if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
                 if (mode === "all_moves") {
-                    all_moves[all_moves.length - 1].type = 'C';
+                    opponent_moves[opponent_moves.length - 1].type = 'C';
                 }
                 else{
                     moves[moves.length - 1].type = 'C';
@@ -500,8 +500,8 @@ export function check_if_check() {
     console.log("kingpos " + enemyKingPos);
 
 
-    for (let i = 0; i < moves.length; i++) {
-        if (enemyKingPos === moves[i][1]) {
+    for (let i = 0; i < opponent_moves.length; i++) {
+        if (enemyKingPos === opponent_moves[i]['EndSquare']) {
             board.check = 1;
             console.log("XD " + board.check);
         }
