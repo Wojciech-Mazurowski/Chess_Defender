@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useContext, useState} from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "./LogRegForm.css";
@@ -8,6 +8,7 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 import SectionTitle from "../../CommonComponents/SectionTitle"
 import {useHistory } from 'react-router-dom';
 import {login,logout} from "../../../serverLogic/LogRegService"
+import {SocketContext} from "../../../context/socketContext";
 
 
 export default function LoginForm() {
@@ -22,6 +23,9 @@ export default function LoginForm() {
     const history = useHistory();
     const routeToNext = () => history.push('/');
 
+    //socketIO Client
+    const socket = useContext(SocketContext);
+
     //if this component is mounted the user must be logedout
     function componentDidMount(){
         logout();
@@ -35,6 +39,8 @@ export default function LoginForm() {
             setErrorMessage(resp.error);
             return;
         }
+
+        socket.authorize();
         routeToNext();
     }
 

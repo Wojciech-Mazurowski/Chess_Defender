@@ -5,6 +5,7 @@ export const socket = new SocketClient();
 export const SocketContext = createContext(socket);
 
 
+
 // const {Provider} = SocketContext
 // //custom provider
 // export const SocketProvider = ({children}) => {
