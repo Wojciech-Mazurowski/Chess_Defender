@@ -43,7 +43,7 @@ export function Generate_moves() {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = board.grid[startSquare];
-        if (p.color === board.color_to_move && board.color_to_move === playingAs) {
+        if (p.color === board.color_to_move ) { //TODO removed && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p);
@@ -319,7 +319,7 @@ function check_move(StartSquare, TargetSquare) {
     return -1;
 }
 
-function get_pixel_position_from_pixel_positon_array(pos) { //thanks javascript
+export function get_pixel_position_from_pixel_positon_array(pos) { //thanks javascript
     let position;
     for (let i = 0; i < pixel_positions.length; i++) {
         if (pos[0] === pixel_positions[i][0] && pos[1] === pixel_positions[i][1]) {
@@ -337,70 +337,69 @@ export function Distance_between_points(x1, y1, x2, y2) {
     return Math.sqrt(x * x + y * y);
 }
 
-export function make_a_move(){
-    for(let i=0;i<board.grid.length;i++){
+export function make_a_move() {
+    for (let i = 0; i < board.grid.length; i++) {
         let piece = board.grid[i];
-        if(piece.dragging===1&&piece.type_letter!=='e'){
+        if (piece.dragging === 1 && piece.type_letter !== 'e') {
             let Target_Square_position = piece.get_closest_position();
-            let Starting_Square_position = [piece.old_x,piece.old_y]
+            let Starting_Square_position = [piece.old_x, piece.old_y]
 
             let StartingSquare = pixel_positions.indexOf(get_pixel_position_from_pixel_positon_array(Starting_Square_position)); //TODO optymalizacja robie to drugi raz w set fen by move!!!
             let TargetSquare = pixel_positions.indexOf(Target_Square_position);
-            board.lastmove = get_move(StartingSquare,TargetSquare);
-            if(Target_Square_position[0]!==Starting_Square_position[0]||Target_Square_position[1]!==Starting_Square_position[1])
-            {
-                let move = check_move(StartingSquare,TargetSquare);
-                if(move!==-1)
-                {
+            board.lastmove = get_move(StartingSquare, TargetSquare);
+            if (Target_Square_position[0] !== Starting_Square_position[0] || Target_Square_position[1] !== Starting_Square_position[1]) {
+                let move = check_move(StartingSquare, TargetSquare);
+                if (move !== -1) {
+                    if (board.color_to_move === 'b') {
+                        board.numOfMoves += 1;
+                    }
+                    board.lastPawnMoveOrCapture += 1;
                     //TODO zbijanko + moze case z tego zrob
 
-                    if(move.type==='R'||move.type==='r') //TODO nie dziala roszada i w zamienianiu ruchu to wgl nie zamienia idk
-                        //TODO chyba trzeba zmienic sposob zamieniania w set fen by move
-                    {
+                    if (move.type === 'R' || move.type === 'r') {
                         let Target;
                         let rook_pos;
-                        move.type==='r' ? Target = StartingSquare + 2 : Target = StartingSquare -2;
+                        move.type === 'r' ? Target = StartingSquare + 2 : Target = StartingSquare - 2;
                         board.change_Turn();
 
-                        board.set_FEN_by_move(StartingSquare,Target,true); //przenies krola
+                        board.set_FEN_by_move(StartingSquare, Target); //przenies krola
                         piece.snap();
 
-                        move.type==='r' ? rook_pos = StartingSquare + 3 : rook_pos = StartingSquare - 4;
-                        move.type==='r' ? Target = rook_pos - 2 : Target = rook_pos + 3;
-                        board.set_FEN_by_move(rook_pos,Target,true); // przenies  wieze
+                        move.type === 'r' ? rook_pos = StartingSquare + 3 : rook_pos = StartingSquare - 4;
+                        move.type === 'r' ? Target = rook_pos - 2 : Target = rook_pos + 3;
+                        board.set_FEN_by_move(rook_pos, Target); // przenies  wieze
 
-                        board.grid[Target].did_move=1;
+                        board.grid[Target].did_move = 1;
                         board.grid[Target].snap_back();
 
 
-                    }else {
+                    } else {
                         if (move.type === 'C') {
+                            board.lastPawnMoveOrCapture = 0;
                             board.grid[TargetSquare].get_taken();
-                        }else if(move.type==='CP')
-                        {
+                        } else if (move.type === 'CP') {
                             let EP_target;
                             piece.color === 'w' ? EP_target = TargetSquare + Directions[0] : EP_target = TargetSquare + Directions[1];
                             board.grid[EP_target].get_taken();
+                            board.lastPawnMoveOrCapture = 0;
 
                         }
-                                            //kolejnosc wazna
 
-                        if(piece.type_letter==='p'||piece.type_letter==='P')
-                        {
-                            check_if_promotion(piece,TargetSquare);
+                        if (piece.type_letter === 'p' || piece.type_letter === 'P') {
+                            check_if_promotion(piece, TargetSquare);
+                            board.lastPawnMoveOrCapture = 0;
                         }
-
+                        //kolejnosc wazna
                         board.change_Turn();
-                        board.set_FEN_by_move(StartingSquare,TargetSquare,true);
+                        board.set_FEN_by_move(StartingSquare, TargetSquare);
 
                         piece.snap();
                     }
                     piece.did_move = 1;
-                    }
-                else {
+                } else {
                     piece.snap_back();
                 }
-            }else{
+            } else {
                 piece.snap();
             }
             piece.dragging = 0;
