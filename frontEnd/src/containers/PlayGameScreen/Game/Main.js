@@ -82,7 +82,6 @@ export default function sketch (p5) {
         Generate_opponent_moves();
         check_if_check();
         Generate_moves();
-        console.log(board.lastmove)
 
     }
 

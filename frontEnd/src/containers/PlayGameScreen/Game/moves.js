@@ -521,13 +521,12 @@ export function check_if_check() {
     let enemyKingPos;
 
     board.color_to_move === 'w' ? enemyKingPos = get_white_king_pos() : enemyKingPos = get_black_king_pos();
-    console.log("kingpos " + enemyKingPos);
+
 
 
     for (let i = 0; i < opponent_moves.length; i++) {
         if (enemyKingPos === opponent_moves[i]['EndSquare']) {
             board.check = 1;
-            console.log("XD " + board.check);
         }
     }
 
