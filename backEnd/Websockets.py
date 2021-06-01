@@ -169,8 +169,8 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    # game_history=[]
-    game_history = db.get_games(id)
+    game_history=[]
+    #game_history = db.get_games(id)
     print(game_history)
 
     history = []
@@ -485,11 +485,11 @@ def authorize(data):
 
     # communicate unauthorised access
     if (str(player_id) not in Sessions) or Sessions[str(player_id)] != auth_token:
-        print("Authorization of player"+player_id+" failed")
+        print("Authorization of player"+str(player_id)+" failed")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return False
 
-    print("Authorization of player" + player_id + " succeded")
+    print("Authorization of player" +str(player_id) + " succeded")
     # add socket id to authorized sockets for player
     authorized_sockets[str(player_id)] = request.sid
     emit('authorized', )
