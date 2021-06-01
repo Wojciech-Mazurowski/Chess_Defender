@@ -1,16 +1,13 @@
 from datetime import date
 import mysql.connector
 
-f = open("pass.txt", "r")
-password = f.read()
-
 
 class ChessDB:
 
     def __init__(self):
-        # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
+       # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
         self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
-                                            password=password,
+                                             password="",
                                             database="ChessDB")
 
     def create_db(self):
@@ -190,7 +187,7 @@ class ChessDB:
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
                        WHERE Participants.UserID = %s AND Games.GameID = participants.GameID""")
-
+        
         data_find = (UserID,)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
