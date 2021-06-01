@@ -65,6 +65,7 @@ export default class Board {
         //sprawdzic czy król sie juz ruszył i wieza czy sie da roszade zrobic i wtedy dopisać ją do fena, tak samo który jest teraz ruch
         temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.FEN.split(' ')[3] + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
         this.FEN = temp_fen;
+        this.load_FEN();
     }
 
     set_FEN_by_move(StartingSquare, TargetSquare,sendFlag) {
@@ -80,10 +81,6 @@ export default class Board {
 
         let temp = board.grid[StartingSquare];
         board.grid[StartingSquare] = board.grid[TargetSquare];
-        board.grid[StartingSquare].x = board.grid[TargetSquare].x;
-        board.grid[StartingSquare].y = board.grid[TargetSquare].y;
-        board.grid[StartingSquare].old_x = board.grid[TargetSquare].old_x;
-        board.grid[StartingSquare].old_y = board.grid[TargetSquare].old_y;
         board.grid[TargetSquare] = temp;
         board.grid[TargetSquare].old_x = pixel_positions[TargetSquare][0];
         board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
