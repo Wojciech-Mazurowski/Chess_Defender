@@ -333,7 +333,15 @@ def join_queue(player_id):
     join_room('queue')
 
     # get player elo from db
-    elo = db.get_user_by_id(player_id)[5]
+    try:
+        elo = db.get_user_by_id(player_id)[5]
+    except:
+        print("DB ERROR")
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
