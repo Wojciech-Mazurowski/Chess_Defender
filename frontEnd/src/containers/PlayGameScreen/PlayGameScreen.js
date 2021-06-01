@@ -30,14 +30,15 @@ class PlayGameScreen extends Component{
             console.log("socket undefined")
             return;
         }
-        await socket.emit("make_move", JSON.stringify({move,gameroomId}));
+        let playerId=localStorage.getItem('userId');
+        await socket.emit("make_move", JSON.stringify({move,gameroomId,playerId}));
     }
 
     socketSetup(){
         this.socket.on("make_move", data => {
             if (data === undefined) return;
-
-            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false)
+            console.log(data);
+            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false);
         });
     }
 
