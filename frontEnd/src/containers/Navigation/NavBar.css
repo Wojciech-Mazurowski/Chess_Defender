@@ -17,8 +17,7 @@ Assigned to:   Mateusz Stelmasiak (ms)
     top: 0rem;
     -----------*/
 
-
-    opacity: 95%;
+    
     background: linear-gradient(45deg, var(--primary-color) 15%, var(--primary-color-dark) 100%);
     padding: 0rem 0rem 1rem 0rem;
 
