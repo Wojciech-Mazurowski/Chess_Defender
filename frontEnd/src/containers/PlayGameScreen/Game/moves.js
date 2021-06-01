@@ -43,7 +43,7 @@ export function Generate_moves() {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = board.grid[startSquare];
-        if (p.color === board.color_to_move && board.color_to_move === playingAs) {
+        if (p.color === board.color_to_move ) { //TODO removed && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p);
@@ -375,11 +375,8 @@ export function make_a_move() {
 
                     } else {
                         if (move.type === 'C') {
-                            if (board.grid[TargetSquare].type_letter === 'P' || board.grid[TargetSquare].type_letter === 'p') {
-                                board.lastPawnMoveOrCapture = 0;
-                            }
+                            board.lastPawnMoveOrCapture = 0;
                             board.grid[TargetSquare].get_taken();
-
                         } else if (move.type === 'CP') {
                             let EP_target;
                             piece.color === 'w' ? EP_target = TargetSquare + Directions[0] : EP_target = TargetSquare + Directions[1];
