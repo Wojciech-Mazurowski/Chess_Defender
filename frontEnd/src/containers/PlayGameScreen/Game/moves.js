@@ -5,7 +5,7 @@ import {socket} from "../../../context/socketContext";
 export var moves = [];
 export var opponent_moves = [];
 
-class m {
+class move {
     constructor(starting_square, ending_square, type) {
         this.StartSquare = starting_square;
         this.EndSquare = ending_square;
@@ -114,16 +114,16 @@ function Get_Pawn_moves(startSquare, piece, mode, grid, t_moves) {
             } else {
                 if (mode === "black_moves") {
                     if (i === 0) {
-                        opponent_moves.push(new m(startSquare, Target));
+                        opponent_moves.push(new move(startSquare, Target));
                     } else {
-                        opponent_moves.push(new m(startSquare, Target, 'P'));
+                        opponent_moves.push(new move(startSquare, Target, 'P'));
                     }
 
                 } else {
                     if (i === 0) {
-                        t_moves.push(new m(startSquare, Target));
+                        t_moves.push(new move(startSquare, Target));
                     } else {
-                        t_moves.push(new m(startSquare, Target, 'P'));
+                        t_moves.push(new move(startSquare, Target, 'P'));
                     }
                 }
             }
@@ -134,11 +134,11 @@ function Get_Pawn_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_Target = grid[Target];
         if (mode === "black_moves") {
             if (Piece_on_Target.type_letter === 'e') {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             }
         } else {
             if (Piece_on_Target.type_letter === 'e') {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
         }
 
@@ -151,9 +151,9 @@ function Get_Pawn_moves(startSquare, piece, mode, grid, t_moves) {
             piece.color === 'w' ? Target = Target + Directions[1] : Target = Target + Directions[0];
 
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target, 'CP'));
+                opponent_moves.push(new move(startSquare, Target, 'CP'));
             } else {
-                t_moves.push(new m(startSquare, Target, 'CP'));
+                t_moves.push(new move(startSquare, Target, 'CP'));
             }
         }
     }
@@ -166,9 +166,9 @@ function Get_Pawn_moves(startSquare, piece, mode, grid, t_moves) {
 
         if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target, 'C'));
+                opponent_moves.push(new move(startSquare, Target, 'C'));
             } else {
-                t_moves.push(new m(startSquare, Target, 'C'));
+                t_moves.push(new move(startSquare, Target, 'C'));
             }
 
         }
@@ -176,9 +176,9 @@ function Get_Pawn_moves(startSquare, piece, mode, grid, t_moves) {
         Piece_on_Target = grid[Target];
         if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target, 'C'));
+                opponent_moves.push(new move(startSquare, Target, 'C'));
             } else {
-                t_moves.push(new m(startSquare, Target, 'C'));
+                t_moves.push(new move(startSquare, Target, 'C'));
             }
 
         }
@@ -222,9 +222,9 @@ function Get_king_moves(startSquare, piece, mode, grid, t_moves) {
             if (!(Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color === piece.color)) {
                 if (is_square_save(Target) === 1) {
                     if (mode === "black_moves") {
-                        opponent_moves.push(new m(startSquare, Target));
+                        opponent_moves.push(new move(startSquare, Target));
                     } else {
-                        t_moves.push(new m(startSquare, Target));
+                        t_moves.push(new move(startSquare, Target));
                     }
                     if (Piece_on_Target.color !== piece.color) {
 
@@ -248,9 +248,9 @@ function Get_king_moves(startSquare, piece, mode, grid, t_moves) {
             //roszada krótka
             if (grid[startSquare + Directions[3] * 2].type_letter === 'e' && grid[startSquare + Directions[3]].type_letter === 'e')
                 if (mode === "black_moves") {
-                    opponent_moves.push(new m(startSquare, target - 1, 'r'));
+                    opponent_moves.push(new move(startSquare, target - 1, 'r'));
                 } else {
-                    t_moves.push(new m(startSquare, target - 1, 'r'));
+                    t_moves.push(new move(startSquare, target - 1, 'r'));
                 }
         }
 
@@ -262,9 +262,9 @@ function Get_king_moves(startSquare, piece, mode, grid, t_moves) {
             if (grid[startSquare + Directions[2] * 2].type_letter === 'e' && grid[startSquare + Directions[2]].type_letter === 'e'
                 && grid[startSquare + Directions[2] * 3].type_letter === 'e') {
                 if (mode === "black_moves") {
-                    opponent_moves.push(new m(startSquare, target + 2, 'R'));
+                    opponent_moves.push(new move(startSquare, target + 2, 'R'));
                 } else {
-                    t_moves.push(new m(startSquare, target + 2, 'R'));
+                    t_moves.push(new move(startSquare, target + 2, 'R'));
                 }
             }
         }
@@ -284,9 +284,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "black_moves") {
@@ -305,9 +305,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
                 if (mode === "black_moves") {
@@ -324,9 +324,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -344,9 +344,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -365,9 +365,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -386,9 +386,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -406,9 +406,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -427,9 +427,9 @@ function Get_Knight_moves(startSquare, piece, mode, grid, t_moves) {
         let Piece_on_target = grid[Target];
         if (!(Piece_on_target.type_letter !== 'e' && Piece_on_target.color === piece.color)) {
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
@@ -465,9 +465,9 @@ function Get_long_moves(startSquare, piece, mode, grid, t_moves) {
                 break;
             }
             if (mode === "black_moves") {
-                opponent_moves.push(new m(startSquare, Target));
+                opponent_moves.push(new move(startSquare, Target));
             } else {
-                t_moves.push(new m(startSquare, Target));
+                t_moves.push(new move(startSquare, Target));
             }
 
             //przez oponenta
@@ -583,6 +583,7 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
         piece.snap_back();
     }
     piece.did_move = 1;
+    board.lastmove=new move(StartingSquare,TargetSquare,mType);
     Generate_opponent_moves(board.grid);
     check_if_check();
     Generate_moves(board.grid);
