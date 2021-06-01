@@ -14,11 +14,12 @@ export default class Board {
         for (let i = 0; i < 64; i++) {
             this.grid.push(new Piece("e",this.p5));
         }
-            this.FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        this.FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         this.load_FEN()
         this.color_to_move = "";
-        this.lastPawnMoveOrCapture = 0;
+        this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
         this.lastmove = [-1,-1];
+        this.numOfMoves=parseInt(this.FEN.split(' ')[5],10);
     }
 
 
