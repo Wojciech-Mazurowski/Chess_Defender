@@ -1,7 +1,8 @@
 import Board from "./board";
 import {
+    all_moves,
     check_if_check,
-    count_squares_to_edge,
+    count_squares_to_edge, Generate_all_moves,
     Generate_moves,
     get_black_king_pos,
     get_king_pos,
@@ -80,7 +81,9 @@ export default function sketch (p5) {
         make_a_move();
         Generate_moves();
         check_if_check();
+        Generate_all_moves();
         console.log(board.lastmove)
+
     }
 
 
