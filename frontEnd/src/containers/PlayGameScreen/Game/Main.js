@@ -1,12 +1,8 @@
 import Board from "./board";
 import {
-    opponent_moves,
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    get_black_king_pos,
-    get_king_pos,
-    get_white_king_pos,
     make_a_move
 } from "./moves";
 import CSquare from "./CSquare";
