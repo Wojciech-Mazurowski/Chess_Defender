@@ -75,9 +75,9 @@ export default function sketch (p5) {
     {
         let king_pos=0;
         make_a_move();
-        Generate_opponent_moves();
+        Generate_opponent_moves(board.grid);
         check_if_check();
-        Generate_moves();
+        Generate_moves(board.grid);
 
     }
 
@@ -99,7 +99,7 @@ export default function sketch (p5) {
             }
         }
         count_squares_to_edge();
-        Generate_moves();
+        Generate_moves(board.grid);
 
     };
 
