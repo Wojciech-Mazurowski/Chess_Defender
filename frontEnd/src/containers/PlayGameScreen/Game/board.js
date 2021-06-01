@@ -14,11 +14,12 @@ export default class Board {
         for (let i = 0; i < 64; i++) {
             this.grid.push(new Piece("e",this.p5));
         }
-            this.FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        this.FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         this.load_FEN()
         this.color_to_move = "";
-        this.lastPawnMoveOrCapture = 0;
+        this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
         this.lastmove = [-1,-1];
+        this.numOfMoves=parseInt(this.FEN.split(' ')[5],10);
     }
 
 
@@ -61,7 +62,7 @@ export default class Board {
 
         //TODO
         //sprawdzic czy król sie juz ruszył i wieza czy sie da roszade zrobic i wtedy dopisać ją do fena, tak samo który jest teraz ruch
-        temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.FEN.split(' ')[3] + " " + this.FEN.split(' ')[4] + " " + this.FEN.split(' ')[5];
+        temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.FEN.split(' ')[3] + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
         console.log(temp_fen);
         this.FEN = temp_fen;
     }
