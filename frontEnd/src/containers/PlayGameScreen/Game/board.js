@@ -20,6 +20,7 @@ export default class Board {
         this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
         this.lastmove = [-1,-1];
         this.numOfMoves=parseInt(this.FEN.split(' ')[5],10);
+        this.check = 0;
     }
 
 

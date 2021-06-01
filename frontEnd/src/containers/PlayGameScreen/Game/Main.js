@@ -1,5 +1,13 @@
 import Board from "./board";
-import {count_squares_to_edge, Generate_moves, make_a_move} from "./moves";
+import {
+    check_if_check,
+    count_squares_to_edge,
+    Generate_moves,
+    get_black_king_pos,
+    get_king_pos,
+    get_white_king_pos,
+    make_a_move
+} from "./moves";
 import CSquare from "./CSquare";
 
 
@@ -68,8 +76,10 @@ export default function sketch (p5) {
     }
     p5.mouseReleased = function ()
     {
+        let king_pos=0;
         make_a_move();
         Generate_moves();
+        check_if_check();
         console.log(board.lastmove)
     }
 

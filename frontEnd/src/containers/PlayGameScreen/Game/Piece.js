@@ -43,6 +43,7 @@ export default class Piece {
         return this.grid_pos;
     }
 
+
     drag() {
         return this.p5.mouseIsPressed && this.dragging;
     }
