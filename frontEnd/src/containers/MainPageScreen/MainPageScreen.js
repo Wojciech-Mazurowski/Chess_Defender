@@ -3,6 +3,7 @@ import {useHistory} from "react-router-dom";
 import FindGameWidget from "./Components/FindGameWidget";
 import MatchHistory from "./Components/MatchHistory/MatchHistory";
 import Section from "../CommonComponents/Section";
+import StatsContainer from "./Components/Stats/StatsContainer"
 
 export default function MainPageScreen() {
 
@@ -11,6 +12,7 @@ export default function MainPageScreen() {
         <div>
             <FindGameWidget/>
             <Section section="STATS">
+                <StatsContainer/>
                 <MatchHistory/>
             </Section>
 
