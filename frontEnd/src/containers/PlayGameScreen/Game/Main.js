@@ -80,8 +80,8 @@ export default function sketch (p5) {
         let king_pos=0;
         make_a_move();
         Generate_opponent_moves();
-        Generate_moves();
         check_if_check();
+        Generate_moves();
         console.log(board.lastmove)
 
     }
