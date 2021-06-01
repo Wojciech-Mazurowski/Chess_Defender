@@ -1,6 +1,6 @@
 import {board, cols, pixel_positions, rows, size,sendMoveToServer,socket,playingAs,gameroomId} from "./Main";
 import Piece from "./Piece";
-import {moves} from "./moves";
+import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
 
 
 
@@ -71,15 +71,7 @@ export default class Board {
         console.log(this.FEN);
     }
 
-    set_FEN_by_move(StartingSquare, TargetSquare,sendFlag) {
-
-        if (sendFlag){
-            let data ={
-                'startingSquare':StartingSquare,
-                'targetSquare' : TargetSquare
-            }
-            sendMoveToServer(socket,data,gameroomId);
-        }
+    set_FEN_by_move(StartingSquare, TargetSquare) {
 
 
         let temp = board.grid[StartingSquare];
@@ -87,6 +79,8 @@ export default class Board {
         board.grid[TargetSquare] = temp;
         board.grid[TargetSquare].old_x = pixel_positions[TargetSquare][0];
         board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
+
+        console.log(board.grid);
 
         board.change_Turn();
         //print_board2();

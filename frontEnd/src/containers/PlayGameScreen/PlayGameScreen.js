@@ -5,7 +5,7 @@ import "./PlayGameScreen.css"
 import P5Wrapper from "react-p5-wrapper"
 import sketch, {sendMoveToServer} from "./Game/Main";
 import {withMyHooks} from "../../context/gameContext";
-import {board} from "./Game/Main"
+import {make_a_move, make_opponents_move} from "./Game/moves"
 
 class PlayGameScreen extends Component{
 
@@ -19,9 +19,8 @@ class PlayGameScreen extends Component{
     componentDidMount() {
         this.socket.on("make_move_local", data => {
             if (data === undefined) return;
-
-            board.change_Turn();
-            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false);
+            console.log("DOSTAEM");
+            make_opponents_move(data.startingSquare,data.targetSquare,data.mtype);
         });
     }
 

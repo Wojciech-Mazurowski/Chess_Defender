@@ -79,6 +79,11 @@ export default function sketch (p5) {
         check_if_check();
         Generate_moves(board.grid);
 
+        console.log("____RELEASE");
+        console.log(board.grid);
+        console.log(board.FEN);
+        console.log("RELEASE_____");
+
     }
 
 
