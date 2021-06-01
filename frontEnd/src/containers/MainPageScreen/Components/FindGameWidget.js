@@ -26,7 +26,6 @@ export default function FindGameWidget() {
 
     //socketIO Client
     const socket = useContext(SocketContext);
-    const [socketConnected, setSocketConnected] = useState(false);
     const game = useGame();
 
 
@@ -56,42 +55,34 @@ export default function FindGameWidget() {
     }
 
 
-    async function setupSocket() {
-        await socket.connect();
-        await setSocketConnected(socket.is_connected);
-        //await socketProvider.changeSocket(socketProvider);
+    socket.on("queue_info", data => {
+        console.log("queue_data" + data);
+        setPlayersInQ(data.playersInQueue);
+    });
 
-        socket.on("queue_info", data => {
-            console.log("queue_data" + data);
-            setPlayersInQ(data.playersInQueue);
-        });
+    socket.on("update_scope", data => {
+        console.log("scope_update " + data);
+        setScope(data.scope);
+    });
 
-        socket.on("update_scope", data => {
-            console.log("scope_udpate " + data);
-            setScope(data.scope);
-        });
+    socket.on("game_found", data => {
+        //join game
+        console.log("game_found");
+        console.log(data);
+        game.changePlayingAs(data.playingAs);
+        game.changeGameId(data.gameId);
+        routeToNext(data.gameId)
+    });
 
-        socket.on("game_found", data => {
-            //join game
-            console.log("game_found");
-            console.log(data);
-            game.changePlayingAs(data.playingAs);
-            game.changeGameId(data.gameId);
-            routeToNext(data.gameId)
-        });
-
-    }
 
     async function joinQ() {
         //check for socket connection, if none exists, connect
-        if (!socketConnected) {
-            await setupSocket();
-        }
+        if (!socket.is_connected) return;
         await socket.emit("join_queue", playerId);
     }
 
     async function leaveQ() {
-        if (!socketConnected) return;
+        if (!socket.is_connected) return;
         await socket.emit("leave_queue", playerId);
     }
 

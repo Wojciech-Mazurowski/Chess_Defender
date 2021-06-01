@@ -1,4 +1,6 @@
 import json
+import time
+
 from flask import Flask, render_template, session, request, copy_current_request_context, jsonify, make_response
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
 import ChessDB_PT
@@ -6,6 +8,7 @@ import random
 import hashlib
 from flask_cors import CORS
 import queue
+from timeit import default_timer as timer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
@@ -37,6 +40,8 @@ Sessions = {}
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 thread = None
+# holds id's of all sockets that are authorized to communicate as given playerId
+authorized_sockets = {}
 
 
 @app.route('/login', methods=['POST', 'OPTIONS'])
@@ -163,7 +168,7 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    #game_history=[]
+    # game_history=[]
     game_history = db.get_games(id)
     print(game_history)
 
@@ -194,7 +199,7 @@ def get_history():
         history.append(match)
 
     print(history)
-    #history = generate_example_match_data()
+    # history = generate_example_match_data()
     resp = make_response(json.dumps(history), 200)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Headers'] = '*'
@@ -250,6 +255,12 @@ def join_queue(player_id):
     if thread is None:
         thread = socketio.start_background_task(run_match_maker)
 
+    # authorize player
+    if not check_auth(request.sid, player_id):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
     print("Player with id " + player_id + " joined the queue")
     join_room('queue')
 
@@ -258,8 +269,8 @@ def join_queue(player_id):
 
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
-        # as array id,elo,sessionId,waitTime (in ms)
-        queue.append([player_id, elo, request.sid, 0])
+        # as array id,elo,sessionId,waitTime (in ms), currentScope
+        queue.append([player_id, elo, request.sid, 0, initial_scope])
         print(queue)
 
     # send back current queue info to all connected clients
@@ -268,6 +279,12 @@ def join_queue(player_id):
 
 @socketio.on('leave_queue')
 def leave_queue(player_id):
+    # authorize player
+    if not check_auth(request.sid, player_id):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
     print("Player with id " + player_id + "left the queue")
     leave_room('queue')
 
@@ -284,6 +301,12 @@ def leave_queue(player_id):
 def make_move(data):
     obj = json.loads(data)
     print(obj)
+
+    # authorize player
+    if not check_auth(request.sid, data["playerId"]):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
 
     game_room_id = obj['gameroomId']
     move = obj['move']
@@ -333,12 +356,14 @@ def make_move(data):
 
 def match_maker():
     while True:
-        if len(queue) > 1:
-            for player in queue:
-                print("Trying to match " + str(player))
-                time_taken = find_match(player)
-                # increment wait time for all players still in queue
-                increment_wait_time(time_taken)
+        for player in queue:
+            start = timer()
+            find_match(player)
+            end = timer()
+
+            time_taken = (end - start) * 1000
+            # increment wait time for all players still in queue
+            increment_wait_time(time_taken)
 
 
 def increment_wait_time(time_taken):
@@ -352,10 +377,11 @@ def find_match(player):
     player_elo = player[1]
     player_sid = player[2]
     player_wait_time = player[3]
+    player_curr_scope = player[4]
 
     # increment scope depending on how long the player has been waiting for
-    scope = initial_scope + player_wait_time * 2
-    print(scope)
+    scope = initial_scope + int(player_wait_time / scope_update_interval) * scope_update_ammount
+
     # iterate through all possible opponents
     for opponent in queue:
 
@@ -416,12 +442,18 @@ def find_match(player):
             join_room(game_room_id, opponent_sid)
             games[game_room_id] = [white_sid, black_sid, 'w']
 
+    # notify player of scope change if it has happened
+    if player_curr_scope != scope:
+        player[4] = scope
+        emit("update_scope", {'scope': scope}, to=player_sid)
+
     time_taken = 1
     return time_taken
 
 
 @socketio.on('disconnect')
 def disconnect():
+
     # delete player from queue if he's in it
     to_be_removed = get_player_from_queue_by_sid(request.sid)
     if to_be_removed != False:
@@ -429,14 +461,37 @@ def disconnect():
         queue.remove(to_be_removed)
 
     # remove from game he was in?
-
     print('Client disconnected ', request.sid)
 
 
 @socketio.event
 def connect():
     print('Player connected! ' + request.sid)
-    emit('my_response', {'data': 'Connected', 'count': 0})
+    emit('connet', {})
+
+
+def check_auth(sid, player_id):
+    if (str(player_id) not in authorized_sockets) or (sid not in authorized_sockets[str(player_id)]):
+        return False
+
+    return True
+
+
+@socketio.on("authorize")
+def authorize(data):
+    auth_token = data['sessionToken']
+    player_id = data['userId']
+
+    # communicate unauthorised access
+    if (str(player_id) not in Sessions) or Sessions[str(player_id)] != auth_token:
+        print("Authorization of player"+player_id+" failed")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return False
+
+    print("Authorization of player" + player_id + " succeded")
+    # add socket id to authorized sockets for player
+    authorized_sockets[str(player_id)] = request.sid
+    emit('authorized', )
 
 
 socketio.run(app, host="127.0.0.1", port=5000, debug=True)
