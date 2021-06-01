@@ -75,7 +75,7 @@
     background-color: var( --primary-color-dark) ;
 }
 
-p{
+.LogRegForm p{
     font-size: 0.9rem;
     color: var(--text-color);
     opacity: 0.7;
