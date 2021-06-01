@@ -169,19 +169,31 @@ def get_player_stats():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    #user_info= db.get_user_by_id(id)
-    #elo = user_info[5]
+    #placeholder vars if cannot connect to db
+    elo = 1000
     deviaton = 10
+    gamesPlayed = 10
+    gamesWon = 5
+    gamesLost = 5
+    draws = 5
 
-    gamesPlayed = db.count_games(id)
-    #gamesWon = db.count_wins(id)
-    #gamesLost = db.count_losses(id)
-    #draws = db.count_draws(id)
-    gamesPlayed=1
-    gamesWon=1
-    gamesLost=1
-    draws=1
-    elo=1
+    try:
+        user_info= db.get_user_by_id(id)
+        elo = user_info[5]
+        deviaton = 10
+
+        gamesPlayed = db.count_games(id)
+        gamesWon = db.count_wins(id)
+        gamesLost = db.count_losses(id)
+        draws = db.count_draws(id)
+    except:
+        print("DB ERROR")
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
 
     data_json = jsonify(
         {'elo': elo,
