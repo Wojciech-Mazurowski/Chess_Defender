@@ -30,6 +30,7 @@ class MatchHistory extends Component {
         this.setState({isLoading: false})
         //handle network errors
         if (resp === undefined || resp.error !== undefined) {
+            this.setState({matchHistory: this.getEmptyMatchHistoryItem()});
             //show some error messagae
             return;
         }

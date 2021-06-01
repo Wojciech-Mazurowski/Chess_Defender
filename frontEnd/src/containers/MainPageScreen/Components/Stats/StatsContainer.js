@@ -17,7 +17,7 @@ export default function StatsContainer() {
 
     useEffect(() => {
         fetchPlayerData();
-    });
+    }, []);
 
 
     async function fetchPlayerData() {
@@ -38,12 +38,12 @@ export default function StatsContainer() {
             return;
         }
 
-        setCurrentElo(resp.elo);
-        setRankDeviation(resp.deviation);
-        setGamesPlayed(resp.gamesPlayed);
-        setGamesWon(resp.gamesWon);
-        setGamesLost(resp.gamesLost);
-        setDraws(resp.draws);
+        await setCurrentElo(resp.elo);
+        await setRankDeviation(resp.deviation);
+        await setGamesPlayed(resp.gamesPlayed);
+        await setGamesWon(resp.gamesWon);
+        await setGamesLost(resp.gamesLost);
+        await setDraws(resp.draws);
     }
 
     return (
