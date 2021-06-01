@@ -319,7 +319,7 @@ function check_move(StartSquare, TargetSquare) {
     return -1;
 }
 
-function get_pixel_position_from_pixel_positon_array(pos) { //thanks javascript
+export function get_pixel_position_from_pixel_positon_array(pos) { //thanks javascript
     let position;
     for (let i = 0; i < pixel_positions.length; i++) {
         if (pos[0] === pixel_positions[i][0] && pos[1] === pixel_positions[i][1]) {
