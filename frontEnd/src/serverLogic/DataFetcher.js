@@ -22,6 +22,24 @@ export async function getMatchHistory(userId) {
     }
 }
 
+export async function getPlayerStats(userId) {
+    try {
+        const requestOptions = {
+            method: 'GET',
+            mode: 'cors',
+            headers: authHeader(),
+            timeout: 6000
+        };
+
+        const response = await fetchWithTimeout(API_URL + '/player_stats?userId=' + userId, requestOptions);
+        const respObj = await handleResponse(response);
+        if (FETCH_DEBUGGING_MODE) console.log(response);
+        return respObj;
+    } catch (error) {
+        console.log(error.name === 'AbortError');
+    }
+}
+
 //prevent networkerrors from crashing fetch requests
 export async function fetchWithTimeout(resource, options) {
     const {timeout = 8000} = options;
