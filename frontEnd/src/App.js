@@ -8,7 +8,6 @@ import {SocketContext,socket} from './context/socketContext';
 import {GameProvider} from './context/gameContext';
 
 
-localStorage.debug = 'none'; //turns on socket data logging into console
 socket.connect();
 
 //redirects to login if user is not authenticated

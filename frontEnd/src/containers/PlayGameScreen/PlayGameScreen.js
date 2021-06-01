@@ -13,7 +13,16 @@ class PlayGameScreen extends Component{
         super(props);
         this.game=this.props.gameContext;
         this.socket= this.props.socketContext;
-        this.socketSetup();
+        this.lastMove= null;
+    }
+
+    componentDidMount() {
+        this.socket.on("make_move_local", data => {
+            if (data === undefined) return;
+
+            board.change_Turn();
+            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false);
+        });
     }
 
     blackStyle={
@@ -34,13 +43,6 @@ class PlayGameScreen extends Component{
         await socket.emit("make_move", JSON.stringify({move,gameroomId,playerId}));
     }
 
-    socketSetup(){
-        this.socket.on("make_move", data => {
-            if (data === undefined) return;
-            console.log(data);
-            board.set_FEN_by_move(data.startingSquare,data.targetSquare,false);
-        });
-    }
 
     render() {
 
