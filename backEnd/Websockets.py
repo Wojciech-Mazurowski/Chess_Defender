@@ -151,6 +151,53 @@ def register():
         return resp
 
 
+@app.route('/player_stats', methods=['GET', 'OPTIONS'])
+def get_player_stats():
+    if request.method == "OPTIONS":
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
+    id = request.args['userId']
+
+    # handle user not having a session at all or invalid authorization
+    if (str(id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(id)]):
+        resp = make_response(jsonify(
+            {"error": "Authorisation failed."}), 401)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
+    #user_info= db.get_user_by_id(id)
+    #elo = user_info[5]
+    deviaton = 10
+
+    gamesPlayed = db.count_games(id)
+    #gamesWon = db.count_wins(id)
+    #gamesLost = db.count_losses(id)
+    #draws = db.count_draws(id)
+    gamesPlayed=1
+    gamesWon=1
+    gamesLost=1
+    draws=1
+    elo=1
+
+    data_json = jsonify(
+        {'elo': elo,
+         'deviaton': deviaton,
+         'gamesPlayed':gamesPlayed,
+         'gamesWon':gamesWon,
+        'gamesLost':gamesLost,
+        'draws':draws}
+    )
+
+    resp = make_response(data_json, 200)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = '*'
+    return resp
+
+
 @app.route('/match_history', methods=['GET', 'OPTIONS'])
 def get_history():
     if request.method == "OPTIONS":
@@ -169,8 +216,8 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    game_history=[]
-    #game_history = db.get_games(id)
+    game_history = []
+    # game_history = db.get_games(id)
     print(game_history)
 
     history = []
@@ -352,7 +399,7 @@ def make_move(data):
     games[game_room_id][2] = opp_turn
 
     # send move to opponent
-    emit('make_move', move, to=opponent_sid)
+    emit('make_move_local', move, to=opponent_sid)
 
 
 def match_maker():
@@ -454,7 +501,6 @@ def find_match(player):
 
 @socketio.on('disconnect')
 def disconnect():
-
     # delete player from queue if he's in it
     to_be_removed = get_player_from_queue_by_sid(request.sid)
     if to_be_removed != False:
@@ -485,16 +531,16 @@ def authorize(data):
 
     # communicate unauthorised access
     if (str(player_id) not in Sessions) or Sessions[str(player_id)] != auth_token:
-        print("Authorization of player"+str(player_id)+" failed")
+        print("Authorization of player" + str(player_id) + " failed")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return False
 
-    print("Authorization of player" +str(player_id) + " succeded")
+    print("Authorization of player" + str(player_id) + " succeded")
     # add socket id to authorized sockets for player
     authorized_sockets[str(player_id)] = request.sid
     emit('authorized', )
 
 
-socketio.run(app, host="127.0.0.1", port=5000, debug=True)
+socketio.run(app, host="192.168.1.56", port=5000, debug=True)
 
-# app.run("127.0.0.1", 5000, debug=True)
+# app.run("192.168.1.56", 5000, debug=True)

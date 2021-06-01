@@ -66,9 +66,7 @@ export default class Board {
         //sprawdzic czy król sie juz ruszył i wieza czy sie da roszade zrobic i wtedy dopisać ją do fena, tak samo który jest teraz ruch
         temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.FEN.split(' ')[3] + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
         this.FEN = temp_fen;
-        console.log(this.FEN);
         this.load_FEN();
-        console.log(this.FEN);
     }
 
     set_FEN_by_move(StartingSquare, TargetSquare) {
@@ -80,7 +78,6 @@ export default class Board {
         board.grid[TargetSquare].old_x = pixel_positions[TargetSquare][0];
         board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
 
-        console.log(board.grid);
 
         board.change_Turn();
         //print_board2();
@@ -130,7 +127,12 @@ export default class Board {
 
             let highlight = pixel_positions[moves[i].EndSquare];
             if (board.grid[moves[i].StartSquare].dragging) {
-                this.p5.rect(highlight[0], highlight[1], 100, 100);
+                this.p5.push()
+                this.p5.translate(size/2,size/2);
+                this.p5.noStroke();
+                this.p5.fill(this.p5.color(66,129,74));
+                this.p5.circle(highlight[0], highlight[1], size/3);
+                this.p5.pop();
             }
         }
 
