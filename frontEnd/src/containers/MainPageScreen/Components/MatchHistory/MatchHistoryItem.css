@@ -67,7 +67,7 @@
     font-size: 1.2em;
     color: var(--text-color);
     display: block;
-    opacity: 40%;
+    opacity: 0.4;
     font-family: Montserrat-Light;
 }
 /*VS between players*/
@@ -76,13 +76,13 @@
     font-size: 1.5em;
     margin-right:1em;
     margin-left: 1em;
-    opacity: 50%;
+    opacity: 0.5;
 }
 
 .MatchHistoryItem-date{
     margin-left: auto; /*floats it to the right side*/
     color:var(--text-color);
-    opacity: 60%;
+    opacity: 0.6;
 }
 
 /*hour*/
