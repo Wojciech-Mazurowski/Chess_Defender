@@ -88,7 +88,7 @@ export default class Board {
         board.grid[TargetSquare].old_x = pixel_positions[TargetSquare][0];
         board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
 
-
+        board.change_Turn();
         //print_board2();
         this.set_FEN_from_grid()
     }
