@@ -5,10 +5,10 @@ import mysql.connector
 class ChessDB:
 
     def __init__(self):
-        self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
-#         self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
-#                                              password="",
-#                                             database="ChessDB")
+       # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
+        self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
+                                             password="ChessDB1!",
+                                            database="ChessDB")
 
     def create_db(self):
         mycursor = self.mydb.cursor()
@@ -212,7 +212,7 @@ class ChessDB:
         sql_count = (
             "SELECT COUNT(Games.GameID) FROM Games, Participants WHERE UserID = %s AND Games.GameID = Participants.GameID")
 
-        data_count = (self.get_user(Username)[0],)
+        data_count = (self.get_user_by_id(Username)[0],)
         mycursor.execute(sql_count, data_count)
         result = mycursor.fetchone()
         mycursor.close()
@@ -225,7 +225,7 @@ class ChessDB:
                         WHERE UserID = %s AND Games.GameID = Participants.GameID)t1 
                         WHERE Score = 1;""")
 
-        data_count = (self.get_user(Username)[0],)
+        data_count = (self.get_user_by_id(Username)[0],)
         mycursor.execute(sql_count, data_count)
         result = mycursor.fetchone()
         mycursor.close()
@@ -238,7 +238,7 @@ class ChessDB:
                      WHERE UserID = %s AND Games.GameID = Participants.GameID)t1
                      WHERE Score = 0.5""")
 
-        data_count = (self.get_user(Username)[0],)
+        data_count = (self.get_user_by_id(Username)[0],)
         mycursor.execute(sql_count, data_count)
         result = mycursor.fetchone()
         mycursor.close()
@@ -251,7 +251,7 @@ class ChessDB:
                          WHERE UserID = %s AND Games.GameID = Participants.GameID)t1
                          WHERE Score = 0""")
 
-        data_count = (self.get_user(Username)[0],)
+        data_count = (self.get_user_by_id(Username)[0],)
         mycursor.execute(sql_count, data_count)
         result = mycursor.fetchone()
         mycursor.close()
