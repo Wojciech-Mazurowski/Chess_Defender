@@ -261,7 +261,7 @@ class ChessDB:
         mycursor = self.mydb.cursor()
 
         sql_count = (
-            "SELECT COUNT(Moves.moveID) FROM Games, Moves WHERE GameID = %s AND Games.GameID = Moves.GameID")
+            "SELECT COUNT(Moves.moveID) FROM Games, Moves WHERE Moves.GameID = %s AND Games.GameID = Moves.GameID")
 
         data_count = (gameID,)
         mycursor.execute(sql_count, data_count)
