@@ -1,6 +1,5 @@
 import json
 import time
-import gevent
 
 from flask import Flask, render_template, session, request, copy_current_request_context, jsonify, make_response
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
@@ -39,7 +38,7 @@ Sessions = {}
 
 # Websocket communication
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*")
 thread = None
 # holds id's of all sockets that are authorized to communicate as given playerId
 authorized_sockets = {}
@@ -177,22 +176,22 @@ def get_player_stats():
     gamesLost = 5
     draws = 5
 
-    try:
-        user_info = db.get_user_by_id(user_id)
-        elo = user_info[5]
-        deviaton = 10
-
-        gamesPlayed = db.count_games(user_id)
-        gamesWon = db.count_wins(user_id)
-        gamesLost = db.count_losses(user_id)
-        draws = db.count_draws(user_id)
-    except:
-        print("DB ERROR")
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+    # try:
+    #     user_info = db.get_user_by_id(user_id)
+    #     elo = user_info[5]
+    #     deviaton = 10
+    #
+    #     gamesPlayed = db.count_games(user_id)
+    #     gamesWon = db.count_wins(user_id)
+    #     gamesLost = db.count_losses(user_id)
+    #     draws = db.count_draws(user_id)
+    # except Exception as ex:
+    #     print("DB ERROR"+str(ex))
+    #     resp = make_response(jsonify(
+    #         {"error": "Can't fetch from db"}), 503)
+    #     resp.headers['Access-Control-Allow-Origin'] = '*'
+    #     resp.headers['Access-Control-Allow-Headers'] = '*'
+    #     return resp
 
     data_json = jsonify(
         {'elo': elo,
@@ -228,15 +227,15 @@ def get_history():
         return resp
 
     game_history = []
-    try:
-        game_history = db.get_games(user_id)
-    except:
-        print("DB ERROR")
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+    # try:
+    #     game_history = db.get_games(user_id)
+    # except Exception as ex:
+    #     print("DB ERROR"+str(ex))
+    #     resp = make_response(jsonify(
+    #         {"error": "Can't fetch from db"}), 503)
+    #     resp.headers['Access-Control-Allow-Origin'] = '*'
+    #     resp.headers['Access-Control-Allow-Headers'] = '*'
+    #     return resp
 
     print(game_history)
 
@@ -333,16 +332,19 @@ def join_queue(player_id):
     join_room('queue')
 
     # get player elo from db
-    try:
-        elo = db.get_user_by_id(player_id)[5]
-    except:
-        print("DB ERROR")
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-
+    # try:
+    #     user=db.get_user_by_id(player_id)
+    #     print(user)
+    #     elo = user[5]
+    #     print(elo)
+    # except Exception as ex:
+    #     print("DB ERROR"+str(ex))
+    #     resp = make_response(jsonify(
+    #         {"error": "Can't fetch from db"}), 503)
+    #     resp.headers['Access-Control-Allow-Origin'] = '*'
+    #     resp.headers['Access-Control-Allow-Headers'] = '*'
+    #     return resp
+    elo=1500;
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
         # as array id,elo,sessionId,waitTime (in ms), currentScope
@@ -413,7 +415,7 @@ def make_move(data):
     # print(room_info)
 
     # check if it's coming from the wrong player
-    if (curr_turn == 'w' and player_sid != white_sid) or (curr_turn == 'b' and player_sid != black_sid):
+    if (curr_turn == 'w' and player_sid not in white_sid) or (curr_turn == 'b' and player_sid not in black_sid):
         # send not ur turn packet
         return
 
@@ -544,7 +546,7 @@ def disconnect():
 
 # returns -1 if isn't, room id if is
 def get_is_player_in_game(playerId):
-    for roomId, value in games:
+    for roomId, value in games.items():
         print(roomId)
         print(value)
         if value[0] == playerId or value[1] == playerId:
@@ -579,15 +581,18 @@ def authorize(data):
 
     print("Authorization of player" + str(player_id) + " succeded")
     # add socket id to authorized sockets for player
-    authorized_sockets[str(player_id)] = request.sid
-    emit('authorized', )
+    authorized_sockets.setdefault(str(player_id), []).append(request.sid)
 
     # check if player was in a game/lobby and add him back
-    game_id = get_is_player_in_game
+    game_id = get_is_player_in_game(player_id)
     if game_id != -1:
         join_room(game_id, request.sid)
 
+    emit('authorized', )
 
-socketio.run(app, host='192.168.1.56', port=5000, debug=True)
+
+
+
+socketio.run(app, host='127.0.0.1', port=5000, debug=True)
 
 # app.run("192.168.1.56", 5000, debug=True)

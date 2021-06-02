@@ -64,3 +64,4 @@ venv/Lib/site-packages/distutils-precedence.pth
 .idea/Chess_Defender.iml
 .idea/misc.xml
 .idea/Chess_Defender.iml
+frontEnd/src/serverLogic/APIConfig.js
