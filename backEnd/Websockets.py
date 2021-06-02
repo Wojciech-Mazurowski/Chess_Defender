@@ -16,9 +16,6 @@ app.config['DEBUG'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-db = ChessDB_PT.ChessDB()
-db.create_db()
-
 # create example games
 # moves = [("WHITE", 0, "G1F3"), ("BLACK", 1, "B8A6"), ("WHITE", 2, "G1F3"), ("BLACK", 3, "B8A6")]
 # db.add_game(0, '1420', 2, '1500', 'LOSS', 12, 10, 2021, moves)
@@ -52,6 +49,7 @@ def login():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
     else:
+        db = ChessDB_PT.ChessDB()
         rf = request.get_json()
         print(rf)
         user = db.get_user(rf['username'])
@@ -132,6 +130,7 @@ def register():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
     else:
+        db = ChessDB_PT.ChessDB()
         rf = request.get_json()
         print(rf)
         user = db.get_user(rf['username'])
@@ -206,22 +205,22 @@ def get_player_stats():
     gamesLost = 5
     draws = 5
 
-    # try:
-    #     user_info = db.get_user_by_id(user_id)
-    #     elo = user_info[5]
-    #     deviaton = 10
-    #
-    #     gamesPlayed = db.count_games(user_id)
-    #     gamesWon = db.count_wins(user_id)
-    #     gamesLost = db.count_losses(user_id)
-    #     draws = db.count_draws(user_id)
-    # except Exception as ex:
-    #     print("DB ERROR"+str(ex))
-    #     resp = make_response(jsonify(
-    #         {"error": "Can't fetch from db"}), 503)
-    #     resp.headers['Access-Control-Allow-Origin'] = '*'
-    #     resp.headers['Access-Control-Allow-Headers'] = '*'
-    #     return resp
+    try:
+        db = ChessDB_PT.ChessDB()
+        user_info = db.get_user_by_id(user_id)
+        elo = user_info[5]
+        deviaton = 10
+        gamesPlayed = db.count_games(user_id)
+        gamesWon = db.count_wins(user_id)
+        gamesLost = db.count_losses(user_id)
+        draws = db.count_draws(user_id)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     data_json = jsonify(
         {'elo': elo,
@@ -257,19 +256,21 @@ def get_history():
         return resp
 
     game_history = []
-    # try:
-    #     game_history = db.get_games(user_id)
-    # except Exception as ex:
-    #     print("DB ERROR"+str(ex))
-    #     resp = make_response(jsonify(
-    #         {"error": "Can't fetch from db"}), 503)
-    #     resp.headers['Access-Control-Allow-Origin'] = '*'
-    #     resp.headers['Access-Control-Allow-Headers'] = '*'
-    #     return resp
+    try:
+        db = ChessDB_PT.ChessDB()
+        game_history = db.get_games(user_id)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     print(game_history)
 
     history = []
+
     for game in game_history:
         white = db.get_participant('White', game[0])
         black = db.get_participant('Black', game[0])
@@ -592,6 +593,7 @@ def find_match(player):
                 black_elo = player_elo
 
             # create game in db
+            db = ChessDB_PT.ChessDB()
             game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
 
             game_id_hash = hashlib.sha256(str(game_id).encode())
