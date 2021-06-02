@@ -75,7 +75,7 @@ export default function sketch (p5) {
         make_a_move();
         Generate_opponent_moves(board.grid);
         check_if_check();
-        Generate_moves(board.grid,board.check);
+        Generate_moves(board.grid,board.check,"released");
 
 
     }
@@ -98,7 +98,7 @@ export default function sketch (p5) {
             }
         }
         count_squares_to_edge();
-        Generate_moves(board.grid,board.check);
+        Generate_moves(board.grid,board.check,"setup");
 
     };
 
