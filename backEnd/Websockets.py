@@ -159,10 +159,10 @@ def get_player_stats():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    id = request.args['userId']
+    user_id = request.args['userId']
 
     # handle user not having a session at all or invalid authorization
-    if (str(id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(id)]):
+    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
         resp = make_response(jsonify(
             {"error": "Authorisation failed."}), 401)
         resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -178,14 +178,14 @@ def get_player_stats():
     draws = 5
 
     try:
-        user_info = db.get_user_by_id(id)
+        user_info = db.get_user_by_id(user_id)
         elo = user_info[5]
         deviaton = 10
 
-        gamesPlayed = db.count_games(id)
-        gamesWon = db.count_wins(id)
-        gamesLost = db.count_losses(id)
-        draws = db.count_draws(id)
+        gamesPlayed = db.count_games(user_id)
+        gamesWon = db.count_wins(user_id)
+        gamesLost = db.count_losses(user_id)
+        draws = db.count_draws(user_id)
     except:
         print("DB ERROR")
         resp = make_response(jsonify(
@@ -217,10 +217,10 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    id = request.args['userId']
+    user_id = request.args['userId']
 
     # handle user not having a session at all or invalid authorization
-    if (str(id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(id)]):
+    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
         resp = make_response(jsonify(
             {"error": "Authorisation failed."}), 401)
         resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -229,7 +229,7 @@ def get_history():
 
     game_history = []
     try:
-        game_history = db.get_games(id)
+        game_history = db.get_games(user_id)
     except:
         print("DB ERROR")
         resp = make_response(jsonify(
@@ -244,7 +244,7 @@ def get_history():
     for game in game_history:
         white = db.get_participant('White', game[0])
         black = db.get_participant('Black', game[0])
-        if white[0] == id:
+        if white[0] == user_id:
             if white[3] == '1':
                 result = "win"
             elif white[3] == '0':
@@ -399,8 +399,8 @@ def make_move(data):
     black_id = room_info[1]
     curr_turn = room_info[2]
 
-    white_sid=authorized_sockets[white_id]
-    black_sid=authorized_sockets[black_id]
+    white_sid = authorized_sockets[white_id]
+    black_sid = authorized_sockets[black_id]
 
     # get opponent sid
     opponent_sid = black_sid
@@ -541,20 +541,22 @@ def disconnect():
     # remove from game he was in?
     print('Client disconnected ', request.sid)
 
-#returns -1 if isn't, room id if is
+
+# returns -1 if isn't, room id if is
 def get_is_player_in_game(playerId):
-    for roomId,value in games:
-        if value[0] == playerId or  value[1] == playerId:
+    for roomId, value in games:
+        print(roomId)
+        print(value)
+        if value[0] == playerId or value[1] == playerId:
             return roomId
 
     return -1
+
 
 @socketio.event
 def connect():
     print('Player connected! ' + request.sid)
     emit('connect', {})
-
-
 
 
 def check_auth(sid, player_id):
@@ -580,13 +582,12 @@ def authorize(data):
     authorized_sockets[str(player_id)] = request.sid
     emit('authorized', )
 
-    #check if player was in a game/lobby and add him back
-    game_id=get_is_player_in_game
-    if game_id!=-1:
-        join_room(game_id,request.sid)
+    # check if player was in a game/lobby and add him back
+    game_id = get_is_player_in_game
+    if game_id != -1:
+        join_room(game_id, request.sid)
 
 
-
-socketio.run(app, host="192.168.1.56", port=5000, debug=True)
+socketio.run(app, host='192.168.1.56', port=5000, debug=True)
 
 # app.run("192.168.1.56", 5000, debug=True)
