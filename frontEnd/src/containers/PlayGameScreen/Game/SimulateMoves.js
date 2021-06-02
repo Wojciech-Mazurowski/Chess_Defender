@@ -9,14 +9,12 @@ import {
 } from "./moves";
 import {board, pixel_positions} from "./Main"
 
+//   board.color_to_move === 'w' ? ally_king  = get_black_king_pos() : ally_king = get_white_king_pos();
 
-
-export function simulate_moves(grid,ally_moves) {
+export function simulate_moves_for_ally(grid,ally_moves) {
     let simulation_grid;
     let opponent_king;
-    let ally_king;
     board.color_to_move === 'w' ? opponent_king  = get_white_king_pos() : opponent_king = get_black_king_pos();
-    board.color_to_move === 'w' ? ally_king  = get_black_king_pos() : ally_king = get_white_king_pos();
     let temp_grid = grid.slice();
     Generate_moves(temp_grid,0,"future");
     let check_flag=0;

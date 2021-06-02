@@ -1,6 +1,6 @@
 import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame} from "./Main";
 import {socket} from "../../../context/socketContext";
-import {simulate_moves} from "./SimulateMoves";
+import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
 export var opponent_moves = [];
@@ -73,7 +73,7 @@ export function Generate_moves(grid, check, type) {
 
     if(type!=="future"&&type!=="future2")
     {
-        simulate_moves(board.grid, ally_moves);
+        simulate_moves_for_ally(board.grid, ally_moves);
     }
     if (check === 1 && ally_moves.length === 0) {
 
