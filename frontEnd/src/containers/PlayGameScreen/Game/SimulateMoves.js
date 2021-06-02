@@ -14,14 +14,13 @@ import {board, pixel_positions} from "./Main"
 export function simulate_moves(grid) {
     let simulation_grid;
     let white_king = get_white_king_pos();
-    let temp_grid = grid
+    let temp_grid = grid.slice();
     Generate_moves(temp_grid,0,"future");
     let check_flag=0;
     for(let i=0;i<future_moves.length;i++)
     {
         simulation_grid = simulate_set_grid_by_move(future_moves[i].StartSquare,future_moves[i].EndSquare,temp_grid);
         Generate_opponent_moves(simulation_grid,"future2",);
-        console.log(future_opponent_moves2);
         for(let j =0;j<future_opponent_moves2.length;j++)
         {
             if(white_king===future_opponent_moves2[j].EndSquare)//TODO sprwadzac ktory krol
@@ -31,7 +30,7 @@ export function simulate_moves(grid) {
         }
         if(check_flag===0)
         {
-           //console.log("da sie zablokowac");
+           console.log("da sie zablokowac");
         }
         check_flag=0;
     }
@@ -41,7 +40,7 @@ export function simulate_moves(grid) {
 
 
 function simulate_set_grid_by_move(StartingSquare, TargetSquare, old_grid) {
-    let simulation_grid = old_grid;
+    let simulation_grid = old_grid.slice();
 
     let temp = simulation_grid[StartingSquare];
     simulation_grid[StartingSquare] = simulation_grid[TargetSquare];
