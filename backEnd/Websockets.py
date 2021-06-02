@@ -150,6 +150,36 @@ def register():
         return resp
 
 
+@app.route('/is_in_game', methods=['GET', 'OPTIONS'])
+def is_in_game():
+    if request.method == "OPTIONS":
+        resp = jsonify({})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
+    user_id = request.args['userId']
+    # handle user not having a session at all or invalid authorization
+    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
+        resp = make_response(jsonify(
+            {"error": "Authorisation failed."}), 401)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
+    data = {"inGame": False}
+
+    game_info = get_is_player_in_game(user_id)
+    if game_info[0] != -1:
+        data = {"inGame": True}
+
+    print(data)
+    resp = make_response(jsonify(data), 200)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = '*'
+    return resp
+
+
 @app.route('/player_stats', methods=['GET', 'OPTIONS'])
 def get_player_stats():
     if request.method == "OPTIONS":
@@ -374,6 +404,7 @@ def leave_queue(player_id):
     # send back success message
     emit('queue_left', {'success': 'true'}, to='queue')
 
+
 @socketio.on('end_game')
 def end_game(data):
     obj = json.loads(data)
@@ -381,21 +412,19 @@ def end_game(data):
 
     game_room_id = obj['gameroomId']
 
-    #check if game even exists
+    # check if game even exists
     if game_room_id not in games:
         print("GAME ARLEADY GONE!! ")
         emit('bad_move', {'error': 'Game already gone'})
         return
 
-
-    player_id=obj['playerId']
+    player_id = obj['playerId']
 
     # authorize player
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
-
 
     print("Player with id " + player_id + "ended the game")
 
@@ -415,17 +444,14 @@ def end_game(data):
         if white not in player_sid:
             opponent_sid = white_sid
 
-    #notify players of their respective results
+    # notify players of their respective results
     for sid in opponent_sid:
         emit("game_ended", {'result': 'lost'}, to=sid)
 
     emit("game_ended", {'result': 'win'}, to=player_sid)
 
-    #delete game
+    # delete game
     games.pop(str(game_room_id), None)
-
-
-
 
 
 @socketio.on('make_move')
@@ -489,7 +515,6 @@ def make_move(data):
 
     for sid in opponent_sid:
         emit('make_move_local', move, to=sid)
-
 
 
 def match_maker():
@@ -609,7 +634,7 @@ def get_is_player_in_game(playerId):
         if value[1] == playerId:
             return [roomId, 'b']
 
-    return [-1,'n']
+    return [-1, 'n']
 
 
 @socketio.event

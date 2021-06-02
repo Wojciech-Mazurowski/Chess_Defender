@@ -9,6 +9,7 @@ import {make_a_move, make_opponents_move} from "./Game/moves"
 import SectionTitle from "../CommonComponents/SectionTitle";
 import {useHistory} from "react-router-dom";
 import "./PlayGameScreen.css"
+import {getIsInGame} from "../../serverLogic/DataFetcher";
 
 class PlayGameScreen extends Component {
 
@@ -27,6 +28,20 @@ class PlayGameScreen extends Component {
     }
 
     componentDidMount() {
+        //check if opponent is in game, if not REROUTE back
+        let playerId = localStorage.getItem('userId');
+        getIsInGame(playerId).then( (resp)=>{
+            console.log("GOT is in game");
+            console.log(resp);
+            if (resp === undefined || resp.inGame) {
+                return;
+            }
+            //if not REROUTE back
+            if(!resp.inGame){this.props.routeToMain()}
+        }
+        );
+
+
         this.socket.on("make_move_local", data => {
             if (data === undefined) return;
             console.log("DOSTAEM");
