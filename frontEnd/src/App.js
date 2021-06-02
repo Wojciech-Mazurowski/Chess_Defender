@@ -30,8 +30,8 @@ function App() {
                       <Router>
                           <Route path="/" component={NavBar}/>
                           <Switch>
-                              <PrivateRoute path="/" exact component={MainPageScreen} />
-                              <PrivateRoute path="/play" component={PlayGameScreen} />
+                              <Route path="/" exact component={PlayGameScreen} />
+                              <Route path="/play" component={PlayGameScreen} />
                               <Route path="/login" component={LogRegScreen} />
                               <Redirect from="*" to="/" />
                           </Switch>

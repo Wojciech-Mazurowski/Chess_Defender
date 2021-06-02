@@ -70,9 +70,14 @@ export function Generate_moves(grid, check, type) {
 
         }
     }
-    if (board.check === 1 && ally_moves.length === 0) {
-        simulate_moves(board.grid,ally_moves);
-        if (board.check === 1 && ally_moves.length === 0) {
+
+    if(check===1)
+    {
+        simulate_moves(board.grid, ally_moves);
+    }
+    if (check === 1 && ally_moves.length === 0) {
+
+        if (check === 1 && ally_moves.length === 0) {
             console.log("tu szachmat");
             let data = {
                 //maybe make it send some data later
@@ -91,7 +96,6 @@ export function Generate_moves(grid, check, type) {
     } else if (type === "future2") {
         future_moves2 = ally_moves;
     } else {
-        console.log(board.grid)
         moves = ally_moves;
     }
 

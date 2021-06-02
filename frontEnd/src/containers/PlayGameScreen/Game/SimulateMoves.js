@@ -3,7 +3,7 @@ import {
     future_moves2,
     future_opponent_moves2,
     Generate_moves,
-    Generate_opponent_moves, get_white_king_pos,
+    Generate_opponent_moves, get_white_king_pos,get_black_king_pos,
     moves,
     opponent_moves
 } from "./moves";
@@ -13,7 +13,9 @@ import {board, pixel_positions} from "./Main"
 
 export function simulate_moves(grid,ally_moves) {
     let simulation_grid;
-    let white_king = get_white_king_pos();
+    let opponent_king;
+    board.color_to_move === 'w' ? opponent_king  = get_white_king_pos() : opponent_king = get_black_king_pos();
+
     let temp_grid = grid.slice();
     Generate_moves(temp_grid,0,"future");
     let check_flag=0;
@@ -23,16 +25,14 @@ export function simulate_moves(grid,ally_moves) {
         Generate_opponent_moves(simulation_grid,"future2",);
         for(let j =0;j<future_opponent_moves2.length;j++)
         {
-            if(white_king===future_opponent_moves2[j].EndSquare)//TODO sprwadzac ktory krol
+            if(opponent_king===future_opponent_moves2[j].EndSquare)//TODO sprwadzac ktory krol
             {
                 check_flag=1;
             }
         }
         if(check_flag===0)
         {
-           console.log("da sie zablokowac ruchem " );
            ally_moves.push(future_moves[i]);
-           console.log(future_moves[i]);
 
         }
         check_flag=0;
