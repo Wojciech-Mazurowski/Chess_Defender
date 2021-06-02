@@ -208,7 +208,7 @@ class ChessDB:
         mycursor.close()
         return result
 
-    def get_games(self, Username1, Username2):
+    def get_games_two(self, Username1, Username2):
         mycursor = self.mydb.cursor()
 
         sql_find = ("""SELECT t1.* FROM (SELECT Games.*,participants.UserID FROM Games,participants
@@ -227,7 +227,7 @@ class ChessDB:
         mycursor = self.mydb.cursor()
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
-                       WHERE Participants.UserID = %s AND Games.GameID = participants.GameID""")
+                       WHERE Participants.UserID = %s AND Games.GameID = Participants.GameID""")
         
         data_find = (UserID,)
         mycursor.execute(sql_find, data_find)

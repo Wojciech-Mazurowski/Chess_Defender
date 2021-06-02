@@ -10,7 +10,7 @@ export async function getMatchHistory(userId) {
             method: 'GET',
             mode: 'cors',
             headers: authHeader(),
-            timeout: 6000
+            timeout: 1000000
         };
 
         const response = await fetchWithTimeout(API_URL + '/match_history?userId=' + userId, requestOptions);
@@ -46,7 +46,7 @@ export async function getPlayerStats(userId) {
             method: 'GET',
             mode: 'cors',
             headers: authHeader(),
-            timeout: 6000
+            timeout: 600000
         };
 
         const response = await fetchWithTimeout(API_URL + '/player_stats?userId=' + userId, requestOptions);
