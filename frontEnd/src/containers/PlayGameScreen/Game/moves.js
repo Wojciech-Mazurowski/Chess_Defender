@@ -1,4 +1,4 @@
-import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer} from "./Main";
+import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame} from "./Main";
 import {socket} from "../../../context/socketContext";
 import {simulate_moves} from "./SimulateMoves";
 
@@ -72,6 +72,10 @@ export function Generate_moves(grid, check, type) {
     }
     if (board.check === 1 && ally_moves.length === 0) {
         console.log("tu szachmat");
+        let data = {
+            //maybe make it send some data later
+        }
+        sendEndGame(socket, data, gameroomId);
         //simulate_moves(board.grid); //TODO cos mi tu grida nadpisuje jakims cudem XD
     }
     if (board.check === 1 && ally_moves.length !== 0) {

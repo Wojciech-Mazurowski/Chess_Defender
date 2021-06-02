@@ -32,6 +32,7 @@ export let playingAs;
 export let gameroomId;
 export let socket;
 export let sendMoveToServer;
+export let sendEndGame;
 
 
 export default function sketch (p5) {
@@ -47,6 +48,9 @@ export default function sketch (p5) {
         }
         if (props.sendMoveToServer){
             sendMoveToServer = props.sendMoveToServer;
+        }
+        if(props.sendEndGame){
+            sendEndGame= props.sendEndGame
         }
 
     }
@@ -77,7 +81,8 @@ export default function sketch (p5) {
         check_if_check();
         Generate_moves(board.grid,board.check,"released");
 
-
+        //test end game
+        sendEndGame(socket, {}, gameroomId);
     }
 
 

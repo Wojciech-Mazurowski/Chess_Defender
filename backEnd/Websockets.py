@@ -374,6 +374,59 @@ def leave_queue(player_id):
     # send back success message
     emit('queue_left', {'success': 'true'}, to='queue')
 
+@socketio.on('end_game')
+def end_game(data):
+    obj = json.loads(data)
+    print(obj)
+
+    game_room_id = obj['gameroomId']
+
+    #check if game even exists
+    if game_room_id not in games:
+        print("GAME ARLEADY GONE!! ")
+        emit('bad_move', {'error': 'Game already gone'})
+        return
+
+
+    player_id=obj['playerId']
+
+    # authorize player
+    if not check_auth(request.sid, player_id):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+
+    print("Player with id " + player_id + "ended the game")
+
+    player_sid = request.sid
+
+    # [0] white_id,[1] black_id,[2] current_turn (w/b)
+    room_info = games[game_room_id]
+    white_id = room_info[0]
+    black_id = room_info[1]
+
+    white_sid = authorized_sockets[white_id]
+    black_sid = authorized_sockets[black_id]
+
+    # get opponent sid
+    opponent_sid = black_sid
+    for white in white_sid:
+        if white not in player_sid:
+            opponent_sid = white_sid
+
+    #notify players of their respective results
+    for sid in opponent_sid:
+        emit("game_ended", {'result': 'loss'}, to=sid)
+
+    emit("game_ended", {'result': 'win'}, to=player_sid)
+
+    #delete game
+    games.pop(str(game_room_id), None)
+
+
+
+
 
 @socketio.on('make_move')
 def make_move(data):
