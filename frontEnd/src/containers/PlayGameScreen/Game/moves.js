@@ -539,7 +539,7 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
     board.lastmove = new move(StartingSquare, TargetSquare, mType);
     Generate_opponent_moves(board.grid);
     check_if_check();
-    moves = Generate_moves(board.grid, board.check,"after_opponent");
+    Generate_moves(board.grid, board.check,"after_opponent");
 }
 
 export function make_a_move() {

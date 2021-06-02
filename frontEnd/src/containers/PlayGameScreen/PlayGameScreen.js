@@ -38,6 +38,7 @@ class PlayGameScreen extends Component{
             console.log("socket undefined")
             return;
         }
+        console.log("WYSLALEM");
         let playerId=localStorage.getItem('userId');
         await socket.emit("make_move", JSON.stringify({move,gameroomId,playerId}));
     }
