@@ -432,7 +432,7 @@ def make_move(data):
     games[game_room_id][2] = opp_turn
 
     # send move to opponent
-    emit('make_move_local', move, to=opponent_sid)
+    emit('make_move_local', move, to=opponent_sid[0])
 
 
 def match_maker():
