@@ -1,12 +1,15 @@
 import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer} from "./Main";
 import {socket} from "../../../context/socketContext";
+import {simulate_moves} from "./SimulateMoves";
 
 
 export var opponent_moves = [];
 export var moves = [];
 
 export var future_opponent_moves = [];
+export var future_opponent_moves2 = [];
 export var future_moves = [];
+export var future_moves2 = [];
 
 class move {
     constructor(starting_square, ending_square, type) {
@@ -45,7 +48,7 @@ export function Generate_moves(grid, check, type) {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && check === 0) { //TODO removed && board.color_to_move === playingAs for now
+        if (p.color === board.color_to_move && check === 0 && board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, grid, ally_moves);
@@ -70,25 +73,23 @@ export function Generate_moves(grid, check, type) {
     }
     if (board.check === 1 && ally_moves.length === 0) {
         console.log("tu szachmat");
-        simulate_moves();
+       // simulate_moves();
     }
     if (board.check === 1 && ally_moves.length !== 0) {
         board.check = 0;
     }
-    if (arguments.length === 2) {
-        moves = ally_moves;
-    } else {
+    if (type === "future") {
         future_moves = ally_moves;
+    } else if(type==="future2"){
+        future_moves2 = ally_moves;
+    }
+    else {
+        moves = ally_moves;
     }
 
 }
 
-function simulate_moves() {
-    let saving_moves = [];
-    //Generate_moves(saving_moves);
-    console.log(moves);
-    console.log(opponent_moves);
-}
+
 
 
 export function Generate_opponent_moves(grid, type) { //used for checks
@@ -110,12 +111,14 @@ export function Generate_opponent_moves(grid, type) { //used for checks
         }
 
     }
-    if (arguments.length === 1) {
-        opponent_moves = topponent_moves;
-    } else {
+    if (type === "future") {
         future_opponent_moves = topponent_moves;
+    } else if(type==="future2"){
+        future_opponent_moves2 = topponent_moves;
     }
-
+    else {
+        opponent_moves = topponent_moves;
+    }
 }
 
 
@@ -169,15 +172,14 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
         piece.color === 'w' ? Target = startSquare + Directions[5] : Target = startSquare + Directions[4];
         let Piece_on_Target = grid[Target];
 
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color && Numbers_of_squares_to_edge[startSquare][1]>0) {
 
             t_moves.push(new move(startSquare, Target, 'C'));
-
 
         }
         piece.color === 'w' ? Target = startSquare + Directions[7] : Target = startSquare + Directions[6];
         Piece_on_Target = grid[Target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color&&Numbers_of_squares_to_edge[startSquare][2]>0) {
 
             t_moves.push(new move(startSquare, Target, 'C'));
 
@@ -224,7 +226,7 @@ function Get_king_moves(startSquare, piece, grid, t_moves) {
 
                     t_moves.push(new move(startSquare, Target));
 
-                    if (Piece_on_Target.color !== piece.color) {
+                    if (Piece_on_Target.color !== piece.color&&Piece_on_Target.type_letter!=='e') {
 
                         t_moves[t_moves.length - 1].type = 'C';
 
