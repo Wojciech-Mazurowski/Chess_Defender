@@ -16,9 +16,6 @@ app.config['DEBUG'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-db = ChessDB_PT.ChessDB()
-db.create_db()
-
 # create example games
 # moves = [("WHITE", 0, "G1F3"), ("BLACK", 1, "B8A6"), ("WHITE", 2, "G1F3"), ("BLACK", 3, "B8A6")]
 # db.add_game(0, '1420', 2, '1500', 'LOSS', 12, 10, 2021, moves)
@@ -52,6 +49,7 @@ def login():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
     else:
+        db = ChessDB_PT.ChessDB()
         rf = request.get_json()
         print(rf)
         user = db.get_user(rf['username'])
@@ -132,6 +130,7 @@ def register():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
     else:
+        db = ChessDB_PT.ChessDB()
         rf = request.get_json()
         print(rf)
         user = db.get_user(rf['username'])
@@ -176,22 +175,22 @@ def get_player_stats():
     gamesLost = 5
     draws = 5
 
-    # try:
-    #     user_info = db.get_user_by_id(user_id)
-    #     elo = user_info[5]
-    #     deviaton = 10
-    #
-    #     gamesPlayed = db.count_games(user_id)
-    #     gamesWon = db.count_wins(user_id)
-    #     gamesLost = db.count_losses(user_id)
-    #     draws = db.count_draws(user_id)
-    # except Exception as ex:
-    #     print("DB ERROR"+str(ex))
-    #     resp = make_response(jsonify(
-    #         {"error": "Can't fetch from db"}), 503)
-    #     resp.headers['Access-Control-Allow-Origin'] = '*'
-    #     resp.headers['Access-Control-Allow-Headers'] = '*'
-    #     return resp
+    try:
+        db = ChessDB_PT.ChessDB()
+        user_info = db.get_user_by_id(user_id)
+        elo = user_info[5]
+        deviaton = 10
+        gamesPlayed = db.count_games(user_id)
+        gamesWon = db.count_wins(user_id)
+        gamesLost = db.count_losses(user_id)
+        draws = db.count_draws(user_id)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     data_json = jsonify(
         {'elo': elo,
@@ -227,19 +226,21 @@ def get_history():
         return resp
 
     game_history = []
-    # try:
-    #     game_history = db.get_games(user_id)
-    # except Exception as ex:
-    #     print("DB ERROR"+str(ex))
-    #     resp = make_response(jsonify(
-    #         {"error": "Can't fetch from db"}), 503)
-    #     resp.headers['Access-Control-Allow-Origin'] = '*'
-    #     resp.headers['Access-Control-Allow-Headers'] = '*'
-    #     return resp
+    try:
+        db = ChessDB_PT.ChessDB()
+        game_history = db.get_games(user_id)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     print(game_history)
 
     history = []
+
     for game in game_history:
         white = db.get_participant('White', game[0])
         black = db.get_participant('Black', game[0])
@@ -374,6 +375,7 @@ def leave_queue(player_id):
     # send back success message
     emit('queue_left', {'success': 'true'}, to='queue')
 
+
 @socketio.on('end_game')
 def end_game(data):
     obj = json.loads(data)
@@ -381,21 +383,19 @@ def end_game(data):
 
     game_room_id = obj['gameroomId']
 
-    #check if game even exists
+    # check if game even exists
     if game_room_id not in games:
         print("GAME ARLEADY GONE!! ")
         emit('bad_move', {'error': 'Game already gone'})
         return
 
-
-    player_id=obj['playerId']
+    player_id = obj['playerId']
 
     # authorize player
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
-
 
     print("Player with id " + player_id + "ended the game")
 
@@ -415,17 +415,14 @@ def end_game(data):
         if white not in player_sid:
             opponent_sid = white_sid
 
-    #notify players of their respective results
+    # notify players of their respective results
     for sid in opponent_sid:
         emit("game_ended", {'result': 'lost'}, to=sid)
 
     emit("game_ended", {'result': 'win'}, to=player_sid)
 
-    #delete game
+    # delete game
     games.pop(str(game_room_id), None)
-
-
-
 
 
 @socketio.on('make_move')
@@ -489,7 +486,6 @@ def make_move(data):
 
     for sid in opponent_sid:
         emit('make_move_local', move, to=sid)
-
 
 
 def match_maker():
@@ -567,6 +563,7 @@ def find_match(player):
                 black_elo = player_elo
 
             # create game in db
+            db = ChessDB_PT.ChessDB()
             game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
 
             game_id_hash = hashlib.sha256(str(game_id).encode())
@@ -609,7 +606,7 @@ def get_is_player_in_game(playerId):
         if value[1] == playerId:
             return [roomId, 'b']
 
-    return [-1,'n']
+    return [-1, 'n']
 
 
 @socketio.event

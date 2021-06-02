@@ -10,6 +10,9 @@ class ChessDB:
                                              password="ChessDB1!",
                                             database="ChessDB")
 
+    def __del__(self):
+        self.mydb.close()
+
     def create_db(self):
         mycursor = self.mydb.cursor()
 
