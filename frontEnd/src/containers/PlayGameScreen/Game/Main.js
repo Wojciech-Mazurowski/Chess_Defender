@@ -80,9 +80,6 @@ export default function sketch (p5) {
         Generate_opponent_moves(board.grid);
         check_if_check();
         Generate_moves(board.grid,board.check,"released");
-
-        //test end game
-        sendEndGame(socket, {}, gameroomId);
     }
 
 
