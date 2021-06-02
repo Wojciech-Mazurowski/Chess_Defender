@@ -12,6 +12,11 @@ import {board, pixel_positions, scalar, size} from "./Main"
 //   board.color_to_move === 'w' ? ally_king  = get_black_king_pos() : ally_king = get_white_king_pos();
 
 export function simulate_moves_for_ally(grid, ally_moves) {
+    let ally_king;
+    board.color_to_move === 'b' ? ally_king = get_black_king_pos() : ally_king = get_white_king_pos();
+    let stop_flag = 0;
+
+
     let simulation_grid;
     let opponent_king;
     board.color_to_move === 'w' ? opponent_king = get_white_king_pos() : opponent_king = get_black_king_pos();
@@ -27,45 +32,21 @@ export function simulate_moves_for_ally(grid, ally_moves) {
             if (opponent_king === future_move) {
                 check_flag = 1;
             }
+            if (ally_king === future_move.EndSquare && find_move_in_moves_for_simulation(future_moves[i], ally_moves) !== -1) {
+                stop_flag = 1;
+            }
         }
         if (check_flag === 0) {
             ally_moves.push(future_moves[i]);
 
         }
         check_flag = 0;
-    }
-
-}
-
-
-export function simulate_moves_for_opponent(grid, ally_moves) {
-    let simulation_grid;
-    let ally_king;
-    board.color_to_move === 'b' ? ally_king = get_black_king_pos() : ally_king = get_white_king_pos();
-    let temp_grid = grid.slice();
-    Generate_moves(temp_grid, 0, "future");
-    let stop_flag = 0;
-    let future_move;
-    console.log(future_moves);
-    for (let i = 0; i < future_moves.length; i++) {
-        simulation_grid = simulate_set_grid_by_move(future_moves[i].StartSquare, future_moves[i].EndSquare, temp_grid, future_moves[i].type);
-        Generate_opponent_moves(simulation_grid, "future2");
-        console.log(future_opponent_moves2);
-        for (let j = 0; j < future_opponent_moves2.length; j++) {
-            future_move = future_opponent_moves2[j];
-            if (ally_king === future_move.EndSquare && find_move_in_moves_for_simulation(future_moves[i], ally_moves) !== -1) {
-                stop_flag = 1;
-            }
-        }
-        if (stop_flag === 1) {
-            console.log("o tego bys nie zrobil");
-
-        }
         stop_flag = 0;
     }
 
-
 }
+
+
 function simulate_get_taken(piece){
     piece.did_move = 0;
     piece.color = "none";

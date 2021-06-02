@@ -41,7 +41,7 @@ export function count_squares_to_edge() {
 }
 
 
-export function Generate_moves(grid, check, type) {
+export function Generate_moves(grid, check, gtype) {
     let ally_moves = [];
 
 
@@ -71,10 +71,10 @@ export function Generate_moves(grid, check, type) {
         }
     }
 
-    if(type!=="future"&&type!=="future2")
+    if(gtype!=="future"&&gtype!=="future2")
     {
         simulate_moves_for_ally(board.grid, ally_moves);
-        simulate_moves_for_opponent(board.grid,ally_moves);
+       // simulate_moves_for_opponent(board.grid,ally_moves);
     }
     if (check === 1 && ally_moves.length === 0) {
 
@@ -92,9 +92,9 @@ export function Generate_moves(grid, check, type) {
     if (board.check === 1 && ally_moves.length !== 0) {
         board.check = 0;
     }
-    if (type === "future") {
+    if (gtype === "future") {
         future_moves = ally_moves;
-    } else if (type === "future2") {
+    } else if (gtype === "future2") {
         future_moves2 = ally_moves;
     } else {
         moves = ally_moves;
@@ -103,7 +103,7 @@ export function Generate_moves(grid, check, type) {
 }
 
 
-export function Generate_opponent_moves(grid, type) { //used for checks
+export function Generate_opponent_moves(grid, gtype) { //used for checks
     let topponent_moves = [];
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
@@ -122,9 +122,9 @@ export function Generate_opponent_moves(grid, type) { //used for checks
         }
 
     }
-    if (type === "future") {
+    if (gtype === "future") {
         future_opponent_moves = topponent_moves;
-    } else if (type === "future2") {
+    } else if (gtype === "future2") {
         future_opponent_moves2 = topponent_moves;
     } else {
         opponent_moves = topponent_moves;
