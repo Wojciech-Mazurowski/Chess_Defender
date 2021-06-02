@@ -47,7 +47,7 @@ export function Generate_moves(grid, check, type) {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && check === 0 && board.color_to_move&& board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
+        if (p.color === board.color_to_move && check === 0 &&  board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, grid, ally_moves);
