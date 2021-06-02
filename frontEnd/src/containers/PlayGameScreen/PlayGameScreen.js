@@ -10,18 +10,18 @@ import SectionTitle from "../CommonComponents/SectionTitle";
 import {useHistory} from "react-router-dom";
 import "./PlayGameScreen.css"
 
-class PlayGameScreen extends Component{
+class PlayGameScreen extends Component {
 
 
     constructor(props) {
         super(props);
-        this.game=this.props.gameContext;
-        this.socket= this.props.socketContext;
-        this.lastMove= null;
+        this.game = this.props.gameContext;
+        this.socket = this.props.socketContext;
+        this.lastMove = null;
 
-        this.state ={
-            gameStatus:"PLAYING",
-            showResult:false
+        this.state = {
+            gameStatus: "Draw",
+            showResult: false
         }
 
     }
@@ -31,48 +31,48 @@ class PlayGameScreen extends Component{
             if (data === undefined) return;
             console.log("DOSTAEM");
 
-            make_opponents_move(data.startingSquare,data.targetSquare,data.mtype);
+            make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
         });
 
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
             console.log("DOSTAEM KONIEC");
             console.log(data);
-            this.setState({gameStatus:data.result, showResult:true});
+            this.setState({gameStatus: data.result, showResult: true});
 
             //after 5 seconds reroute to main
-            setTimeout(this.props.routeToMain(),5000);
+            //setTimeout(this.props.routeToMain(), 5000);
         });
     }
 
-    blackStyle={
-       // transform: 'rotateX(180deg)'
+    blackStyle = {
+        // transform: 'rotateX(180deg)'
     }
 
-    whiteStyle={
+    whiteStyle = {
         transform: 'rotateX(0deg)'
     }
 
-    async sendEndGame(socket,data,gameroomId) {
-        if (socket ===undefined || !socket.is_connected) {
+    async sendEndGame(socket, data, gameroomId) {
+        if (socket === undefined || !socket.is_connected) {
             //try to recconect to socket
             console.log("socket undefined")
             return;
         }
-
-        let playerId=localStorage.getItem('userId');
-        await socket.emit("end_game", JSON.stringify({data,gameroomId,playerId}));
+        console.log("Wyslalem koniec");
+        let playerId = localStorage.getItem('userId');
+        await socket.emit("end_game", JSON.stringify({data, gameroomId, playerId}));
     }
 
-    async sendMove(socket,move,gameroomId) {
-        if (socket ===undefined || !socket.is_connected) {
+    async sendMove(socket, move, gameroomId) {
+        if (socket === undefined || !socket.is_connected) {
             //try to recconect to socket
             console.log("socket undefined")
             return;
         }
 
-        let playerId=localStorage.getItem('userId');
-        await socket.emit("make_move", JSON.stringify({move,gameroomId,playerId}));
+        let playerId = localStorage.getItem('userId');
+        await socket.emit("make_move", JSON.stringify({move, gameroomId, playerId}));
     }
 
 
@@ -81,10 +81,10 @@ class PlayGameScreen extends Component{
         return (
             <div className="PlayGameScreen">
                 <Chat/>
-                <GameContainer style={this.game.playingAs==='b' ? this.blackStyle :this.whiteStyle}>
+                <GameContainer style={this.game.playingAs === 'b' ? this.blackStyle : this.whiteStyle}>
                     <P5Wrapper
                         sketch={sketch}
-                        game={ this.game}
+                        game={this.game}
                         socket={this.socket}
                         sendMoveToServer={this.sendMove}
                         sendEndGame={this.sendEndGame}
@@ -94,10 +94,10 @@ class PlayGameScreen extends Component{
                     </div>
 
                     {this.state.showResult &&
-                            <div className="ResultInfo">
-                                <p>{this.state.gameStatus}</p>
-                                <button onClick={this.props.routeToMain}>GO BACK</button>
-                            </div>
+                    <div className="ResultInfo">
+                        <p>&nbsp;{this.state.gameStatus}</p>
+                        <button disabled={!this.state.showResult} onClick={this.props.routeToMain}>GO BACK</button>
+                    </div>
                     }
                 </GameContainer>
 
