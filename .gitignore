@@ -67,3 +67,6 @@ venv/Lib/site-packages/distutils-precedence.pth
 frontEnd/src/serverLogic/APIConfig.js
 frontEnd/src/context/test.html
 frontEnd/src/context/test.css
+backEnd/__pycache__/ChessDB_PT.cpython-38.pyc
+.idea/misc.xml
+.idea/Chess_Defender.iml

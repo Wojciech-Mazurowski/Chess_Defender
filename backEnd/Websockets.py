@@ -1,4 +1,5 @@
 import json
+import string
 import time
 
 from flask import Flask, render_template, session, request, copy_current_request_context, jsonify, make_response
@@ -255,7 +256,7 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    game_history=[]
+    game_history = []
     try:
         db = ChessDB_PT.ChessDB()
         game_history = db.get_games(user_id)
@@ -269,12 +270,12 @@ def get_history():
 
     print(game_history)
     history = []
-    counter=0
-    max_games=20
+    counter = 0
+    max_games = 20
     for game in game_history:
         try:
-            counter=counter+1
-            if counter>=max_games:
+            counter = counter + 1
+            if counter >= max_games:
                 break
 
             white = db.get_participant('White', game[0])
@@ -308,7 +309,6 @@ def get_history():
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Headers'] = '*'
             return resp
-
 
     print(history)
     # history = generate_example_match_data()
@@ -376,20 +376,20 @@ def join_queue(player_id):
     print("Player with id " + player_id + " joined the queue")
     join_room('queue')
 
-    # get player elo from db
-    # try:
-    #     user=db.get_user_by_id(player_id)
-    #     print(user)
-    #     elo = user[5]
-    #     print(elo)
-    # except Exception as ex:
-    #     print("DB ERROR"+str(ex))
-    #     resp = make_response(jsonify(
-    #         {"error": "Can't fetch from db"}), 503)
-    #     resp.headers['Access-Control-Allow-Origin'] = '*'
-    #     resp.headers['Access-Control-Allow-Headers'] = '*'
-    #     return resp
-    elo = 1500;
+    #get player elo from db
+    try:
+        db = ChessDB_PT.ChessDB()
+        user=db.get_user_by_id(player_id)
+        print(user)
+        elo = user[5]
+    except Exception as ex:
+        print("DB ERROR"+str(ex))
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
         # as array id,elo,sessionId,waitTime (in ms), currentScope
@@ -468,6 +468,21 @@ def end_game(data):
     # delete game
     games.pop(str(game_room_id), None)
 
+    # update in database
+    # color_won = 'B'
+    # if opponent_sid in white_sid:
+    #     color_won = 'W'
+
+    curr_turn = room_info[2]
+    game_id = room_info[3]
+
+    try:
+        db = ChessDB_PT.ChessDB()
+        db.update_scores(str(curr_turn).upper(), game_id)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+
+
 
 @socketio.on('make_move')
 def make_move(data):
@@ -516,8 +531,8 @@ def make_move(data):
 
     # check for illegal moves?
 
-    # save move to db
-    # db.add_move(game_id,move)
+
+
 
     # get opposite turn
     opp_turn = 'w'
@@ -527,9 +542,17 @@ def make_move(data):
     games[game_room_id][2] = opp_turn
 
     # send move to opponent
-
     for sid in opponent_sid:
         emit('make_move_local', move, to=sid)
+
+        # save move to db
+    game_id = room_info[3]
+    move_order = room_info[4]
+    try:
+        db = ChessDB_PT.ChessDB()
+        db.add_move(game_id, str(curr_turn).upper(), move_order, move)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
 
 
 def match_maker():
@@ -608,7 +631,11 @@ def find_match(player):
 
             # create game in db
             db = ChessDB_PT.ChessDB()
-            game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
+            try:
+                game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
+            except Exception as ex:
+                print("DB ERROR" + str(ex))
+
 
             game_id_hash = hashlib.sha256(str(game_id).encode())
             game_room_id = str(game_id_hash.hexdigest())
@@ -619,7 +646,9 @@ def find_match(player):
             # create gameroom for the two players and add both of them
             join_room(game_room_id, player_sid)
             join_room(game_room_id, opponent_sid)
-            games[game_room_id] = [white_id, black_id, 'w']
+
+            # white_id, #black_id,#curr_turn,#game_id,#numOfMoves
+            games[game_room_id] = [white_id, black_id, 'w', game_id, 0]
 
     # notify player of scope change if it has happened
     if player_curr_scope != scope:
