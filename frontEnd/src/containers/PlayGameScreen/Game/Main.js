@@ -3,7 +3,7 @@ import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    make_a_move,
+    make_a_move,moves
 } from "./moves";
 import CSquare from "./CSquare";
 
