@@ -255,7 +255,7 @@ def get_history():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    game_history = []
+    game_history=[]
     try:
         db = ChessDB_PT.ChessDB()
         game_history = db.get_games(user_id)
@@ -268,33 +268,47 @@ def get_history():
         return resp
 
     print(game_history)
-
     history = []
-
+    counter=0
+    max_games=20
     for game in game_history:
-        white = db.get_participant('White', game[0])
-        black = db.get_participant('Black', game[0])
-        if white[0] == user_id:
-            if white[3] == '1':
-                result = "win"
-            elif white[3] == '0':
-                result = "loss"
-            else:
-                result = "draw"
-        else:
-            if black[3] == '1':
-                result = "win"
-            elif black[3] == '0':
-                result = "loss"
-            else:
-                result = "draw"
+        try:
+            counter=counter+1
+            if counter>=max_games:
+                break
 
-        match = {"matchResult": result,
-                 'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
-                 'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
-                 "hour": "21:37",
-                 "dayMonthYear": str(game[2])}
-        history.append(match)
+            white = db.get_participant('White', game[0])
+            black = db.get_participant('Black', game[0])
+            if white[0] == user_id:
+                if white[3] == '1':
+                    result = "win"
+                elif white[3] == '0':
+                    result = "loss"
+                else:
+                    result = "draw"
+            else:
+                if black[3] == '1':
+                    result = "win"
+                elif black[3] == '0':
+                    result = "loss"
+                else:
+                    result = "draw"
+
+            match = {"matchResult": result,
+                     'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
+                     'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
+                     "hour": "21:37",
+                     "dayMonthYear": str(game[2])}
+            history.append(match)
+
+        except Exception as ex:
+            print("DB ERROR" + str(ex))
+            resp = make_response(jsonify(
+                {"error": "Can't fetch from db"}), 503)
+            resp.headers['Access-Control-Allow-Origin'] = '*'
+            resp.headers['Access-Control-Allow-Headers'] = '*'
+            return resp
+
 
     print(history)
     # history = generate_example_match_data()
