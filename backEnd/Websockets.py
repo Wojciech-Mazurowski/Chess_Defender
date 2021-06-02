@@ -169,27 +169,38 @@ def get_player_stats():
         resp.headers['Access-Control-Allow-Headers'] = '*'
         return resp
 
-    #user_info= db.get_user_by_id(id)
-    #elo = user_info[5]
+    # placeholder vars if cannot connect to db
+    elo = 1000
     deviaton = 10
+    gamesPlayed = 10
+    gamesWon = 5
+    gamesLost = 5
+    draws = 5
 
-    gamesPlayed = db.count_games(id)
-    #gamesWon = db.count_wins(id)
-    #gamesLost = db.count_losses(id)
-    #draws = db.count_draws(id)
-    gamesPlayed=1
-    gamesWon=1
-    gamesLost=1
-    draws=1
-    elo=1
+    try:
+        user_info = db.get_user_by_id(id)
+        elo = user_info[5]
+        deviaton = 10
+
+        gamesPlayed = db.count_games(id)
+        gamesWon = db.count_wins(id)
+        gamesLost = db.count_losses(id)
+        draws = db.count_draws(id)
+    except:
+        print("DB ERROR")
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     data_json = jsonify(
         {'elo': elo,
          'deviaton': deviaton,
-         'gamesPlayed':gamesPlayed,
-         'gamesWon':gamesWon,
-        'gamesLost':gamesLost,
-        'draws':draws}
+         'gamesPlayed': gamesPlayed,
+         'gamesWon': gamesWon,
+         'gamesLost': gamesLost,
+         'draws': draws}
     )
 
     resp = make_response(data_json, 200)
@@ -217,7 +228,16 @@ def get_history():
         return resp
 
     game_history = []
-    # game_history = db.get_games(id)
+    try:
+        game_history = db.get_games(id)
+    except:
+        print("DB ERROR")
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
+
     print(game_history)
 
     history = []
@@ -313,7 +333,15 @@ def join_queue(player_id):
     join_room('queue')
 
     # get player elo from db
-    elo = db.get_user_by_id(player_id)[5]
+    try:
+        elo = db.get_user_by_id(player_id)[5]
+    except:
+        print("DB ERROR")
+        resp = make_response(jsonify(
+            {"error": "Can't fetch from db"}), 503)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        return resp
 
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
@@ -365,11 +393,14 @@ def make_move(data):
         print("NO_SUCH_GAME_EXISTS")
         return
 
-    # [0] white_sid,[1] black_sid,[2] current_turn (w/b)
+    # [0] white_id,[1] black_id,[2] current_turn (w/b)
     room_info = games[game_room_id]
-    white_sid = room_info[0]
-    black_sid = room_info[1]
+    white_id = room_info[0]
+    black_id = room_info[1]
     curr_turn = room_info[2]
+
+    white_sid=authorized_sockets[white_id]
+    black_sid=authorized_sockets[black_id]
 
     # get opponent sid
     opponent_sid = black_sid
@@ -488,7 +519,7 @@ def find_match(player):
             # create gameroom for the two players and add both of them
             join_room(game_room_id, player_sid)
             join_room(game_room_id, opponent_sid)
-            games[game_room_id] = [white_sid, black_sid, 'w']
+            games[game_room_id] = [white_id, black_id, 'w']
 
     # notify player of scope change if it has happened
     if player_curr_scope != scope:
@@ -510,11 +541,20 @@ def disconnect():
     # remove from game he was in?
     print('Client disconnected ', request.sid)
 
+#returns -1 if isn't, room id if is
+def get_is_player_in_game(playerId):
+    for roomId,value in games:
+        if value[0] == playerId or  value[1] == playerId:
+            return roomId
+
+    return -1
 
 @socketio.event
 def connect():
     print('Player connected! ' + request.sid)
-    emit('connet', {})
+    emit('connect', {})
+
+
 
 
 def check_auth(sid, player_id):
@@ -539,6 +579,12 @@ def authorize(data):
     # add socket id to authorized sockets for player
     authorized_sockets[str(player_id)] = request.sid
     emit('authorized', )
+
+    #check if player was in a game/lobby and add him back
+    game_id=get_is_player_in_game
+    if game_id!=-1:
+        join_room(game_id,request.sid)
+
 
 
 socketio.run(app, host="192.168.1.56", port=5000, debug=True)
