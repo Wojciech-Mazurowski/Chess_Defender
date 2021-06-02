@@ -2,8 +2,11 @@ import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer} from ".
 import {socket} from "../../../context/socketContext";
 
 
-export var moves = [];
 export var opponent_moves = [];
+export var moves = [];
+
+export var future_opponent_moves = [];
+export var future_moves = [];
 
 class move {
     constructor(starting_square, ending_square, type) {
@@ -36,13 +39,13 @@ export function count_squares_to_edge() {
 }
 
 
-export function Generate_moves(grid, ally_moves) {
-    ally_moves = [];
+export function Generate_moves(grid, check, type) {
+    let ally_moves = [];
 
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && board.check === 0) { //TODO removed    for now  && board.color_to_move === playingAs
+        if (p.color === board.color_to_move && check === 0) { //TODO removed && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, grid, ally_moves);
@@ -67,17 +70,29 @@ export function Generate_moves(grid, ally_moves) {
     }
     if (board.check === 1 && ally_moves.length === 0) {
         console.log("tu szachmat");
+        simulate_moves();
     }
     if (board.check === 1 && ally_moves.length !== 0) {
         board.check = 0;
     }
+    if (arguments.length === 2) {
+        moves = ally_moves;
+    } else {
+        future_moves = ally_moves;
+    }
 
-    moves = ally_moves;
+}
+
+function simulate_moves() {
+    let saving_moves = [];
+    //Generate_moves(saving_moves);
+    console.log(moves);
+    console.log(opponent_moves);
 }
 
 
-export function Generate_opponent_moves(grid, topponent_moves) { //used for checks
-    topponent_moves = [];
+export function Generate_opponent_moves(grid, type) { //used for checks
+    let topponent_moves = [];
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
@@ -95,7 +110,11 @@ export function Generate_opponent_moves(grid, topponent_moves) { //used for chec
         }
 
     }
-    opponent_moves = topponent_moves;
+    if (arguments.length === 1) {
+        opponent_moves = topponent_moves;
+    } else {
+        future_opponent_moves = topponent_moves;
+    }
 
 }
 
@@ -360,7 +379,7 @@ function Get_Knight_moves(startSquare, piece, grid, t_moves) {
             if (Piece_on_target.type_letter !== 'e' && Piece_on_target.color !== piece.color) {
 
                 t_moves[t_moves.length - 1].type = 'C';
-                
+
             }
         }
     }
@@ -518,10 +537,12 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
         piece.snap_back();
     }
     piece.did_move = 1;
+    moves = [];
+    opponent_moves = [];
     board.lastmove = new move(StartingSquare, TargetSquare, mType);
-    Generate_opponent_moves(board.grid);
+    opponent_moves = Generate_opponent_moves(board.grid, opponent_moves);
     check_if_check();
-    Generate_moves(board.grid);
+    moves = Generate_moves(board.grid, board.check);
 }
 
 export function make_a_move() {
@@ -583,6 +604,8 @@ export function make_a_move() {
                         piece.snap();
                     }
                     piece.did_move = 1;
+                    moves = [];
+                    opponent_moves = [];
                     let data = {
                         'startingSquare': StartingSquare,
                         'targetSquare': TargetSquare,

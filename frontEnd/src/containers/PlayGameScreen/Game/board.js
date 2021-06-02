@@ -126,15 +126,28 @@ export default class Board {
         for (let i = 0; i < moves.length; i++) {
 
             let highlight = pixel_positions[moves[i].EndSquare];
-            if (board.grid[moves[i].StartSquare].dragging) {
-                this.p5.push()
-                this.p5.translate(size/2,size/2);
-                this.p5.noStroke();
-                this.p5.fill(this.p5.color(66,129,74));
-                this.p5.circle(highlight[0], highlight[1], size/3);
-                this.p5.pop();
+            let type = moves[i].type;
+            if(board.grid[moves[i].StartSquare].dragging) {
+                if (type!=='C') {
+                    this.p5.push()
+                    this.p5.translate(size / 2, size / 2);
+                    this.p5.noStroke();
+                    this.p5.fill(this.p5.color(66, 129, 74));
+                    this.p5.circle(highlight[0], highlight[1], size / 3);
+                    this.p5.pop();
+                }else if(type==='C')
+                {
+                    this.p5.push()
+                    //this.p5.translate(size / 2, size / 2);
+                    this.p5.stroke(66, 129, 74);
+                    this.p5.strokeWeight(-6);
+                    this.p5.noFill();
+                    this.p5.rect(highlight[0], highlight[1], size,size);
+                    this.p5.pop();
+                }
             }
         }
+
 
 
         for (let k = 0; k < this.grid.length; k++) {

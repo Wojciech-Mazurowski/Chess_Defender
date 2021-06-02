@@ -3,11 +3,9 @@ import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    make_a_move
+    make_a_move,
 } from "./moves";
 import CSquare from "./CSquare";
-
-
 
 
 export const Checkboard_size = 800
@@ -77,7 +75,8 @@ export default function sketch (p5) {
         make_a_move();
         Generate_opponent_moves(board.grid);
         check_if_check();
-        Generate_moves(board.grid);
+        Generate_moves(board.grid,board.check);
+
 
     }
 
@@ -99,7 +98,7 @@ export default function sketch (p5) {
             }
         }
         count_squares_to_edge();
-        Generate_moves(board.grid);
+        Generate_moves(board.grid,board.check);
 
     };
 
