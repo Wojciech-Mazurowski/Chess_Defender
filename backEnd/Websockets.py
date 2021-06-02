@@ -271,7 +271,7 @@ def get_history():
     print(game_history)
     history = []
     counter = 0
-    max_games = 20
+    max_games = 10
     for game in game_history:
         try:
             counter = counter + 1
