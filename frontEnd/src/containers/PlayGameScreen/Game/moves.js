@@ -47,7 +47,7 @@ export function Generate_moves(grid, check, gtype) {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && check === 0 && board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
+        if (p.color === board.color_to_move && check === 0 ) { //TODO removed  && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, grid, ally_moves);
@@ -490,7 +490,7 @@ export function check_if_check() {
 
     let enemyKingPos;
 
-    board.color_to_move === 'w' ? enemyKingPos = get_white_king_pos() : enemyKingPos = get_black_king_pos();
+    board.color_to_move === 'w' ? enemyKingPos = get_white_king_pos(board.grid) : enemyKingPos = get_black_king_pos(board.grid);
 
 
     for (let i = 0; i < opponent_moves.length; i++) {
@@ -646,10 +646,10 @@ export function get_white_king_pos() {
     return -1;
 }
 
-export function get_black_king_pos() {
-    for (let i = 0; i < board.grid.length; i++) {
-        if (board.grid[i].type_letter === 'k') {
-            return board.grid[i].get_grid_pos()
+export function get_black_king_pos(gride) {
+    for (let i = 0; i < gride.length; i++) {
+        if (gride[i].type_letter === 'k') {
+            return gride[i].get_grid_pos()
         }
     }
     return -1;
