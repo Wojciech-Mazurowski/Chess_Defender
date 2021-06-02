@@ -536,9 +536,8 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
     }
     piece.did_move = 1;
     moves = [];
-    opponent_moves = [];
     board.lastmove = new move(StartingSquare, TargetSquare, mType);
-    opponent_moves = Generate_opponent_moves(board.grid, opponent_moves);
+    Generate_opponent_moves(board.grid);
     check_if_check();
     moves = Generate_moves(board.grid, board.check,"after_opponent");
 }
