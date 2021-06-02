@@ -105,6 +105,18 @@ class ChessDB:
         mycursor.close()
         return game_id
 
+    def add_move(self, game_id, Color, move_order, Move):
+        mycursor = self.mydb.cursor()
+
+        sql_move = ("INSERT INTO Moves"
+                    "(GameID, ParticipantID, move_order, Move)"
+                    "VALUES (%s, %s, %s, %s)")
+
+        data_move = (game_id, self.get_participant(Color, game_id)[0], move_order, Move)
+        mycursor.execute(sql_move,data_move)
+        self.mydb.commit()
+        mycursor.close()
+
     def update_elo(self, new_elo, Username):
         mycursor = self.mydb.cursor()
 
@@ -122,6 +134,32 @@ class ChessDB:
 
         data_update = (new_password, self.get_user(Username)[0])
         mycursor.execute(sql_update, data_update)
+        self.mydb.commit()
+        mycursor.close()
+
+    def update_scores(self, Color, game_id):
+        mycursor = self.mydb.cursor()
+
+        sql_update = ("""UPDATE Participant SET Score = 1 WHERE UserID = %s AND GameID = %s""")
+        if(Color == "W"):
+            data_update = (self.get_participant("White", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+            sql_update = ("""UPDATE Participant SET Score = 0 WHERE UserID = %s AND GameID = %s""")
+            data_update = (self.get_participant("Black", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+        elif(Color == "B"):
+            data_update = (self.get_participant("Black", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+            sql_update = ("""UPDATE Participant SET Score = 0 WHERE UserID = %s AND GameID = %s""")
+            data_update = (self.get_participant("White", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+        else:
+            sql_update = ("""UPDATE Participant SET Score = 0.5 WHERE UserID = %s AND GameID = %s""")
+            data_update = (self.get_participant("White", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+            data_update = (self.get_participant("Black", game_id)[0], game_id)
+            mycursor.execute(sql_update, data_update)
+
         self.mydb.commit()
         mycursor.close()
 
