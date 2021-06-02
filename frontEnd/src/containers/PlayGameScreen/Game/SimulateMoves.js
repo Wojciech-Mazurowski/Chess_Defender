@@ -11,7 +11,7 @@ import {board, pixel_positions} from "./Main"
 
 
 
-export function simulate_moves(grid) {
+export function simulate_moves(grid,ally_moves) {
     let simulation_grid;
     let white_king = get_white_king_pos();
     let temp_grid = grid.slice();
@@ -30,7 +30,10 @@ export function simulate_moves(grid) {
         }
         if(check_flag===0)
         {
-           console.log("da sie zablokowac");
+           console.log("da sie zablokowac ruchem " );
+           ally_moves.push(future_moves[i]);
+           console.log(future_moves[i]);
+
         }
         check_flag=0;
     }
