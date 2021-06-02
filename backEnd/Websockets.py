@@ -344,7 +344,7 @@ def join_queue(player_id):
     #     resp.headers['Access-Control-Allow-Origin'] = '*'
     #     resp.headers['Access-Control-Allow-Headers'] = '*'
     #     return resp
-    elo=1500;
+    elo = 1500;
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id) is False:
         # as array id,elo,sessionId,waitTime (in ms), currentScope
@@ -406,8 +406,9 @@ def make_move(data):
 
     # get opponent sid
     opponent_sid = black_sid
-    if white_sid != player_sid:
-        opponent_sid = white_sid
+    for white in white_sid:
+        if white not in player_sid:
+            opponent_sid = white_sid
 
     # print(game_room_id)
     # print(move)
@@ -432,7 +433,8 @@ def make_move(data):
     games[game_room_id][2] = opp_turn
 
     # send move to opponent
-    emit('make_move_local', move, to=opponent_sid[0])
+    for sid in opponent_sid:
+        emit('make_move_local', move, to=opponent_sid[0])
 
 
 def match_maker():
@@ -547,12 +549,12 @@ def disconnect():
 # returns -1 if isn't, room id if is
 def get_is_player_in_game(playerId):
     for roomId, value in games.items():
-        print(roomId)
-        print(value)
-        if value[0] == playerId or value[1] == playerId:
-            return roomId
+        if value[0] == playerId:
+            return [roomId, 'w']
+        if value[1] == playerId:
+            return [roomId, 'b']
 
-    return -1
+    return [-1,'n']
 
 
 @socketio.event
@@ -583,14 +585,15 @@ def authorize(data):
     # add socket id to authorized sockets for player
     authorized_sockets.setdefault(str(player_id), []).append(request.sid)
 
-    # check if player was in a game/lobby and add him back
-    game_id = get_is_player_in_game(player_id)
-    if game_id != -1:
-        join_room(game_id, request.sid)
+    # check if player was in a game/lobby and add him back [gameId,playinsAs]
+    # gameinfo = get_is_player_in_game(player_id)
+    # if gameinfo[0] != -1:
+    #     print("Player " + str(player_id) + "rejoined game " + str(gameinfo[0]) + " as "+ str(gameinfo[1]))
+    #     join_room(gameinfo[0] , request.sid)
+    #     # game rejoin communicata
+    #     emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1]}, to=request.sid)
 
     emit('authorized', )
-
-
 
 
 socketio.run(app, host='127.0.0.1', port=5000, debug=True)
