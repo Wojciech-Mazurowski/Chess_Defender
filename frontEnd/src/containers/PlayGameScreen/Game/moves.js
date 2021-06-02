@@ -71,7 +71,7 @@ export function Generate_moves(grid, check, type) {
         }
     }
 
-    if(check===1)
+    if(type!=="future"&&type!=="future2")
     {
         simulate_moves(board.grid, ally_moves);
     }
