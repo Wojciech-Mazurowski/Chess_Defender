@@ -417,7 +417,7 @@ def end_game(data):
 
     #notify players of their respective results
     for sid in opponent_sid:
-        emit("game_ended", {'result': 'loss'}, to=sid)
+        emit("game_ended", {'result': 'lost'}, to=sid)
 
     emit("game_ended", {'result': 'win'}, to=player_sid)
 

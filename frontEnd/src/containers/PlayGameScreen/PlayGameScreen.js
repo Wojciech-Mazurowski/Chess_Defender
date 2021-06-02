@@ -1,22 +1,27 @@
 import {Component, useContext} from "react";
 import GameContainer from "./Components/GameContainer"
 import Chat from "./Components/Chat"
-import "./PlayGameScreen.css"
+
 import P5Wrapper from "react-p5-wrapper"
 import sketch, {sendMoveToServer} from "./Game/Main";
 import {withMyHooks} from "../../context/gameContext";
 import {make_a_move, make_opponents_move} from "./Game/moves"
+import SectionTitle from "../CommonComponents/SectionTitle";
+import {useHistory} from "react-router-dom";
+import "./PlayGameScreen.css"
 
 class PlayGameScreen extends Component{
+
 
     constructor(props) {
         super(props);
         this.game=this.props.gameContext;
         this.socket= this.props.socketContext;
         this.lastMove= null;
-        
+
         this.state ={
-            gameStatus:"PLAYING"
+            gameStatus:"PLAYING",
+            showResult:false
         }
 
     }
@@ -33,7 +38,10 @@ class PlayGameScreen extends Component{
             if (data === undefined) return;
             console.log("DOSTAEM KONIEC");
             console.log(data);
-            this.gameStatus=data.result;
+            this.setState({gameStatus:data.result, showResult:true});
+
+            //after 5 seconds reroute to main
+            setTimeout(this.props.routeToMain(),5000);
         });
     }
 
@@ -85,10 +93,11 @@ class PlayGameScreen extends Component{
                         <span>{this.gameStatus}</span>
                     </div>
 
-                    {(this.gameStatus !== "PLAYING") &&
-                        <div className="resultInfo">
-                            <span>{this.gameStatus}</span>
-                        </div>
+                    {this.state.showResult &&
+                            <div className="ResultInfo">
+                                <p>{this.state.gameStatus}</p>
+                                <button onClick={this.props.routeToMain}>GO BACK</button>
+                            </div>
                     }
                 </GameContainer>
 

@@ -1,5 +1,6 @@
 import React, {useContext,createContext, useState} from 'react';
 import {SocketContext} from "./socketContext";
+import {useHistory} from "react-router-dom";
 
 export const gameContext = createContext()
 
@@ -21,11 +22,16 @@ export const GameProvider = ({children}) => {
 //custom hook
 export const useGame = () => useContext(gameContext)
 
+
 export function withMyHooks(Component) {
     return function WrappedComponent(props) {
         const gameContext = useGame();
         const socketContext= useContext(SocketContext);
-        return <Component {...props} gameContext={gameContext} socketContext={socketContext} />;
+        //routing after succesfull login
+        const history = useHistory();
+        const routeToMain= () => history.push('/');
+
+        return <Component {...props} gameContext={gameContext} socketContext={socketContext} routeToMain={routeToMain}/>;
     }
 }
 
