@@ -18,11 +18,12 @@ class PlayGameScreen extends Component {
         super(props);
         this.game = this.props.gameContext;
         this.socket = this.props.socketContext;
-        this.lastMove = null;
 
         this.state = {
+            loading:true,
             gameStatus: "Draw",
-            showResult: false
+            showResult: false,
+            startingFEN:""
         }
 
     }
@@ -33,12 +34,14 @@ class PlayGameScreen extends Component {
         getIsInGame(playerId).then( (resp)=>{
             console.log("GOT is in game");
             console.log(resp);
-            if (resp === undefined || resp.inGame) {
+            if (resp === undefined) {
+
                 return;
             }
-            //if not REROUTE back
-            if(!resp.inGame){this.props.routeToMain()}
-            //set received FEN
+            //if not in game REROUTE back
+            if(!resp.inGame) this.props.routeToMain();
+
+            this.setState({startingFEN:resp.FEN,loading:false});
         }
         );
 
@@ -52,13 +55,6 @@ class PlayGameScreen extends Component {
         });
     }
 
-    blackStyle = {
-        // transform: 'rotateX(180deg)'
-    }
-
-    whiteStyle = {
-        transform: 'rotateX(0deg)'
-    }
 
     async sendEndGame(socket, data, gameroomId,FEN) {
         if (socket === undefined || !socket.is_connected) {
@@ -99,14 +95,18 @@ class PlayGameScreen extends Component {
 
 
                 <Chat/>
-                <GameContainer style={this.game.playingAs === 'b' ? this.blackStyle : this.whiteStyle}>
-                    <P5Wrapper
-                        sketch={sketch}
-                        game={this.game}
-                        socket={this.socket}
-                        sendMoveToServer={this.sendMove}
-                        sendEndGame={this.sendEndGame}
-                    />
+                <GameContainer>
+                    {!this.state.loading &&
+                        <P5Wrapper
+                            sketch={sketch}
+                            game={this.game}
+                            socket={this.socket}
+                            sendMoveToServer={this.sendMove}
+                            sendEndGame={this.sendEndGame}
+                            startingFEN={this.state.startingFEN}
+                        />
+                    }
+
                 </GameContainer>
 
                 <GameButtons/>

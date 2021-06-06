@@ -34,7 +34,7 @@ export let gameroomId;
 export let socket;
 export let sendMoveToServer;
 export let sendEndGame;
-
+let startingFEN;
 
 export default function sketch (p5) {
 
@@ -52,7 +52,9 @@ export default function sketch (p5) {
         if(props.sendEndGame){
             sendEndGame= props.sendEndGame
         }
-
+        if(props.startingFEN){
+            startingFEN= props.startingFEN
+        }
     }
 
 
@@ -89,6 +91,9 @@ export default function sketch (p5) {
         board = new Board(p5);
 
         p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
+
+        if(startingFEN!==undefined) board.FEN=startingFEN;
+
         board.load_FEN();
 
 
