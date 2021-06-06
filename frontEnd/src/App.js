@@ -6,6 +6,7 @@ import NavBar from "./containers/Navigation/NavBar";
 import {BrowserRouter as Router, Switch, Route, Redirect} from 'react-router-dom';
 import {SocketContext,socket} from './context/socketContext';
 import {GameProvider} from './context/gameContext';
+import ScrollToTop from "./containers/CommonComponents/ScrollToTop";
 
 
 socket.connect();
@@ -13,6 +14,7 @@ socket.connect();
 //redirects to login if user is not authenticated
 const PrivateRoute = ({ component: Component, ...rest }) => (
     <Route {...rest} render={props => (
+
         localStorage.getItem('sessionToken')
             ? <Component {...props} />
             : <Redirect to={{ pathname: '/login', state: { from: props.location } }} />
@@ -28,6 +30,7 @@ function App() {
               <SocketContext.Provider value={socket}>
                   <div className="App">
                       <Router>
+                          <ScrollToTop />
                           <Route path="/" component={NavBar}/>
                           <Switch>
                               <PrivateRoute path="/" exact component={MainPageScreen} />

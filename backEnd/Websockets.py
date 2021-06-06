@@ -57,14 +57,14 @@ def login():
 
         if user is None:
             resp = make_response(jsonify(
-                {"error": "Username doesn't exist"}), 401)
+                {"error": "Username doesn't exist"}), 403)
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Headers'] = '*'
             return resp
 
         if user[2] != rf['hashedPassword']:
             resp = make_response(jsonify(
-                {"error": "Incorrect password"}), 401)
+                {"error": "Incorrect password"}), 403)
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Headers'] = '*'
             return resp
@@ -106,7 +106,7 @@ def logout():
 
         if userId is None or Sessions[str(userId)] != request.headers['Authorization']:
             resp = make_response(jsonify(
-                {"error": "Unauthorised logout"}), 401)
+                {"error": "Unauthorised logout"}), 403)
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Headers'] = '*'
             return resp
@@ -138,7 +138,7 @@ def register():
 
         if user is not None:
             resp = make_response(jsonify(
-                {"error": "Username already taken"}), 401)
+                {"error": "Username already taken"}), 403)
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Headers'] = '*'
             return resp
