@@ -7,8 +7,9 @@ import {
 } from "./moves";
 import CSquare from "./CSquare";
 
-
-export const Checkboard_size = 800
+const canvas_width=700;
+const canvas_height=canvas_width;
+export const Checkboard_size = canvas_height
 export const size = Checkboard_size / 8
 export const Checkboard = [];
 export const pieces_dict = {King: 'k', Pawn: 'p', Knight: 'n', Bishop: 'b', Rook: 'r', Queen: 'q'};
@@ -38,7 +39,6 @@ export let sendEndGame;
 export default function sketch (p5) {
 
     p5.myCustomRedrawAccordingToNewPropsHandler = (props) => {
-        console.log("IN P5js" + props.playingAs)
         if (props.game) {
             playingAs = props.game.playingAs;
             gameroomId= props.game.gameId;
@@ -88,7 +88,7 @@ export default function sketch (p5) {
         //TODO sprawdzic czy tak mozna ze export bez argumentu i potem poprostu to nadpisuje
         board = new Board(p5);
 
-        p5.createCanvas(1920, 1080, p5.WEBGL);
+        p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
         board.load_FEN();
 
 
@@ -101,12 +101,11 @@ export default function sketch (p5) {
         }
         count_squares_to_edge();
         Generate_moves(board.grid,board.check,"setup");
-
     };
 
     p5.draw = function () {
         p5.background(255);
-        p5.translate(-1920 / 2, -1080 / 2);
+        p5.translate(-canvas_height / 2, -canvas_width / 2);
         //translate(100,100);
         for (let i = 0; i < Checkboard.length; i++) {
             Checkboard[i].setstate();

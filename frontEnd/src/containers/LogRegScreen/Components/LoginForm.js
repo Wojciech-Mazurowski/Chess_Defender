@@ -33,6 +33,9 @@ export default function LoginForm() {
 
     async function HandleSubmit(event) {
         event.preventDefault();
+        //reset error message
+        setErrorMessage("");
+
         let resp=await login(username,password)
 
         if (resp.error !== undefined){

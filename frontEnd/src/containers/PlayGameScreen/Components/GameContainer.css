@@ -5,5 +5,10 @@
 .GameContainer{
     width: var(--board-size);
     height: var(--board-size);
-    background-color: #8ca2ad;
+    background-color: var(--section-bg-color);
+    display:flex;
+    align-items: center;
+    justify-content: center;
+
+
 }

@@ -1,5 +1,4 @@
-import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame} from "./Main";
-import {socket} from "../../../context/socketContext";
+import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame,socket} from "./Main";
 import {simulate_moves_for_ally, simulate_moves_for_opponent} from "./SimulateMoves";
 
 
@@ -623,7 +622,7 @@ export function make_a_move() {
                         'targetSquare': TargetSquare,
                         'mtype': move.type
                     }
-                    sendMoveToServer(socket, data, gameroomId);
+                    sendMoveToServer(socket, data, gameroomId,board.FEN);
 
                 } else {
                     piece.snap_back();

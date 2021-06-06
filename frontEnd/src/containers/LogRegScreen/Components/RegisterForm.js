@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "./RegisterForm.css";
@@ -9,6 +9,7 @@ import SectionTitle from "../../CommonComponents/SectionTitle";
 import {sha256} from 'js-sha256';
 import {useHistory} from "react-router-dom";
 import {login, register} from "../../../serverLogic/LogRegService"
+import {SocketContext} from "../../../context/socketContext";
 
 
 
@@ -50,10 +51,12 @@ export default function RegisterForm() {
     //routing after succesfull register and login
     const history = useHistory();
     const routeToNext = () => history.push('/');
-
+    const socket = useContext(SocketContext);
 
     const successColor = '#369257';
     const failColor = '#bf3d3b';
+
+
 
 
     //checks for all errors in data
@@ -131,6 +134,8 @@ export default function RegisterForm() {
 
     async function handleSubmit(event) {
         event.preventDefault();
+        //reset error message
+        setErrorMessage("");
 
         //check if all data matches requirments
         let errors = validateData();
@@ -155,6 +160,7 @@ export default function RegisterForm() {
             setErrorMessage(resp.error);
             return;
         }
+        socket.authorize();
         routeToNext();
     }
 

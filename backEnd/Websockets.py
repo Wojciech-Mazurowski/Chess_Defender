@@ -29,7 +29,9 @@ scope_update_interval = 10000;  # time it takes for scope to widen (in ms)
 scope_update_ammount = 50;  # ammount by which scope widens every scope_update_interval
 
 # Gameplay variables
+# white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
 games = {}
+default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 # User login sessions
 Sessions = {}
@@ -39,7 +41,7 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 thread = None
 # holds id's of all sockets that are authorized to communicate as given playerId
-authorized_sockets = {}
+authorized_socket = {}
 
 
 @app.route('/login', methods=['POST', 'OPTIONS'])
@@ -171,7 +173,7 @@ def is_in_game():
 
     game_info = get_is_player_in_game(user_id)
     if game_info[0] != -1:
-        data = {"inGame": True}
+        data = {"inGame": True, "FEN": game_info[2]}
 
     print(data)
     resp = make_response(jsonify(data), 200)
@@ -376,14 +378,14 @@ def join_queue(player_id):
     print("Player with id " + player_id + " joined the queue")
     join_room('queue')
 
-    #get player elo from db
+    # get player elo from db
     try:
         db = ChessDB_PT.ChessDB()
-        user=db.get_user_by_id(player_id)
+        user = db.get_user_by_id(player_id)
         print(user)
         elo = user[5]
     except Exception as ex:
-        print("DB ERROR"+str(ex))
+        print("DB ERROR" + str(ex))
         resp = make_response(jsonify(
             {"error": "Can't fetch from db"}), 503)
         resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -450,38 +452,29 @@ def end_game(data):
     white_id = room_info[0]
     black_id = room_info[1]
 
-    white_sid = authorized_sockets[white_id]
-    black_sid = authorized_sockets[black_id]
+    white_sid = authorized_socket[white_id]
+    black_sid = authorized_socket[black_id]
 
     # get opponent sid
     opponent_sid = black_sid
-    for white in white_sid:
-        if white not in player_sid:
-            opponent_sid = white_sid
+    if white_sid != player_sid:
+        opponent_sid = white_sid
 
     # notify players of their respective results
-    for sid in opponent_sid:
-        emit("game_ended", {'result': 'lost'}, to=sid)
 
+    emit("game_ended", {'result': 'lost'}, to=opponent_sid)
     emit("game_ended", {'result': 'win'}, to=player_sid)
 
     # delete game
     games.pop(str(game_room_id), None)
 
-    # update in database
-    # color_won = 'B'
-    # if opponent_sid in white_sid:
-    #     color_won = 'W'
-
     curr_turn = room_info[2]
     game_id = room_info[3]
-
     try:
         db = ChessDB_PT.ChessDB()
         db.update_scores(str(curr_turn).upper(), game_id)
     except Exception as ex:
         print("DB ERROR" + str(ex))
-
 
 
 @socketio.on('make_move')
@@ -510,14 +503,16 @@ def make_move(data):
     black_id = room_info[1]
     curr_turn = room_info[2]
 
-    white_sid = authorized_sockets[white_id]
-    black_sid = authorized_sockets[black_id]
+    white_sid = authorized_socket[white_id]
+    black_sid = authorized_socket[black_id]
 
+    print("player sid " + str(white_sid))
     # get opponent sid
     opponent_sid = black_sid
-    for white in white_sid:
-        if white not in player_sid:
-            opponent_sid = white_sid
+    if white_sid != player_sid:
+        opponent_sid = white_sid
+    print("opponent_sid " + str(opponent_sid))
+    print(authorized_socket)
 
     # print(game_room_id)
     # print(move)
@@ -525,29 +520,30 @@ def make_move(data):
     # print(room_info)
 
     # check if it's coming from the wrong player
-    if (curr_turn == 'w' and player_sid not in white_sid) or (curr_turn == 'b' and player_sid not in black_sid):
+    if (curr_turn == 'w' and player_sid != white_sid) or (curr_turn == 'b' and player_sid != black_sid):
         # send not ur turn packet
+        print("NOT UR TURN")
         return
 
     # check for illegal moves?
-
-
-
 
     # get opposite turn
     opp_turn = 'w'
     if curr_turn == 'w':
         opp_turn = 'b'
 
+    # update local game object
     games[game_room_id][2] = opp_turn
+    games[game_room_id][4] = games[game_room_id][4] + 1
+    games[game_room_id][5] = obj['FEN']
+    print(games[game_room_id])
 
     # send move to opponent
-    for sid in opponent_sid:
-        emit('make_move_local', move, to=sid)
+    emit('make_move_local', move, to=opponent_sid)
 
-        # save move to db
-    game_id = room_info[3]
-    move_order = room_info[4]
+    # save move to db
+    game_id = games[game_room_id][3]
+    move_order = games[game_room_id][4]
     try:
         db = ChessDB_PT.ChessDB()
         db.add_move(game_id, str(curr_turn).upper(), move_order, move)
@@ -604,10 +600,14 @@ def find_match(player):
             opponent_sid = opponent[2]
 
             # remove from queue and leave room
+            print("QUEUE BEFORE ")
+            print(queue)
             queue.remove(player)
             queue.remove(opponent)
             leave_room('queue', player_sid)
             leave_room('queue', opponent_sid)
+            print("QUEUE AFTER")
+            print(queue)
 
             # randomise who plays as white 0 for player, 1 for opponent
             white_player = random.randint(0, 1)
@@ -632,10 +632,9 @@ def find_match(player):
             # create game in db
             db = ChessDB_PT.ChessDB()
             try:
-                game_id = db.add_game(white_id, white_elo, black_id, black_elo, 'none', [])
+                game_id = db.add_game(white_id, white_elo, black_id, black_elo, 0, [])
             except Exception as ex:
                 print("DB ERROR" + str(ex))
-
 
             game_id_hash = hashlib.sha256(str(game_id).encode())
             game_room_id = str(game_id_hash.hexdigest())
@@ -647,16 +646,14 @@ def find_match(player):
             join_room(game_room_id, player_sid)
             join_room(game_room_id, opponent_sid)
 
-            # white_id, #black_id,#curr_turn,#game_id,#numOfMoves
-            games[game_room_id] = [white_id, black_id, 'w', game_id, 0]
+            # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
+            games[game_room_id] = [white_id, black_id, 'w', game_id, 0, default_FEN]
 
     # notify player of scope change if it has happened
     if player_curr_scope != scope:
         player[4] = scope
         emit("update_scope", {'scope': scope}, to=player_sid)
 
-    time_taken = 1
-    return time_taken
 
 
 @socketio.on('disconnect')
@@ -668,28 +665,29 @@ def disconnect():
         queue.remove(to_be_removed)
 
     # remove from game he was in?
-    print('Client disconnected ', request.sid)
+    print('Player disconnected ', request.sid)
 
 
 # returns -1 if isn't, room id if is
 def get_is_player_in_game(playerId):
     for roomId, value in games.items():
         if value[0] == playerId:
-            return [roomId, 'w']
+            # roomID,playingAS,FEN
+            return [roomId, 'w', value[5]]
         if value[1] == playerId:
-            return [roomId, 'b']
+            return [roomId, 'b', value[5]]
 
-    return [-1, 'n']
+    return [-1, 'n', "undefined"]
 
 
-@socketio.event
+@socketio.on('connect')
 def connect():
     print('Player connected! ' + request.sid)
     emit('connect', {})
 
 
 def check_auth(sid, player_id):
-    if (str(player_id) not in authorized_sockets) or (sid not in authorized_sockets[str(player_id)]):
+    if (str(player_id) not in authorized_socket) or (sid != authorized_socket[str(player_id)]):
         return False
 
     return True
@@ -708,15 +706,16 @@ def authorize(data):
 
     print("Authorization of player" + str(player_id) + " succeded")
     # add socket id to authorized sockets for player
-    authorized_sockets.setdefault(str(player_id), []).append(request.sid)
+    authorized_socket[str(player_id)] = request.sid
 
     # check if player was in a game/lobby and add him back [gameId,playinsAs]
-    # gameinfo = get_is_player_in_game(player_id)
-    # if gameinfo[0] != -1:
-    #     print("Player " + str(player_id) + "rejoined game " + str(gameinfo[0]) + " as "+ str(gameinfo[1]))
-    #     join_room(gameinfo[0] , request.sid)
-    #     # game rejoin communicata
-    #     emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1]}, to=request.sid)
+    gameinfo = get_is_player_in_game(player_id)
+    if gameinfo[0] != -1:
+        print("Player " + str(player_id) + " rejoined game " + str(gameinfo[0]) + " as " + str(
+            gameinfo[1] + " with FEN " + str(gameinfo[2])))
+        join_room(gameinfo[0], request.sid)
+        # game rejoin communicata
+        emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1], 'FEN': gameinfo[2]}, to=request.sid)
 
     emit('authorized', )
 

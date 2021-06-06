@@ -1,3 +1,22 @@
+.PlayGameScreen {
+    margin-left: 2rem;
+    margin-right: 2rem;
+    margin-top:5rem;
+    display: grid;
+    grid-template-columns: 0.8fr 1.8fr 0.6fr;
+    grid-template-rows: 0.4fr 1.5fr;
+    gap: 0px 1rem;
+    grid-template-areas:
+    "player-info board disclaimers"
+    "chat board buttons";
+}
+.PlayGameScreen  .GameContainer { grid-area: board; }
+.PlayGameScreen  .PlayersInfo { grid-area: player-info; }
+.PlayGameScreen  .Chat { grid-area: chat; }
+.PlayGameScreen  .GameButtons { grid-area: buttons; }
+.PlayGameScreen  .disclaimers { grid-area: disclaimers; }
+
+
 .ResultInfo{
     height: 100%;
     width: 100%;
@@ -45,3 +64,4 @@
     content: 'YOU';
     display: inline-block;
 }
+
