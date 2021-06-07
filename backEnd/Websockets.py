@@ -22,7 +22,7 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 # db.add_game(0, '1420', 2, '1500', 'LOSS', 12, 10, 2021, moves)
 
 # Matchmaking variables
-queue = []
+queues = {}
 q_max_wait_time = 10000  # in ms
 initial_scope = 50  # +-elo when looking for opponents
 scope_update_interval = 10000;  # time it takes for scope to widen (in ms)
@@ -173,7 +173,7 @@ def is_in_game():
 
     game_info = get_is_player_in_game(user_id)
     if game_info[0] != -1:
-        data = {"inGame": True, "FEN": game_info[2],"playingAs":game_info[1], "gameId":game_info[0]}
+        data = {"inGame": True, "FEN": game_info[2], "playingAs": game_info[1], "gameId": game_info[0]}
 
     print(data)
     resp = make_response(jsonify(data), 200)
@@ -336,18 +336,22 @@ def generate_example_match_data():
     return [match1, match2]
 
 
-def get_player_from_queue(player_id):
-    for item in queue:
-        if item[0] == player_id:
-            return item
+def get_player_from_queue(player_id, game_mode_id):
+    if str(game_mode_id) not in queues:
+        return False
+
+    for player in queues[str(game_mode_id)]:
+        if player[0] == player_id:
+            return player
 
     return False
 
 
 def get_player_from_queue_by_sid(sid):
-    for item in queue:
-        if item[2] == sid:
-            return item
+    for game_mode_id, queuedPlayers in queues.items():
+        for player in queuedPlayers:
+            if player[2] == sid:
+                return [player, game_mode_id]
 
     return False
 
@@ -360,7 +364,7 @@ def get_player_from_queue_by_sid(sid):
 
 
 @socketio.on('join_queue')
-def join_queue(player_id):
+def join_queue(data):
     @copy_current_request_context
     def run_match_maker():
         match_maker()
@@ -369,20 +373,23 @@ def join_queue(player_id):
     if thread is None:
         thread = socketio.start_background_task(run_match_maker)
 
+    data_obj = json.loads(data)
+    player_id = data_obj['playerId']
+    game_mode_id = data_obj['gameModeId']
+
     # authorize player
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
-    print("Player with id " + player_id + " joined the queue")
-    join_room('queue')
+    print("Player with id " + str(player_id) + " joined the queue for game mode" + str(game_mode_id))
+    join_room('queue' + str(game_mode_id), request.sid)
 
     # get player elo from db
     try:
         db = ChessDB_PT.ChessDB()
         user = db.get_user_by_id(player_id)
-        print(user)
         elo = user[5]
     except Exception as ex:
         print("DB ERROR" + str(ex))
@@ -393,37 +400,45 @@ def join_queue(player_id):
         return resp
 
     # add player to queue if he's not already in it
-    if get_player_from_queue(player_id) is False:
+    if get_player_from_queue(player_id, game_mode_id) is False:
         # as array id,elo,sessionId,waitTime (in ms), currentScope
-        queue.append([player_id, elo, request.sid, 0, initial_scope])
-        print(queue)
+        queues.setdefault(str(game_mode_id), []).append([player_id, elo, request.sid, 0, initial_scope])
+        print(queues)
 
-    #send initial scope to the player that joined the queue
+    # send initial scope to the player that joined the queue
     emit('update_scope', {'scope': str(initial_scope)}, to=request.sid)
 
     # send back current queue info to all connected clients
-    emit('queue_info', {'playersInQueue': str(len(queue))}, to='queue')
-
+    emit('queue_info', {'playersInQueue': str(len(queues[str(game_mode_id)]))}, to='queue' + str(game_mode_id))
 
 
 @socketio.on('leave_queue')
-def leave_queue(player_id):
+def leave_queue(data):
+    data_obj = json.loads(data)
+    player_id = data_obj['playerId']
+    game_mode_id = data_obj['gameModeId']
+
     # authorize player
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
+
+    print("Player with id " + player_id + "left the queue for gameId " + str(game_mode_id))
+    leave_room('queue' + str(game_mode_id), request.sid)
+
+    # if queue for gameId somehow doesn't exist
+    if str(game_mode_id) not in queues:
         return
 
-    print("Player with id " + player_id + "left the queue")
-    leave_room('queue')
-
     # delete player from queue if he's in it
-    to_be_removed = get_player_from_queue(player_id)
+    to_be_removed = get_player_from_queue(player_id, game_mode_id)
     if to_be_removed:
-        queue.remove(to_be_removed)
+        queues[str(game_mode_id)].remove(to_be_removed)
 
     # send back success message
-    emit('queue_left', {'success': 'true'}, to='queue')
+    emit('queue_left', {'success': 'true'}, to=request.sid)
+    # update all other players waiting in queue
+    emit('queue_info', {'playersInQueue': str(len(queues[str(game_mode_id)]))}, to='queue' + str(game_mode_id))
 
 
 @socketio.on('end_game')
@@ -557,23 +572,24 @@ def make_move(data):
 
 def match_maker():
     while True:
-        for player in queue:
-            start = timer()
-            find_match(player)
-            end = timer()
+        for game_mode_id, players in queues.copy().items():
+            for player in players:
+                start = timer()
+                find_match(game_mode_id, player)
+                end = timer()
 
-            time_taken = (end - start) * 1000
-            # increment wait time for all players still in queue
-            increment_wait_time(time_taken)
+                time_taken = (end - start) * 1000
+                # increment wait time for all players still in queue
+                increment_wait_time(game_mode_id, time_taken)
 
 
-def increment_wait_time(time_taken):
-    for player in queue:
+def increment_wait_time(game_mode_id, time_taken):
+    for player in queues[game_mode_id]:
         player[3] += time_taken
 
 
 # try to find a match for given player
-def find_match(player):
+def find_match(game_mode_id, player):
     player_id = player[0]
     player_elo = player[1]
     player_sid = player[2]
@@ -584,7 +600,7 @@ def find_match(player):
     scope = initial_scope + int(player_wait_time / scope_update_interval) * scope_update_ammount
 
     # iterate through all possible opponents
-    for opponent in queue:
+    for opponent in list(queues[str(game_mode_id)]):
 
         # don't match the player with himself
         if opponent == player:
@@ -605,13 +621,13 @@ def find_match(player):
 
             # remove from queue and leave room
             print("QUEUE BEFORE ")
-            print(queue)
-            queue.remove(player)
-            queue.remove(opponent)
-            leave_room('queue', player_sid)
-            leave_room('queue', opponent_sid)
+            print(queues[str(game_mode_id)])
+            queues[str(game_mode_id)].remove(player)
+            queues[str(game_mode_id)].remove(opponent)
+            leave_room('queue' + str(game_mode_id), player_sid)
+            leave_room('queue' + str(game_mode_id), opponent_sid)
             print("QUEUE AFTER")
-            print(queue)
+            print(queues[str(game_mode_id)])
 
             # randomise who plays as white 0 for player, 1 for opponent
             white_player = random.randint(0, 1)
@@ -659,14 +675,13 @@ def find_match(player):
         emit("update_scope", {'scope': scope}, to=player_sid)
 
 
-
 @socketio.on('disconnect')
 def disconnect():
     # delete player from queue if he's in it
     to_be_removed = get_player_from_queue_by_sid(request.sid)
     if to_be_removed != False:
-        leave_room('queue')
-        queue.remove(to_be_removed)
+        leave_room('queue' + str(to_be_removed[1]))
+        queues[str(to_be_removed[1])].remove(to_be_removed[0])
 
     # remove from game he was in?
     print('Player disconnected ', request.sid)

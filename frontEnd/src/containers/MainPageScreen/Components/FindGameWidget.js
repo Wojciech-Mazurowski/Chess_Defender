@@ -102,10 +102,12 @@ export default function FindGameWidget() {
 
     useEffect(() => {
         socket.on("queue_info", data => {
+            console.log(data);
             if (componentMounted) setPlayersInQ(data.playersInQueue);
         });
 
         socket.on("update_scope", data => {
+            console.log(data);
             if (componentMounted) setScope(data.scope);
         });
 
@@ -125,12 +127,12 @@ export default function FindGameWidget() {
     async function joinQ(gameModeId) {
         //check for socket connection, if none exists, connect
         if (!socket.is_connected) return;
-        await socket.emit("join_queue", {playerId, gameModeId});
+        await socket.emit("join_queue", JSON.stringify({playerId, gameModeId}));
     }
 
     async function leaveQ(gameModeId) {
         if (!socket.is_connected || !isInQ) return;
-        await socket.emit("leave_queue", {playerId, gameModeId});
+        await socket.emit("leave_queue", JSON.stringify({playerId, gameModeId}));
     }
 
 
