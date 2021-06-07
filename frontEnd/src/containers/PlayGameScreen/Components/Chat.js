@@ -1,10 +1,10 @@
-import TCPMessagingComponent from "../../CommonComponents/TCPMessagingComponent";
+import SocketMessagingComponent from "../../CommonComponents/SocketMessagingComponent";
 import "./Chat.css"
 import Form from "react-bootstrap/Form";
-import React, {Component} from "react";
+import React from "react";
 import Button from "react-bootstrap/Button";
 
-class Chat extends Component{
+class Chat extends SocketMessagingComponent{
     constructor(props) {
         super(props);
         this.state={

@@ -5,11 +5,11 @@ export default class VariableColor extends  Component{
     constructor(props) {
         super(props);
         this.colorStyle={
-            'background-color' :props.color
+            'backgroundColor' :props.color
         };
         this.text=props.text;
         this.size={
-            'font-size':this.props.fontSize
+            'fontSize':this.props.fontSize
         };
     }
 

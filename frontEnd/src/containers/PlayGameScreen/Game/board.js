@@ -1,17 +1,12 @@
 import {
     board,
-    cols,
     pixel_positions,
-    rows,
     size,
-    sendMoveToServer,
-    socket,
     playingAs,
-    gameroomId,
     canvas_height, canvas_width
 } from "./Main";
 import Piece from "./Piece";
-import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
+import {moves} from "./moves";
 
 
 

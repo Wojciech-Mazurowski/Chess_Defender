@@ -47,6 +47,9 @@
     width: 15rem;
     height: 15rem;
     border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .ChartPlaceholder2{
     background-color: var(--primary-color);
@@ -54,6 +57,9 @@
     height: 15rem;
     border-radius: 100%;
     margin-left: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .prim-text{

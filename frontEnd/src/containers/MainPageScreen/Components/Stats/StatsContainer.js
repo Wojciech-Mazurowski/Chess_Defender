@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import "./StatsContainer.css"
 import SectionTitle from "../../../CommonComponents/SectionTitle";
 import Dots from "../../../CommonComponents/Dots";
-import {FETCH_DEBUGGING_MODE, getMatchHistory, getPlayerStats} from "../../../../serverLogic/DataFetcher";
+import {FETCH_DEBUGGING_MODE, getPlayerStats} from "../../../../serverLogic/DataFetcher";
 
 
 
@@ -49,7 +49,7 @@ export default function StatsContainer() {
     return (
         <section id="STATS" className="StatsContainer">
             <div className="title_area">
-                <SectionTitle title="YOUR STATS"/>
+                <SectionTitle>YOUR STATS</SectionTitle>
             </div>
             <div className="text_area">
                 <div className="elo-stats">
@@ -75,8 +75,8 @@ export default function StatsContainer() {
 
             </div>
             <div className="chart_are">
-                <div className="ChartPlaceholder"/>
-                <div className="ChartPlaceholder2"/>
+                <div className="ChartPlaceholder">CHART_PLACEHOLDER</div>
+                <div className="ChartPlaceholder2">CHART_PLACEHOLDER</div>
 
             </div>
 

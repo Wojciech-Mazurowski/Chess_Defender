@@ -3,7 +3,7 @@ import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    make_a_move, moves
+    make_a_move
 } from "./moves";
 import CSquare from "./CSquare";
 
@@ -23,7 +23,7 @@ export var board;
 function importAll(r) {
     let images = {};
     r.keys().map((item, index) => {
-        images[item.replace('./', '')] = r(item);
+        return images[item.replace('./', '')] = r(item);
     });
     return images;
 }

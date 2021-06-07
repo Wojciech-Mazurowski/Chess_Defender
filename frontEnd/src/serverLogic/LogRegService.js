@@ -1,5 +1,4 @@
 import {sha256} from "js-sha256";
-import React from "react";
 import {API_URL} from "./APIConfig";
 import {handleResponse, fetchWithTimeout, FETCH_DEBUGGING_MODE, authHeader} from "./DataFetcher"
 
@@ -79,8 +78,6 @@ export async function logout(){
     localStorage.removeItem('userId');
 
     window.location.reload(true); //reload to reroute to loginpage
-    return;
-
 }
 
 

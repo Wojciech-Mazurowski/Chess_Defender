@@ -7,28 +7,33 @@ import Dots from "../../CommonComponents/Dots"
 import {useHistory} from "react-router-dom";
 import {useGame} from "../../../context/gameContext";
 import {SocketContext} from "../../../context/socketContext";
+import { CSSTransition } from 'react-transition-group';
 
+
+export class GameMode {
+    static classic = new GameMode('Classic', 0);
+    static defender = new GameMode('Defender', 1);
+
+    constructor(name, id) {
+        this.name = name;
+        this.id = id;
+    }
+}
+
+export const allGameModes = [GameMode.classic, GameMode.defender];
 
 export default function FindGameWidget() {
 
     const playerId = localStorage.getItem('userId');
     const [playersInQ, setPlayersInQ] = useState("loading...");
     const buttonTexts = ["FIND A GAME!", "IN QUEUE"];
+    const [mainButtonText, setMainButtonText] = useState(buttonTexts[0]);
 
     const [isInQ, setIsInQ] = useState(false);
-    const [buttonText, setButtonText] = useState(buttonTexts[0]);
     const [scope, setScope] = useState(50);
     const {timer, timerRestart} = useTimer(0);
 
-    //routing after having succesfully found a game
-    const history = useHistory();
-    const routeToNext = (gameId) => history.push('/play?id=' +gameId );
-
-    //socketIO Client
-    const socket = useContext(SocketContext);
-    const game = useGame();
-
-
+    //styling
     const idleStyle = {
         background: 'linear-gradient(90deg, rgba(200,199,199,1) 30%, rgba(254,254,254,1) 100%)',
         color: '#1c534b'
@@ -38,74 +43,127 @@ export default function FindGameWidget() {
         background: 'rgba(218,139,67,1)',
         color: '#e8ece8'
     }
+
+    const inQStyleGameMode = {
+        background: 'var(--primary-color-dark)',
+        color: '#e8ece8'
+    }
+
     const QInfoStyle = {
         color: '#69aca1'
     };
 
-    function findGame() {
-        let prevIsInQ = isInQ;
+    //gamemodes handling
+    const [selectedGameMode,setSelectedGameMode]= useState(-1);
+    const gameModeButtons = allGameModes.map(
+        (mode) => {
+            return (
+                <button
+                    className="PlayGameWidget-gameModeButton"
+                    onClick={()=>{findGame(mode.id)}}
+                    style={selectedGameMode===mode.id ? inQStyleGameMode : idleStyle}
+                >
+                    {mode.name}
+                </button>
+            );
+        });
 
-        setIsInQ(!isInQ);
-        setButtonText(buttonTexts[isInQ ? 0 : 1]);
+
+    //routing after having succesfully found a game
+    const history = useHistory();
+    const routeToNext = (gameId) => history.push('/play?id=' + gameId);
+
+    //socketIO Client
+    const socket = useContext(SocketContext);
+    const game = useGame();
+
+    let componentMounted = true;
+
+
+
+
+    function findGame(gameModeId) {
+
+        if((isInQ && gameModeId===selectedGameMode) || gameModeId===-1){
+            setMainButtonText(buttonTexts[0]);
+            leaveQ(selectedGameMode);
+            setIsInQ(false);
+            setSelectedGameMode(-1);
+            return;
+        }
+
+        setSelectedGameMode(gameModeId);
+        setIsInQ(true);
+        setMainButtonText(buttonTexts[1]);
         //restart the timer
         timerRestart();
-
-        //using prevIsInQ because setstate takes a while to update
-        !prevIsInQ ? joinQ() : leaveQ();
+        joinQ(gameModeId);
     }
 
+    useEffect(() => {
+        socket.on("queue_info", data => {
+            if (componentMounted) setPlayersInQ(data.playersInQueue);
+        });
 
-    socket.on("queue_info", data => {
-        console.log("queue_data" + data);
-        setPlayersInQ(data.playersInQueue);
-    });
+        socket.on("update_scope", data => {
+            if (componentMounted) setScope(data.scope);
+        });
 
-    socket.on("update_scope", data => {
-        console.log("scope_update " + data);
-        setScope(data.scope);
-    });
+        socket.on("game_found", data => {
+            console.log("GAME_FOUND")
+            game.changePlayingAs(data.playingAs);
+            game.changeGameId(data.gameId);
+            routeToNext(data.gameId)
+        });
 
-    socket.on("game_found", data => {
-        //join game
-        console.log("game_found");
-        console.log(data);
-        game.changePlayingAs(data.playingAs);
-        game.changeGameId(data.gameId);
-        routeToNext(data.gameId)
-    });
+        return () => { // This code runs when component is unmounted
+            componentMounted = false; // (4) set it to false if we leave the page
+        }
+    }, []);
 
 
-    async function joinQ() {
+    async function joinQ(gameModeId) {
         //check for socket connection, if none exists, connect
         if (!socket.is_connected) return;
-        await socket.emit("join_queue", playerId);
+        await socket.emit("join_queue", {playerId, gameModeId});
     }
 
-    async function leaveQ() {
-        if (!socket.is_connected) return;
-        await socket.emit("leave_queue", playerId);
+    async function leaveQ(gameModeId) {
+        if (!socket.is_connected || !isInQ) return;
+        await socket.emit("leave_queue", {playerId, gameModeId});
     }
 
 
     return (
         <section id="PLAY" className="PlayGameWidget">
-            <button
-                style={isInQ ? inQStyle : idleStyle}
-                onClick={findGame}
+            <button className="PlayGameWidget-mainButton"
+                    style={isInQ ? inQStyle : idleStyle}
+                    onClick={()=>{findGame(-1)}}
             >
                 <TextWithWavyOrnament fontSize='2.5rem'>
-                    {buttonText}
+                    {mainButtonText}
                     {isInQ && <Dots/>}
                 </TextWithWavyOrnament>
-
             </button>
 
-            {isInQ &&
+
+            <div className="GameModes">
+                {gameModeButtons}
+            </div>
+
+
+            <CSSTransition
+                in={isInQ}
+                timeout={200}
+                classNames="QInfo"
+                unmountOnExit
+            >
             <ul className="QInfo">
-                <li><span style={QInfoStyle}>Wait time:</span> {formatTime(timer)}</li>
-                <li><span style={QInfoStyle}>Players in queue:</span> {playersInQ}</li>
-                <li><span style={QInfoStyle}>Scope:</span> +-{scope}</li>
-            </ul>}
+                <li key="QInfo-wait-time"><span style={QInfoStyle}>Wait time:</span> {formatTime(timer)}</li>
+                <li key="QInfo-players-inQ"><span style={QInfoStyle}>Players in queue:</span> {playersInQ}</li>
+                <li key="QInfo-scope"><span style={QInfoStyle}>Scope:</span> +-{scope}</li>
+            </ul>
+        </CSSTransition>
 
 
         </section>

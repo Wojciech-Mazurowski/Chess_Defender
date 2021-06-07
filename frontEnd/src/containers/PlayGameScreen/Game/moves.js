@@ -1,5 +1,5 @@
 import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame,socket} from "./Main";
-import {simulate_moves_for_ally, simulate_moves_for_opponent} from "./SimulateMoves";
+import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
 export var opponent_moves = [];

@@ -2,10 +2,10 @@ import "./GameButtons.css"
 import {Component} from "react";
 
 class GameButtons extends Component{
-    constructor(props) {
-        super(props);
-
-    }
+    // constructor(props) {
+    //     super(props);
+    //
+    // }
 
     render() {
         return (

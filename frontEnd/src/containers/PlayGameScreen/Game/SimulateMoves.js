@@ -1,13 +1,10 @@
 import {
     future_moves,
-    future_moves2,
     future_opponent_moves2,
     Generate_moves,
     Generate_opponent_moves, get_white_king_pos, get_black_king_pos,
-    moves,
-    opponent_moves, future_opponent_moves
 } from "./moves";
-import {board, pixel_positions, playingAs, scalar, size} from "./Main"
+import {board, playingAs, scalar, size} from "./Main"
 
 //   board.color_to_move === 'w' ? ally_king  = get_black_king_pos() : ally_king = get_white_king_pos();
 

@@ -153,6 +153,7 @@ Sidenav for mobile devices
 
 /* Position and style the close button (top right corner) */
 .sidenav .closebtn {
+    all:unset;
     position: absolute;
     top: 0;
     right: 25px;

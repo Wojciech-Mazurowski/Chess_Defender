@@ -398,8 +398,12 @@ def join_queue(player_id):
         queue.append([player_id, elo, request.sid, 0, initial_scope])
         print(queue)
 
+    #send initial scope to the player that joined the queue
+    emit('update_scope', {'scope': str(initial_scope)}, to=request.sid)
+
     # send back current queue info to all connected clients
     emit('queue_info', {'playersInQueue': str(len(queue))}, to='queue')
+
 
 
 @socketio.on('leave_queue')
@@ -415,7 +419,7 @@ def leave_queue(player_id):
 
     # delete player from queue if he's in it
     to_be_removed = get_player_from_queue(player_id)
-    if to_be_removed != False:
+    if to_be_removed:
         queue.remove(to_be_removed)
 
     # send back success message

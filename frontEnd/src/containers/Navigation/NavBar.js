@@ -5,14 +5,12 @@ import LogoWidget from "./Components/LogoWidget"
 import {logout} from "../../serverLogic/LogRegService"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import {useHistory} from "react-router-dom";
 
 //buttons on different subpages
 let landingPageItems = ["PLAY", "LOGIN", "REGISTER"];
 let mainPageItems = ["STATS", "PLAY"];
 
 class NavBar extends Component {
-
 
 
     constructor(props) {
@@ -77,16 +75,12 @@ class NavBar extends Component {
 
         //update menu buttons
         this.menuItemsList = this.currentItems.map(item =>
-            <button onClick={() => this.scrollToSection(item)}>
+            <button key={item} onClick={() => this.scrollToSection(item)}>
                 {item}
             </button>);
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.location !== prevProps.location) {
-            this.getAppropriateItems();
-        }
-    }
+
 
     render() {
         this.getAppropriateItems();
@@ -106,7 +100,7 @@ class NavBar extends Component {
 
 
                 <div id="mobile_Nav" className="sidenav">
-                    <a href="javascript:void(0)" className="closebtn" onClick={this.closeNav}>&times;</a>
+                    <button className="closebtn" onClick={this.closeNav}>&times;</button>
                     {this.menuItemsList}
                 </div>
 

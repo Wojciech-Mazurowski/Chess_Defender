@@ -1,8 +1,8 @@
-import TCPMessagingComponent from "../../CommonComponents/TCPMessagingComponent";
+import SocketMessagingComponent from "../../CommonComponents/SocketMessagingComponent";
 import "./GameContainer.css"
 
 
-export default class GameContainer extends TCPMessagingComponent{
+export default class GameContainer extends SocketMessagingComponent{
     constructor(props) {
         super(props);
         this.style=props.style;

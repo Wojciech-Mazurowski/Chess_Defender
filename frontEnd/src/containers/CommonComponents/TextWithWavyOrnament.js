@@ -8,7 +8,7 @@ class TextWithWavyOrnament extends Component{
         super(props);
         this.text=this.props.text;
         this.fontStyle={
-            'font-size': this.props.fontSize,
+            'fontSize': this.props.fontSize,
             'color': this.props.color
         }
         this.ornamentStyle= { height: this.props.ornamentSize};
@@ -20,8 +20,8 @@ class TextWithWavyOrnament extends Component{
     render() {
         return (
             <div className="TextWithWavyOrnament" style={this.directionStyle}>
-                <img style={this.ornamentStyle} src={ornament}/>
-                <h1 style={this.fontStyle} >{this.text} {this.props.children}</h1>
+                <img style={this.ornamentStyle} src={ornament} alt="decorative ornament"/>
+                <h1 style={this.fontStyle} >{this.props.children}</h1>
             </div>
 
         );

@@ -14,7 +14,8 @@ class MatchHistory extends Component {
         super(props);
         this.state = {
             isLoading: true,
-            matchHistory: []
+            matchHistory: [],
+            mounted:true
         }
     }
 
@@ -22,10 +23,18 @@ class MatchHistory extends Component {
         this.fetchPlayerData();
     }
 
+    //clean up async calls on unmount
+    componentWillUnmount() {
+        this.setState({mounted:false});
+    }
+
     async fetchPlayerData() {
         const userId = localStorage.getItem('userId');
         const resp = await getMatchHistory(userId);
         if(FETCH_DEBUGGING_MODE) console.log(resp);
+
+        //handle unmount
+        if(!this.state.mounted) return
 
         this.setState({isLoading: false})
         //handle network errors
@@ -41,14 +50,17 @@ class MatchHistory extends Component {
             return;
         }
 
+
+        let keyGenerator=-1;
         let matchHistoryArray= resp.map(
             item => {
+                keyGenerator++;
                 let result = MatchResult.getResultFromString(item.matchResult);
                 let p1Info = new PlayerInfo(item.p1Username, item.p1PlayedAs, item.p1ELO);
                 let p2Info = new PlayerInfo(item.p2Username, item.p2PlayedAs, item.p2ELO);
                 let date = new MatchDate(item.hour, item.dayMonthYear);
                 let matchItemInfo = new MatchItemInfo(result, item.nOfMoves, p1Info, p2Info, date);
-                return <MatchHistoryItem matchItemInfo={matchItemInfo}/>;
+                return <MatchHistoryItem key={keyGenerator} matchItemInfo={matchItemInfo}/>;
             })
         this.setState({matchHistory: matchHistoryArray})
     }
@@ -58,14 +70,13 @@ class MatchHistory extends Component {
         let p2Info = new PlayerInfo("----", "BLACK", "----");
         let date = new MatchDate("--:--", "--/--/--");
         let matchItemInfo = new MatchItemInfo(MatchResult.none, "00", p1Info, p2Info, date);
-        console.log(matchItemInfo);
         return <MatchHistoryItem matchItemInfo={matchItemInfo}/>;
     }
 
     render() {
         return (
             <section className="MatchHistory">
-                <SectionTitle title="MATCH HISTORY"/>
+                <SectionTitle>MATCH HISTORY</SectionTitle>
 
                 <div className="MatchHistory-colors">
                     <VariableColor
@@ -89,9 +100,18 @@ class MatchHistory extends Component {
 }
 
 class MatchHistoryPlaceholder extends Component {
+    constructor(props) {
+        super(props);
+        let p1Info = new PlayerInfo("----", "WHITE", "----");
+        let p2Info = new PlayerInfo("----", "BLACK", "----");
+        let date = new MatchDate("--:--", "--/--/--");
+        this.matchItemInfo = new MatchItemInfo(MatchResult.none, "00", p1Info, p2Info, date);
+    }
     render() {
         return (
-            <div className="MatchHistory-placeholder"></div>
+            <div className="MatchHistory-placeholder">
+                <MatchHistoryItem matchItemInfo={this.matchItemInfo}/>
+            </div>
         );
     }
 }

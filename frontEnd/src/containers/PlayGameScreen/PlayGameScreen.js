@@ -5,7 +5,6 @@ import Chat from "./Components/Chat"
 import P5Wrapper from "react-p5-wrapper"
 import sketch from "./Game/Main";
 import {withMyHooks} from "../../context/gameContext";
-import {make_opponents_move} from "./Game/moves"
 import {getIsInGame} from "../../serverLogic/DataFetcher";
 import PlayersInfo from "./Components/PlayersInfo";
 import "./PlayGameScreen.css";
@@ -18,7 +17,6 @@ class PlayGameScreen extends Component {
         super(props);
 
         this.socket = this.props.socketContext;
-
         this.state = {
             gameMode:0,
             loading:true,
@@ -35,14 +33,13 @@ class PlayGameScreen extends Component {
         //check if opponent is in game, if not REROUTE back
         let playerId = localStorage.getItem('userId');
         getIsInGame(playerId).then( (resp)=>{
-            console.log("GOT is in game");
-            console.log(resp);
-            if (resp === undefined) {
 
+            if (resp === undefined) return
+            //if not in game REROUTE back
+            if(!resp.inGame){
+                this.props.routeToMain();
                 return;
             }
-            //if not in game REROUTE back
-            if(!resp.inGame) this.props.routeToMain();
 
             this.setState({
                 startingFEN:resp.FEN,
@@ -55,33 +52,22 @@ class PlayGameScreen extends Component {
 
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
-            console.log("DOSTAEM KONIEC");
-            console.log(data);
+
             this.setState({gameStatus: data.result, showResult: true});
-            //after 5 seconds reroute to main
-            //setTimeout(this.props.routeToMain(), 5000);
+            //setTimeout(this.props.routeToMain(), 5000);  //after 5 seconds reroute to main
         });
     }
 
 
     async sendEndGame(socket, data, gameroomId,FEN) {
-        if (socket === undefined || !socket.is_connected) {
-            //try to recconect to socket
-            console.log("socket undefined")
-            return;
-        }
-        console.log("Wyslalem koniec");
+        if (socket === undefined || !socket.is_connected)  return;
+
         let playerId = localStorage.getItem('userId');
         await socket.emit("end_game", JSON.stringify({data, gameroomId, playerId,FEN}));
     }
 
     async sendMove(socket, move, gameroomId,FEN) {
-        if (socket === undefined || !socket.is_connected) {
-            //try to recconect to socket
-            console.log("WYSLALEM");
-            console.log("socket undefined")
-            return;
-        }
+        if (socket === undefined || !socket.is_connected) return;
 
         let playerId = localStorage.getItem('userId');
         await socket.emit("make_move", JSON.stringify({move, gameroomId, playerId,FEN}));
@@ -94,13 +80,12 @@ class PlayGameScreen extends Component {
             <div className="PlayGameScreen">
                 {this.state.showResult &&
                 <div className="ResultInfo">
-                    <p>&nbsp;{this.state.gameStatus}</p>
+                    <p>&nbsp;{this.state.gameStatus.toUpperCase()}</p>
                     <button disabled={!this.state.showResult} onClick={this.props.routeToMain}>GO BACK</button>
                 </div>
                 }
 
                 <PlayersInfo/>
-
 
                 <Chat/>
                 <GameContainer>

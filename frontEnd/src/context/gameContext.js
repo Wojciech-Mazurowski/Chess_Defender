@@ -37,6 +37,3 @@ export function withMyHooks(Component) {
 
 
 
-const statusContext = React.createContext()
-
-

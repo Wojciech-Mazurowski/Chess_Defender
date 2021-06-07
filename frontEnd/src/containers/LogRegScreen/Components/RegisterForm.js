@@ -6,10 +6,9 @@ import "../../../serverLogic/APIConfig.js"
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faEye} from "@fortawesome/free-solid-svg-icons";
 import SectionTitle from "../../CommonComponents/SectionTitle";
-import {sha256} from 'js-sha256';
 import {useHistory} from "react-router-dom";
 import {login, register} from "../../../serverLogic/LogRegService"
-import {SocketContext} from "../../../context/socketContext";
+
 
 
 
@@ -26,7 +25,7 @@ export default function RegisterForm() {
     const [usernameContainsWhitespace, setUsernameContainsWhitespace] = useState(false);
     const [isUsernameLongEnough, setIsUsernameLongEnough] = useState(false);
     const [isUsernameTooLong, setIsUsernameTooLong] = useState(false);
-    const [isUsernameTaken, setIsUsernameTaken] = useState(false);
+    const [isUsernameTaken, ] = useState(false);
     const [isValidUsername, setIsValidUsername] = useState(false);
 
     //for checking password requirments
@@ -51,7 +50,6 @@ export default function RegisterForm() {
     //routing after succesfull register and login
     const history = useHistory();
     const routeToNext = () => history.push('/');
-    const socket = useContext(SocketContext);
 
     const successColor = '#369257';
     const failColor = '#bf3d3b';
@@ -77,11 +75,6 @@ export default function RegisterForm() {
         return errors;
     }
 
-    function clearAllFields() {
-        setUsername("");
-        setPassword("");
-        setConfirmPassword("");
-    }
 
     function hasNumber(string) {
         return /\d/.test(string);
@@ -97,7 +90,7 @@ export default function RegisterForm() {
 
     function checkPassword(pass) {
         setPassword(pass);
-        confirmPassword == pass ? setArePasswordsEqual(true) : setArePasswordsEqual(false);
+        confirmPassword === pass ? setArePasswordsEqual(true) : setArePasswordsEqual(false);
 
         pass.length >= minPassLength ? setIsPasswordLongEnough(true) : setIsPasswordLongEnough(false)
         pass.length > maxPassLength ? setIsPasswordTooLong(true) : setIsPasswordTooLong(false)
@@ -113,15 +106,9 @@ export default function RegisterForm() {
             setArePasswordsEqual(false);
             return;
         }
-        confPassword == password ? setArePasswordsEqual(true) : setArePasswordsEqual(false);
+        confPassword === password ? setArePasswordsEqual(true) : setArePasswordsEqual(false);
     }
 
-    function checkUsernameTaken(username) {
-        // eslint-disable-next-line no-undef
-        // let APIResponse=API.sendToAPI("POST","/sum",jsonString);
-        setIsUsernameTaken(false);
-        return false;
-    }
 
     function checkUsername(username) {
         setUsername(username);
@@ -140,7 +127,7 @@ export default function RegisterForm() {
         //check if all data matches requirments
         let errors = validateData();
         if (errors.length !== 0) {
-            let errorList = errors.map(error => <li>{error}</li>);
+            let errorList = errors.map(error => <li key={error}>{error}</li>);
             setErrorMessage(errorList);
             return;
         }
@@ -160,13 +147,13 @@ export default function RegisterForm() {
             setErrorMessage(resp.error);
             return;
         }
-        socket.authorize();
+
         routeToNext();
     }
 
     return (
         <div className="LogRegForm">
-            <SectionTitle title="REGISTER"/>
+            <SectionTitle>REGISTER</SectionTitle>
 
             <Form onSubmit={handleSubmit}>
                 <Form.Control

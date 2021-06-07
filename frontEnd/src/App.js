@@ -11,12 +11,6 @@ import {make_opponents_move} from "./containers/PlayGameScreen/Game/moves";
 
 
 socket.connect();
-//TODO fix, this is trully terrible, i am so sorry
-socket.on("make_move_local", data => {
-    if (data === undefined) return;
-    console.log("DOSTAEM");
-    make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
-});
 
 //redirects to login if user is not authenticated
 const PrivateRoute = ({ component: Component, ...rest }) => (

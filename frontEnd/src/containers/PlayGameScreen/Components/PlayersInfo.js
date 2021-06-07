@@ -1,10 +1,10 @@
-import TCPMessagingComponent from "../../CommonComponents/TCPMessagingComponent";
+import SocketMessagingComponent from "../../CommonComponents/SocketMessagingComponent";
 import "./PlayersInfo.css"
 import {PlayerInfo} from "../../MainPageScreen/Components/MatchHistory/MatchHistoryItem";
 import {SocketStatus} from "../../../serverLogic/WebSocket";
 import React from "react";
 
-class PlayersInfo extends TCPMessagingComponent{
+class PlayersInfo extends SocketMessagingComponent{
     constructor(props) {
         super(props);
         this.state ={

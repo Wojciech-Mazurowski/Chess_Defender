@@ -4,13 +4,15 @@ import "./Section.css";
 class Section extends Component {
     constructor(props) {
         super(props);
-        this.sectionID = props.section;
+        this.state={
+            sectionID:props.section
+        }
     }
 
     render() {
         return (
             <section
-                id={this.sectionID}
+                id={this.state.sectionID}
                 className="Section"
             >
                 <div className="content">

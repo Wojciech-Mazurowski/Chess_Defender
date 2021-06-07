@@ -55,7 +55,7 @@ class MatchHistoryItem extends Component {
         super(props);
         this.matchResult = this.props.matchItemInfo.matchResult;
         this.matchResultStyle = {
-            'background-color': this.matchResult.color
+            'backgroundColor': this.matchResult.color
         }
 
         this.nofMoves = this.props.matchItemInfo.nofMoves;

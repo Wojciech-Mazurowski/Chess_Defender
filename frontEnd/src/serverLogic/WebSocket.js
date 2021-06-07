@@ -1,5 +1,7 @@
 import io from 'socket.io-client';
 import {API_URL} from "./APIConfig";
+import {socket} from "../context/socketContext";
+import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 
 
 const socketPath = '';
@@ -14,13 +16,10 @@ export class SocketStatus {
         this.color = color;
     }
 
-    toString(){
+    toString() {
         return this.name;
     }
 }
-
-
-
 
 export default class SocketClient {
 
@@ -29,14 +28,16 @@ export default class SocketClient {
         this.socket = null;
         this.is_connected = false;
         this.is_authorized = false;
-        this.ping=1000;
-        this.status= SocketStatus.disconnected;
+        this.ping = 1000;
+        this.status = SocketStatus.disconnected;
     }
 
 
     disconnect() {
         return new Promise((resolve) => {
             this.socket.disconnect(() => {
+                this.is_authorized = false;
+                this.is_connected = false;
                 this.socket = null;
                 resolve();
             });
@@ -44,15 +45,15 @@ export default class SocketClient {
     }
 
     emit(event, data) {
+        if (!this.is_authorized) this.authorize();
+
         return new Promise((resolve, reject) => {
             if (!this.socket) return reject('No socket connection.');
             return this.socket.emit(event, data, (response) => {
-
                 if (response && response.error) {
                     console.error(response.error);
                     return reject(response.error);
                 }
-
                 return resolve();
             });
         });
@@ -60,20 +61,32 @@ export default class SocketClient {
 
     //authenticate client's socket
     authorize() {
-        let authData = {
-            userId: localStorage.getItem('userId'),
-            sessionToken: localStorage.getItem('sessionToken')
-        };
-        this.socket.emit('authorize', authData);
+        //try to authorize if there is a session token present
+        if (localStorage.getItem('sessionToken') && !this.is_authorized) {
+            let authData = {
+                userId: localStorage.getItem('userId'),
+                sessionToken: localStorage.getItem('sessionToken')
+            };
+            this.socket.emit('authorize', authData);
+        }
+    }
+
+    gameListeners() {
+        this.on("make_move_local", data => {
+            if (data === undefined) return;
+            make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
+        });
+    }
+
+    authListeners() {
         this.on('authorized', () => {
             this.is_authorized = true;
-            console.log("CHANGED TO CONNECTED");
-            this.status= SocketStatus.connected;
+            this.status = SocketStatus.connected;
         });
         this.on('unauthorized', () => {
             this.is_authorized = false;
-            console.log("CHANGED TO Connecting");
-            this.status= SocketStatus.connecting;
+            window.location.reload(true); //reload to reroute to loginpage
+            this.status = SocketStatus.connecting;
         });
     }
 
@@ -82,8 +95,6 @@ export default class SocketClient {
     on(event, fun) {
         return new Promise((resolve, reject) => {
             if (!this.socket) return reject('No socket connection.');
-
-
             this.socket.on(event, fun);
             resolve();
         });
@@ -95,7 +106,10 @@ export default class SocketClient {
         let that = this;
         let connectInterval;
         console.log("CHANGED TO CONNECTING");
-        this.status= SocketStatus.connecting;
+        this.status = SocketStatus.connecting;
+
+        this.authListeners();
+        this.gameListeners();
 
         this.socket.on('connect', () => {
             console.log("connected websocket!");
@@ -115,7 +129,8 @@ export default class SocketClient {
             );
 
             this.is_connected = false;
-            this.status= SocketStatus.disconnected;
+            this.is_authorized = false;
+            this.status = SocketStatus.disconnected;
             that.timeout = that.timeout + that.timeout; //increment retry interval
             //call check function after timeout
             connectInterval = setTimeout(this.check, Math.min(10000, that.timeout));
@@ -130,9 +145,9 @@ export default class SocketClient {
                 )} second.`,
                 reason
             );
-
-            this.is_connected = false;
-            this.status= SocketStatus.disconnected;
+            this.is_connected = false
+            this.is_authorized = false;
+            this.status = SocketStatus.disconnected;
             that.timeout = that.timeout + that.timeout; //increment retry interval
             //call check function after timeout
             connectInterval = setTimeout(this.check, Math.min(10000, that.timeout));
