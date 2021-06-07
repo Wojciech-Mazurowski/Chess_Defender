@@ -1,4 +1,4 @@
-import Board from "./board";
+import Board, {default_FEN} from "./board";
 import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
@@ -92,8 +92,12 @@ export default function sketch(p5) {
 
         p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
 
-        if (startingFEN !== undefined) board.FEN = startingFEN;
-
+        if (startingFEN !== undefined) {
+            board.FEN = startingFEN
+            console.log(startingFEN)
+        }else{
+            board.FEN = default_FEN;
+        }
         board.load_FEN();
 
 

@@ -15,7 +15,7 @@ import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./
 
 
 
-const default_FEN="\n" + "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export const default_FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export default class Board {
 
@@ -25,7 +25,7 @@ export default class Board {
         for (let i = 0; i < 64; i++) {
             this.grid.push(new Piece("e",this.p5));
         }
-        this.FEN = default_FEN;
+        this.FEN = "";
         this.load_FEN()
         this.color_to_move = "";
         this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
