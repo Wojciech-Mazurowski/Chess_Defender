@@ -173,7 +173,7 @@ def is_in_game():
 
     game_info = get_is_player_in_game(user_id)
     if game_info[0] != -1:
-        data = {"inGame": True, "FEN": game_info[2]}
+        data = {"inGame": True, "FEN": game_info[2],"playingAs":game_info[1], "gameId":game_info[0]}
 
     print(data)
     resp = make_response(jsonify(data), 200)

@@ -40,9 +40,11 @@ let startingFEN;
 export default function sketch(p5) {
 
     p5.myCustomRedrawAccordingToNewPropsHandler = (props) => {
-        if (props.game) {
-            playingAs = props.game.playingAs;
-            gameroomId = props.game.gameId;
+        if (props.playingAs) {
+            playingAs = props.playingAs;
+        }
+        if (props.gameId) {
+            gameroomId = props.gameId;
         }
         if (props.socket) {
             socket = props.socket;
@@ -95,7 +97,7 @@ export default function sketch(p5) {
         if (startingFEN !== undefined) {
             board.FEN = startingFEN
             console.log(startingFEN)
-        }else{
+        } else {
             board.FEN = default_FEN;
         }
         board.load_FEN();
@@ -106,7 +108,7 @@ export default function sketch(p5) {
                 let square = new CSquare(i, j, size, p5);
                 Checkboard.push(square);
                 if (playingAs === 'b') {
-                    pixel_positions.push([canvas_width - size - j * size,canvas_height- size - i * size]);
+                    pixel_positions.push([canvas_width - size - j * size, canvas_height - size - i * size]);
                 } else {
                     pixel_positions.push([j * size, i * size]);
                 }

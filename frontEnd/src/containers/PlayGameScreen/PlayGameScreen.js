@@ -16,14 +16,16 @@ class PlayGameScreen extends Component {
 
     constructor(props) {
         super(props);
-        this.game = this.props.gameContext;
+
         this.socket = this.props.socketContext;
 
         this.state = {
             loading:true,
             gameStatus: "Draw",
             showResult: false,
-            startingFEN:""
+            startingFEN:"",
+            playingAs : this.props.gameContext.playingAs,
+            gameId: this.props.gameContext.gameId
         }
 
     }
@@ -41,7 +43,12 @@ class PlayGameScreen extends Component {
             //if not in game REROUTE back
             if(!resp.inGame) this.props.routeToMain();
 
-            this.setState({startingFEN:resp.FEN,loading:false});
+            this.setState({
+                startingFEN:resp.FEN,
+                playingAs:resp.playingAs,
+                gameId:resp.gameId,
+                loading:false
+            });
         }
         );
 
@@ -99,7 +106,8 @@ class PlayGameScreen extends Component {
                     {!this.state.loading &&
                         <P5Wrapper
                             sketch={sketch}
-                            game={this.game}
+                            playingAs={this.state.playingAs}
+                            gameId={this.state.gameId}
                             socket={this.socket}
                             sendMoveToServer={this.sendMove}
                             sendEndGame={this.sendEndGame}
