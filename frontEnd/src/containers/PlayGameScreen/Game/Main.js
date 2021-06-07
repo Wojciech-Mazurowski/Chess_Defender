@@ -3,12 +3,12 @@ import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    make_a_move,moves
+    make_a_move, moves
 } from "./moves";
 import CSquare from "./CSquare";
 
-const canvas_width=700;
-const canvas_height=canvas_width;
+export const canvas_width = 700;
+export const canvas_height = canvas_width;
 export const Checkboard_size = canvas_height
 export const size = Checkboard_size / 8
 export const Checkboard = [];
@@ -18,14 +18,15 @@ export const scalar = 10;
 export const pixel_positions = [];
 export const rows = Math.floor(Checkboard_size / size);
 export const cols = Math.floor(Checkboard_size / size);
-export var board = new Board();
+export var board;
 
 function importAll(r) {
     let images = {};
-    r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
+    r.keys().map((item, index) => {
+        images[item.replace('./', '')] = r(item);
+    });
     return images;
 }
-
 
 
 const images = importAll(require.context('./Pieces', false, /\.(png|jpe?g|svg)$/));
@@ -36,52 +37,51 @@ export let sendMoveToServer;
 export let sendEndGame;
 let startingFEN;
 
-export default function sketch (p5) {
+export default function sketch(p5) {
 
     p5.myCustomRedrawAccordingToNewPropsHandler = (props) => {
         if (props.game) {
             playingAs = props.game.playingAs;
-            gameroomId= props.game.gameId;
+            gameroomId = props.game.gameId;
         }
-        if (props.socket){
+        if (props.socket) {
             socket = props.socket;
         }
-        if (props.sendMoveToServer){
+        if (props.sendMoveToServer) {
             sendMoveToServer = props.sendMoveToServer;
         }
-        if(props.sendEndGame){
-            sendEndGame= props.sendEndGame
+        if (props.sendEndGame) {
+            sendEndGame = props.sendEndGame
         }
-        if(props.startingFEN){
-            startingFEN= props.startingFEN
+        if (props.startingFEN) {
+            startingFEN = props.startingFEN
         }
     }
 
 
     p5.preload = function () {
-       for (let key in pieces_dict) {
-           let value = pieces_dict[key];
-           textures[value.toUpperCase()] = p5.loadImage(images['w' + value + ".png"]['default']);
-           textures[value] = p5.loadImage(images[value + ".png"]['default']);
+        for (let key in pieces_dict) {
+            let value = pieces_dict[key];
+            textures[value.toUpperCase()] = p5.loadImage(images['w' + value + ".png"]['default']);
+            textures[value] = p5.loadImage(images[value + ".png"]['default']);
         }
     }
 
     p5.mousePressed = function () {
-        for(let i=0;i<board.grid.length;i++){
+        for (let i = 0; i < board.grid.length; i++) {
             let piece = board.grid[i];
-            if(piece.isIntersecting()){
+            if (piece.isIntersecting()) {
                 piece.dragging = 1;
             }
         }
 
     }
-    p5.mouseReleased = function ()
-    {
-        let king_pos=0;
+    p5.mouseReleased = function () {
+        let king_pos = 0;
         make_a_move();
         Generate_opponent_moves(board.grid);
         check_if_check();
-        Generate_moves(board.grid,board.check,"released");
+        Generate_moves(board.grid, board.check, "released");
     }
 
 
@@ -92,20 +92,24 @@ export default function sketch (p5) {
 
         p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
 
-        if(startingFEN!==undefined) board.FEN=startingFEN;
+        if (startingFEN !== undefined) board.FEN = startingFEN;
 
         board.load_FEN();
 
 
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
-                let square = new CSquare(i, j, size,p5);
+                let square = new CSquare(i, j, size, p5);
                 Checkboard.push(square);
-                pixel_positions.push([j*size,i*size]);
+                if (playingAs === 'b') {
+                    pixel_positions.push([canvas_width - size - j * size,canvas_height- size - i * size]);
+                } else {
+                    pixel_positions.push([j * size, i * size]);
+                }
             }
         }
         count_squares_to_edge();
-        Generate_moves(board.grid,board.check,"setup");
+        Generate_moves(board.grid, board.check, "setup");
     };
 
     p5.draw = function () {

@@ -1,4 +1,15 @@
-import {board, cols, pixel_positions, rows, size,sendMoveToServer,socket,playingAs,gameroomId} from "./Main";
+import {
+    board,
+    cols,
+    pixel_positions,
+    rows,
+    size,
+    sendMoveToServer,
+    socket,
+    playingAs,
+    gameroomId,
+    canvas_height, canvas_width
+} from "./Main";
 import Piece from "./Piece";
 import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
 
@@ -25,8 +36,18 @@ export default class Board {
 
 
     get_pos(i, j) {
-        let x = i * size;
-        let y = j * size;
+        let x;
+        let y;
+        if(playingAs==='b')
+        {
+
+            x = canvas_width - size -i * size;
+            y = canvas_height - size -j * size;
+        }else{
+            x = i * size;
+            y = j * size;
+        }
+
         return [x, y]
     }
 
