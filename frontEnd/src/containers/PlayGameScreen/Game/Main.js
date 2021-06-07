@@ -35,11 +35,15 @@ export let gameroomId;
 export let socket;
 export let sendMoveToServer;
 export let sendEndGame;
+export let gameMode;
 let startingFEN;
 
 export default function sketch(p5) {
 
     p5.myCustomRedrawAccordingToNewPropsHandler = (props) => {
+        if (props.gameMode) {
+            gameMode = props.gameMode;
+        }
         if (props.playingAs) {
             playingAs = props.playingAs;
         }

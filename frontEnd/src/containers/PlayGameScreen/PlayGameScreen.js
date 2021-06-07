@@ -20,6 +20,7 @@ class PlayGameScreen extends Component {
         this.socket = this.props.socketContext;
 
         this.state = {
+            gameMode:0,
             loading:true,
             gameStatus: "Draw",
             showResult: false,
@@ -112,6 +113,7 @@ class PlayGameScreen extends Component {
                             sendMoveToServer={this.sendMove}
                             sendEndGame={this.sendEndGame}
                             startingFEN={this.state.startingFEN}
+                            gameMode={this.state.gameMode}
                         />
                     }
 
