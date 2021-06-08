@@ -356,13 +356,6 @@ def get_player_from_queue_by_sid(sid):
     return False
 
 
-# def match_maker():
-#     while True:
-#         socketio.sleep(10)
-#         if len(queue) > 1:
-#             return;
-
-
 @socketio.on('join_queue')
 def join_queue(data):
     @copy_current_request_context
@@ -737,6 +730,33 @@ def authorize(data):
         emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1], 'FEN': gameinfo[2]}, to=request.sid)
 
     emit('authorized', )
+
+
+# in game chat
+@socketio.on("send_chat_to_server")
+def send_chat_to_server(data):
+    data_obj = json.loads(data)
+
+    player_name = data_obj['playerName']
+    text = data_obj['text']
+    game_id = data_obj['gameId']
+    player_id = data_obj['playerId']
+
+    # authorize player
+    if not check_auth(request.sid, player_id):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    # check if player is in the selected game
+    game_info = get_is_player_in_game(player_id)
+    if game_info[0] == -1 or str(game_info[0]) != str(game_id):
+        print("Wrong game bucko!! ")
+        return
+
+    # send to everyone in the room except sender
+    emit('receive_message', {'text': text, 'playerName': player_name},room=game_id,include_self=False)
+ 
 
 
 socketio.run(app, host='127.0.0.1', port=5000, debug=True)

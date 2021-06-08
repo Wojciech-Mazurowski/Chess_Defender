@@ -33,7 +33,6 @@ class PlayGameScreen extends Component {
         //check if opponent is in game, if not REROUTE back
         let playerId = localStorage.getItem('userId');
         getIsInGame(playerId).then( (resp)=>{
-
             if (resp === undefined) return
             //if not in game REROUTE back
             if(!resp.inGame){
@@ -87,7 +86,7 @@ class PlayGameScreen extends Component {
 
                 <PlayersInfo/>
 
-                <Chat/>
+                <Chat gameId={this.state.gameId}/>
                 <GameContainer>
                     {!this.state.loading &&
                         <P5Wrapper
