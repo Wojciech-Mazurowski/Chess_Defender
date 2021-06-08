@@ -51,7 +51,6 @@ class PlayGameScreen extends Component {
 
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
-
             this.setState({gameStatus: data.result, showResult: true});
             //setTimeout(this.props.routeToMain(), 5000);  //after 5 seconds reroute to main
         });
@@ -86,7 +85,7 @@ class PlayGameScreen extends Component {
 
                 <PlayersInfo/>
 
-                <Chat gameId={this.state.gameId}/>
+                {!this.state.loading && <Chat gameId={this.state.gameId}/>}
                 <GameContainer>
                     {!this.state.loading &&
                         <P5Wrapper

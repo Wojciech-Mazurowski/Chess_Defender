@@ -11,7 +11,7 @@ class Chat extends SocketMessagingComponent{
         this.socket = this.props.socketContext;
         this.playerName=localStorage.getItem('username');
         this.playerId = localStorage.getItem('userId');
-        this.gameId= this.props.gameContext.gameId;
+        this.gameId= this.props.gameId;
 
         let selfMessageStyle={
             color:'var(--sec-color)'
@@ -41,18 +41,19 @@ class Chat extends SocketMessagingComponent{
             this.addMessageToLog(msg);
         })
     }
-    scrollToBottom = () => {
-        this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+
+    scrollToBottom(){
+       this.messagesEnd.scrollIntoView({ behavior: "smooth" });
     }
-    
+
     addMessageToLog(msg){
         let updatedMsgs= this.state.messages;
         updatedMsgs.push(msg);
         //add msg and clear field
-        this.setState({messages:updatedMsgs})
+        this.setState({messages:updatedMsgs});
 
         //scroll to div to bottom to show new msg
-        this.scrollToBottom()
+        this.scrollToBottom();
     }
 
     handleSubmit(event){
