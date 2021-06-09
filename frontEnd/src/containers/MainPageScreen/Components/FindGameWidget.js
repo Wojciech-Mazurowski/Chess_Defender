@@ -5,10 +5,10 @@ import {formatTime} from "../../../serverLogic/Utils"
 import useTimer from "../../CommonComponents/Timer";
 import Dots from "../../CommonComponents/Dots"
 import {useHistory} from "react-router-dom";
-import {useGame} from "../../../context/gameContext";
-import {SocketContext} from "../../../context/socketContext";
 import { CSSTransition } from 'react-transition-group';
-
+import {connect} from "react-redux";
+import {setGameId, setGameMode, setPlayingAs} from "../../../redux/actions/gameActions";
+import {mapAllStateToProps} from "../../../redux/reducers/rootReducer";
 
 export class GameMode {
     static classic = new GameMode('Classic', 0);
@@ -22,9 +22,9 @@ export class GameMode {
 
 export const allGameModes = [GameMode.classic, GameMode.defender];
 
-export default function FindGameWidget() {
+function FindGameWidget({userId,socket,dispatch}) {
 
-    const playerId = localStorage.getItem('userId');
+    const playerId =userId //;
     const [playersInQ, setPlayersInQ] = useState("loading...");
     const buttonTexts = ["FIND A GAME!", "IN QUEUE"];
     const [mainButtonText, setMainButtonText] = useState(buttonTexts[0]);
@@ -73,13 +73,7 @@ export default function FindGameWidget() {
     const history = useHistory();
     const routeToNext = (gameId) => history.push('/play?id=' + gameId);
 
-    //socketIO Client
-    const socket = useContext(SocketContext);
-    const game = useGame();
-
     let componentMounted = true;
-
-
 
 
     function findGame(gameModeId) {
@@ -113,8 +107,9 @@ export default function FindGameWidget() {
 
         socket.on("game_found", data => {
             console.log("GAME_FOUND")
-            game.changePlayingAs(data.playingAs);
-            game.changeGameId(data.gameId);
+            dispatch(setPlayingAs(data.playingAs));
+            dispatch(setGameId(data.gameId));
+            dispatch(setGameMode(selectedGameMode));
             routeToNext(data.gameId)
         });
 
@@ -172,3 +167,7 @@ export default function FindGameWidget() {
 
     );
 }
+
+
+
+export default connect(mapAllStateToProps)(FindGameWidget)

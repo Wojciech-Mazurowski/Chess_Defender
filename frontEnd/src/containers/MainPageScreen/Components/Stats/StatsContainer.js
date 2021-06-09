@@ -2,11 +2,13 @@ import React, {useEffect, useState} from "react";
 import "./StatsContainer.css"
 import SectionTitle from "../../../CommonComponents/SectionTitle";
 import Dots from "../../../CommonComponents/Dots";
-import {FETCH_DEBUGGING_MODE, getPlayerStats} from "../../../../serverLogic/DataFetcher";
+import {FETCH_DEBUGGING_MODE, getPlayerStats, getSessionToken} from "../../../../serverLogic/DataFetcher";
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../../../redux/reducers/rootReducer";
 
 
 
-export default function StatsContainer() {
+function StatsContainer({userId,sessionToken}) {
     const [currentElo, setCurrentElo] = useState("loading");
     const [rankDeviation, setRankDeviation] = useState("loading");
     const [gamesPlayed, setGamesPlayed] = useState("loading");
@@ -15,14 +17,14 @@ export default function StatsContainer() {
     const [draws, setDraws] = useState("loading");
     const [isLoading, setIsLoading] = useState(true);
 
+    //run only once
     useEffect(() => {
         fetchPlayerData();
     }, []);
 
 
     async function fetchPlayerData() {
-        const userId = localStorage.getItem('userId');
-        const resp = await getPlayerStats(userId);
+        const resp = await getPlayerStats(userId,sessionToken);
         if(FETCH_DEBUGGING_MODE) console.log(resp);
 
         setIsLoading(false);
@@ -83,3 +85,6 @@ export default function StatsContainer() {
         </section>
     );
 }
+
+
+export default connect(mapAllStateToProps)(StatsContainer)

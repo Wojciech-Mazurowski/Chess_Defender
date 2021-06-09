@@ -1,8 +1,9 @@
 import io from 'socket.io-client';
 import {API_URL} from "./APIConfig";
-import {socket} from "../context/socketContext";
 import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
-
+import {getSessionToken} from "./DataFetcher";
+import {store} from "../index";
+import {setSessionToken} from "../redux/actions/userActions";
 
 const socketPath = '';
 
@@ -60,13 +61,28 @@ export default class SocketClient {
     }
 
     //authenticate client's socket
-    authorize() {
-        //try to authorize if there is a session token present
-        if (localStorage.getItem('sessionToken') && !this.is_authorized) {
+    async authorize() {
+        if (!this.is_authorized) {
+            const storeState=store.getState();
+            let userId=storeState.user.userId;
+            let sessionToken= storeState.user.sessionToken;
+
+            //don't try to auth if user is yet to log in
+            if(sessionToken==='none'|| userId===undefined) {
+                return;
+            }
+
+            // if(sessionToken==='none'){
+            //     sessionToken= await getSessionToken(userId);
+            //     dispatch(setSessionToken(sessionToken));
+            // }
+            //if goes right do its, if not don't
+
             let authData = {
-                userId: localStorage.getItem('userId'),
-                sessionToken: localStorage.getItem('sessionToken')
+                userId: userId,
+                sessionToken: sessionToken
             };
+
             this.socket.emit('authorize', authData);
         }
     }
@@ -85,7 +101,7 @@ export default class SocketClient {
         });
         this.on('unauthorized', () => {
             this.is_authorized = false;
-            window.location.reload(true); //reload to reroute to loginpage
+            //window.location.reload(true); //reload to reroute to loginpage
             this.status = SocketStatus.connecting;
         });
     }

@@ -7,6 +7,8 @@ import "./MatchHistoryItem";
 import VariableColor from "../../../CommonComponents/VariableColor";
 import {getMatchHistory} from "../../../../serverLogic/DataFetcher"
 import {FETCH_DEBUGGING_MODE} from "../../../../serverLogic/DataFetcher"
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../../../redux/reducers/rootReducer";
 
 
 class MatchHistory extends Component {
@@ -29,18 +31,18 @@ class MatchHistory extends Component {
     }
 
     async fetchPlayerData() {
-        const userId = localStorage.getItem('userId');
-        const resp = await getMatchHistory(userId);
+        const resp = await getMatchHistory(this.props.userId,this.props.sessionToken);
         if(FETCH_DEBUGGING_MODE) console.log(resp);
 
         //handle unmount
         if(!this.state.mounted) return
 
         this.setState({isLoading: false})
+
         //handle network errors
         if (resp === undefined || resp.error !== undefined) {
+            //TODO show some error messagae
             this.setState({matchHistory: this.getEmptyMatchHistoryItem()});
-            //show some error messagae
             return;
         }
 
@@ -115,5 +117,4 @@ class MatchHistoryPlaceholder extends Component {
         );
     }
 }
-
-export default MatchHistory;
+export default  connect(mapAllStateToProps)(MatchHistory)

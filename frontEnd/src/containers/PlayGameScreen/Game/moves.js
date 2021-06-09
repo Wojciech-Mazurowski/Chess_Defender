@@ -1,4 +1,4 @@
-import {board, gameroomId, pixel_positions, playingAs, sendMoveToServer,sendEndGame,socket} from "./Main";
+import {board, pixel_positions, playingAs, sendMoveToServer,sendEndGame} from "./Main";
 import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
@@ -82,7 +82,7 @@ export function Generate_moves(grid, check, gtype) {
             let data = {
                 //maybe make it send some data later
             }
-            sendEndGame(socket, data, gameroomId);
+            sendEndGame(data,board.FEN);
         }
 
 
@@ -622,7 +622,7 @@ export function make_a_move() {
                         'targetSquare': TargetSquare,
                         'mtype': move.type
                     }
-                    sendMoveToServer(socket, data, gameroomId,board.FEN);
+                    sendMoveToServer(data,board.FEN);
 
                 } else {
                     piece.snap_back();

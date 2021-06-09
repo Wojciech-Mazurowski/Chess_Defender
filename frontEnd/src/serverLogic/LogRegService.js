@@ -1,6 +1,7 @@
 import {sha256} from "js-sha256";
 import {API_URL} from "./APIConfig";
 import {handleResponse, fetchWithTimeout, FETCH_DEBUGGING_MODE, authHeader} from "./DataFetcher"
+import {setCookie} from "./Utils";
 
 export async function login(username,password){
 
@@ -10,20 +11,17 @@ export async function login(username,password){
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ username, hashedPassword })
         };
 
         const response = await fetchWithTimeout(API_URL + '/login', requestOptions);
         const respObj = await handleResponse(response);
 
-        //save user data locally for later authentication
-        localStorage.setItem('username', respObj.username);
-        localStorage.setItem('userId', respObj.userId);
-        localStorage.setItem('sessionToken', respObj.sessionID);
-
         if (FETCH_DEBUGGING_MODE)  console.log(respObj);
         return respObj;
     } catch (error) {
+        console.log(error);
         console.log(error.name === 'AbortError');
         return {error: 'Network connection error'};
     }
@@ -49,35 +47,35 @@ export async function register(username,password){
     }
 }
 
-export async function logout(){
-    //handle player not having been logedin in the first place
-    if(!localStorage.getItem('sessionToken') ){
-        window.location.reload(true); //reload to reroute to loginpage
-        return;
-    }
-    let userId=localStorage.getItem('userId');
+export async function logout(sessionToken){
 
-    try {
-        const requestOptions = {
-            method: 'POST',
-            mode: 'cors',
-            headers: authHeader(),
-            body: JSON.stringify({userId})
-        };
-
-        const response = await fetchWithTimeout(API_URL + '/logout', requestOptions);
-        const respObj = await handleResponse(response);
-        if (FETCH_DEBUGGING_MODE)  console.log(respObj);
-
-    } catch (error) {
-        console.log(error.name === 'AbortError');
-        //remove userInfo from local storage
-    }
-    localStorage.removeItem('sessionToken');
-    localStorage.removeItem('username');
+    //TODO logout
     localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('elo');
 
-    window.location.reload(true); //reload to reroute to loginpage
+    // if(!sessionToken || !userId){
+    //     //window.location.reload(true); //reload to reroute to loginpage
+    //     return;
+    // }
+
+    // try {
+    //     const requestOptions = {
+    //         method: 'POST',
+    //         mode: 'cors',
+    //         headers: authHeader(sessionToken),
+    //         body: JSON.stringify({userId})
+    //     };
+    //
+    //     const response = await fetchWithTimeout(API_URL + '/logout', requestOptions);
+    //     const respObj = await handleResponse(response);
+    //     if (FETCH_DEBUGGING_MODE)  console.log(respObj);
+    //
+    // } catch (error) {
+    //     console.log(error.name === 'AbortError');
+    // }
+
+    //window.location.reload(true); //reload to reroute to loginpage
 }
 
 
