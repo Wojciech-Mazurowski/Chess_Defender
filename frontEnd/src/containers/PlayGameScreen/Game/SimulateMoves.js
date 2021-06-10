@@ -11,7 +11,7 @@ import {board, playingAs, scalar, size} from "./Main"
 export function simulate_moves_for_ally(grid, ally_moves) {
     let ally_king;
     board.color_to_move === 'b' ? ally_king = get_black_king_pos(board.grid) : ally_king = get_white_king_pos(board.grid);
-    let stop_flag = 0;
+
 
 
     let simulation_grid;
@@ -20,13 +20,14 @@ export function simulate_moves_for_ally(grid, ally_moves) {
     let temp_grid = grid.slice();
     Generate_moves(temp_grid, 0, "future");
     console.log(future_moves);
-    let check_flag = 0;
+
     let future_move;
     let temp_move;
     for (let i = 0; i < future_moves.length; i++) {
-        console.log(future_moves.length);
+        let check_flag = 0;
         simulation_grid = simulate_set_grid_by_move(future_moves[i].StartSquare, future_moves[i].EndSquare, temp_grid,future_moves[i].type);
         Generate_opponent_moves(simulation_grid, "future2",);
+        console.log(future_opponent_moves2);
         board.color_to_move === 'b' ? ally_king = simulate_black_king_pos(simulation_grid) : ally_king = simulate_white_king_pos(simulation_grid);
         board.color_to_move === 'w' ? opponent_king = simulate_white_king_pos(simulation_grid) : opponent_king = simulate_black_king_pos(simulation_grid);
         for (let j = 0; j < future_opponent_moves2.length; j++) {

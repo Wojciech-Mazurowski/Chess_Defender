@@ -177,13 +177,13 @@ export default class Board {
                 i++;
                 if (i % 8 === 0) {
                     i = 0;
-                    j++;
+                    //j++; usuwanie bledu
                 }
             } else {
                 i++;
                 if (i % 8 === 0) {
                     i = 0;
-                    j++;
+                    //j++;  usuwanie bledu
                 }
             }
         }

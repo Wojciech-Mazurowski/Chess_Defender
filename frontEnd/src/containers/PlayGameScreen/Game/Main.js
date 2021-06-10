@@ -83,7 +83,6 @@ export default function sketch(p5) {
 
     }
     p5.mouseReleased = function () {
-        let king_pos = 0;
         make_a_move();
         Generate_opponent_moves(board.grid);
         check_if_check();
@@ -93,7 +92,6 @@ export default function sketch(p5) {
 
     p5.setup = function () {
 
-        //TODO sprawdzic czy tak mozna ze export bez argumentu i potem poprostu to nadpisuje
         board = new Board(p5);
 
         p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);

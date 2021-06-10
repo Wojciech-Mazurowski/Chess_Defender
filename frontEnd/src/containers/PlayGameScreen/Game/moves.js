@@ -79,6 +79,7 @@ export function Generate_moves(grid, check, gtype) {
 
         if (check === 1 && ally_moves.length === 0) {
             console.log("tu szachmat");
+
             let data = {
                 //maybe make it send some data later
             }
@@ -132,11 +133,11 @@ export function Generate_opponent_moves(grid, gtype) { //used for checks
 
 
 function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
-    let Can_go_up = Numbers_of_squares_to_edge[startSquare][0];
+    let Squares_to_end = Numbers_of_squares_to_edge[startSquare][0];
     //TODO can go up to tak naprawde ile jeest do konca krawedzi squarow muszE to zmienic xD
-    piece.color === 'w' ? Can_go_up = Numbers_of_squares_to_edge[startSquare][1] : Can_go_up = Numbers_of_squares_to_edge[startSquare][0];
+    piece.color === 'w' ? Squares_to_end = Numbers_of_squares_to_edge[startSquare][1] : Squares_to_end = Numbers_of_squares_to_edge[startSquare][0];
     let Target = 0;
-    if (Can_go_up > 0 && piece.did_move === 0) {
+    if (Squares_to_end > 1 && piece.did_move === 0) {
         for (let i = 0; i < 2; i++) {
             piece.color === 'w' ? Target = startSquare + Directions[1] * (i + 1) : Target = startSquare + Directions[0] * (i + 1)
             let Piece_on_Target = grid[Target];
@@ -154,7 +155,7 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
             }
 
         }
-    } else if (Can_go_up > 0 && piece.did_move === 1) {
+    } else if (Squares_to_end > 0 && piece.did_move === 1) {
         piece.color === 'w' ? Target = startSquare + Directions[1] : Target = startSquare + Directions[0];
         let Piece_on_Target = grid[Target];
 
@@ -177,7 +178,7 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
 
 
     //bicie pionow oponenta
-    if (Can_go_up > 0) {
+    if (Squares_to_end > 0) {
         piece.color === 'w' ? Target = startSquare + Directions[5] : Target = startSquare + Directions[4];
         let Piece_on_Target = grid[Target];
 
