@@ -13,7 +13,7 @@ import {connect} from "react-redux";
 import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 import {setGameId, setPlayingAs, setCurrentFEN} from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
-
+import {withRouter} from "react-router-dom"
 
 class PlayGameScreen extends Component {
 
@@ -40,7 +40,8 @@ class PlayGameScreen extends Component {
 
         //if not in game REROUTE back
         if(!resp.inGame){
-            //TODO retoute to mainPage
+            this.props.dispatch(setIsInGame(false));
+            this.props.history.push('/');
             return;
         }
 
@@ -119,4 +120,4 @@ class PlayGameScreen extends Component {
     }
 }
 
-export default connect(mapAllStateToProps)(PlayGameScreen);
+export default connect(mapAllStateToProps)(withRouter(PlayGameScreen));
