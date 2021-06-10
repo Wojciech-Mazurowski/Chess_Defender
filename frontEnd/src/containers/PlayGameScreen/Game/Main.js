@@ -31,8 +31,6 @@ function importAll(r) {
 
 const images = importAll(require.context('./Pieces', false, /\.(png|jpe?g|svg)$/));
 export let playingAs;
-export let gameroomId;
-export let socket;
 export let sendMoveToServer;
 export let sendEndGame;
 export let gameMode;
@@ -46,12 +44,6 @@ export default function sketch(p5) {
         }
         if (props.playingAs) {
             playingAs = props.playingAs;
-        }
-        if (props.gameId) {
-            gameroomId = props.gameId;
-        }
-        if (props.socket) {
-            socket = props.socket;
         }
         if (props.sendMoveToServer) {
             sendMoveToServer = props.sendMoveToServer;

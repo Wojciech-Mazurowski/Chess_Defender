@@ -2,9 +2,11 @@ import React, {Component} from 'react';
 import "./NavBar.css";
 import ProfileWidget from "./Components/ProfileWidget"
 import LogoWidget from "./Components/LogoWidget"
-import {logout} from "../../serverLogic/LogRegService"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import {logout} from "../../serverLogic/LogRegService";
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 
 //buttons on different subpages
 let landingPageItems = ["PLAY", "LOGIN", "REGISTER"];
@@ -23,11 +25,13 @@ class NavBar extends Component {
         this.logoutIcon=<FontAwesomeIcon
             className="NavBar-signout"
             icon={faSignOutAlt}
-            onClick={logout}
+            onClick={this.logout}
         />;
     }
 
-
+    async logout(){
+        logout(this.props.sessionToken)
+    }
 
     scrollToSection(sectionID) {
         this.closeNav();
@@ -68,7 +72,7 @@ class NavBar extends Component {
 
                 this.logoVisible=false;
                 this.playerWidgetVisible=true;
-                let userData= localStorage.getItem('username');
+                let userData= this.props.username;
                 if (userData!==null) this.playerUsername=userData;
             }
         }
@@ -114,4 +118,4 @@ class NavBar extends Component {
 
 }
 
-export default NavBar;
+export default connect(mapAllStateToProps)(NavBar);

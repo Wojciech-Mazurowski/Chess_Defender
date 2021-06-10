@@ -3,9 +3,13 @@ import FindGameWidget from "./Components/FindGameWidget";
 import MatchHistory from "./Components/MatchHistory/MatchHistory";
 import Section from "../CommonComponents/Section";
 import StatsContainer from "./Components/Stats/StatsContainer"
+import {getIsInGame} from "../../serverLogic/DataFetcher"
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 
-export default function MainPageScreen() {
+function MainPageScreen({userId,sessionToken,}) {
 
+    //getIsInGame(userId,sessionToken);
 
     return (
         <div>
@@ -18,3 +22,5 @@ export default function MainPageScreen() {
         </div>
     );
 }
+
+export default connect(mapAllStateToProps)(MainPageScreen)

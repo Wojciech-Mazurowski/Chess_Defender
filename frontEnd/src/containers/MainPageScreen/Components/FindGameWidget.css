@@ -29,12 +29,6 @@
     transition: background 100ms linear;
 }
 
-
-.PlayGameWidget .PlayGameWidget-mainButton:hover {
-    transform: scale(1.05);
-    filter: saturate(90%);
-}
-
 .GameModes-enter {
     opacity: 0;
     transform: scale(0.9);

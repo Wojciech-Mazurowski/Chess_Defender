@@ -4,11 +4,14 @@ import Chat from "./Components/Chat"
 
 import P5Wrapper from "react-p5-wrapper"
 import sketch from "./Game/Main";
-import {withMyHooks} from "../../context/gameContext";
 import {getIsInGame} from "../../serverLogic/DataFetcher";
 import PlayersInfo from "./Components/PlayersInfo";
 import "./PlayGameScreen.css";
 import GameButtons from "./Components/GameButtons";
+import {store} from "../../index";
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
+import {setGameId, setPlayingAs, setCurrentFEN} from "../../redux/actions/gameActions";
 
 
 class PlayGameScreen extends Component {
@@ -16,58 +19,63 @@ class PlayGameScreen extends Component {
     constructor(props) {
         super(props);
 
-        this.socket = this.props.socketContext;
+        this.socket = this.props.socket;
         this.state = {
             gameMode:0,
             loading:true,
             gameStatus: "Draw",
             showResult: false,
-            startingFEN:"",
-            playingAs : this.props.gameContext.playingAs,
-            gameId: this.props.gameContext.gameId
+            startingFEN:this.props.startingFEN,
+            playingAs : this.props.playingAs,
+            gameId: this.props.gameId
+        }
+    }
+    async fetchGameData(){
+        //check if opponent is in game, if not REROUTE back
+        let playerId = this.props.userId;
+
+        let resp= await getIsInGame(playerId,this.props.sessionToken);
+        if (resp === undefined) return
+
+        //if not in game REROUTE back
+        if(!resp.inGame){
+            //TODO retoute to mainPage
+            return;
         }
 
+        this.props.dispatch(setGameId(resp.gameId));
+        this.props.dispatch(setCurrentFEN(resp.startingFEN));
+        this.props.dispatch(setPlayingAs(resp.playingAs));
+        this.setState({startingFEN:resp.startingFEN,loading:false});
     }
 
     componentDidMount() {
-        //check if opponent is in game, if not REROUTE back
-        let playerId = localStorage.getItem('userId');
-        getIsInGame(playerId).then( (resp)=>{
-            if (resp === undefined) return
-            //if not in game REROUTE back
-            if(!resp.inGame){
-                this.props.routeToMain();
-                return;
-            }
-
-            this.setState({
-                startingFEN:resp.FEN,
-                playingAs:resp.playingAs,
-                gameId:resp.gameId,
-                loading:false
-            });
-        }
-        );
+        this.fetchGameData();
 
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
             this.setState({gameStatus: data.result, showResult: true});
-            //setTimeout(this.props.routeToMain(), 5000);  //after 5 seconds reroute to main
         });
     }
 
 
-    async sendEndGame(socket, data, gameroomId,FEN) {
-        if (socket === undefined || !socket.is_connected)  return;
+    async sendEndGame(data,FEN) {
+        const storeState=store.getState();
+        let playerId = storeState.user.userId;
+        let socket =storeState.socket.socket;
+        let gameroomId =storeState.game.gameId;
 
-        let playerId = localStorage.getItem('userId');
+        if (!socket.is_connected)  return;
         await socket.emit("end_game", JSON.stringify({data, gameroomId, playerId,FEN}));
     }
 
-    async sendMove(socket, move, gameroomId,FEN) {
-        if (socket === undefined || !socket.is_connected) return;
+    async sendMove(move,FEN) {
+        const storeState=store.getState();
+        let playerId = storeState.user.userId;
+        let socket =storeState.socket.socket;
+        let gameroomId =storeState.game.gameId;
 
-        let playerId = localStorage.getItem('userId');
+        if ( !socket.is_connected) return;
         await socket.emit("make_move", JSON.stringify({move, gameroomId, playerId,FEN}));
     }
 
@@ -90,7 +98,7 @@ class PlayGameScreen extends Component {
                     {!this.state.loading &&
                         <P5Wrapper
                             sketch={sketch}
-                            playingAs={this.state.playingAs}
+                            playingAs={this.props.playingAs}
                             gameId={this.state.gameId}
                             socket={this.socket}
                             sendMoveToServer={this.sendMove}
@@ -109,4 +117,4 @@ class PlayGameScreen extends Component {
     }
 }
 
-export default withMyHooks(PlayGameScreen);
+export default connect(mapAllStateToProps)(PlayGameScreen);

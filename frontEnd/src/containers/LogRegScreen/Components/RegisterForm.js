@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useState} from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "./RegisterForm.css";
@@ -8,11 +8,13 @@ import {faEye} from "@fortawesome/free-solid-svg-icons";
 import SectionTitle from "../../CommonComponents/SectionTitle";
 import {useHistory} from "react-router-dom";
 import {login, register} from "../../../serverLogic/LogRegService"
+import {setSessionToken, setUserElo, setUserId} from "../../../redux/actions/userActions"
+import {connect} from 'react-redux'
 
 
 
 
-export default function RegisterForm() {
+function RegisterForm({dispatch}) {
     //fields in form
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -148,6 +150,11 @@ export default function RegisterForm() {
             return;
         }
 
+        dispatch(setUserId(resp.userId));
+        dispatch(setUsername(username));
+        dispatch(setUserElo(resp.userElo));
+        dispatch(setSessionToken(resp.sessionToken));
+
         routeToNext();
     }
 
@@ -208,3 +215,5 @@ export default function RegisterForm() {
         </div>
     );
 }
+
+export default connect()(RegisterForm)

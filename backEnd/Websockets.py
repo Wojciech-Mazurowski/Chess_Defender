@@ -16,25 +16,38 @@ app.config['SECRET_KEY'] = 'secretkey'
 app.config['DEBUG'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
+debug_mode = True
 
-# create example games
-# moves = [("WHITE", 0, "G1F3"), ("BLACK", 1, "B8A6"), ("WHITE", 2, "G1F3"), ("BLACK", 3, "B8A6")]
-# db.add_game(0, '1420', 2, '1500', 'LOSS', 12, 10, 2021, moves)
+frontend_url = 'http://localhost:3000'
+
+# TODO Uncomment below when ssl is installed (secure cookies)
+# app.config.update(
+#     SESSION_COOKIE_HTTPONLY= True,
+#     SESSION_COOKIE_SECURE=True,
+# )
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY= True,
+    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SAMESITE='None'
+)
+
+# User login sessions
+# userid (string) is key, contains dict with 'session_token' and 'refresh_token'
+# ex. tkn=Sessions['3']['refresh_token'] gets refresh token for playerId 3
+Sessions = {}
 
 # Matchmaking variables
 queues = {}
 q_max_wait_time = 10000  # in ms
 initial_scope = 50  # +-elo when looking for opponents
-scope_update_interval = 10000;  # time it takes for scope to widen (in ms)
-scope_update_ammount = 50;  # ammount by which scope widens every scope_update_interval
+scope_update_interval = 10000  # time it takes for scope to widen (in ms)
+scope_update_ammount = 50  # ammount by which scope widens every scope_update_interval
 
 # Gameplay variables
 # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
 games = {}
 default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
-# User login sessions
-Sessions = {}
 
 # Websocket communication
 app.config['SECRET_KEY'] = 'secret!'
@@ -44,280 +57,215 @@ thread = None
 authorized_socket = {}
 
 
+# generates response for given data and code with appropriate headers
+def generate_response(data, HTTP_code):
+    resp = make_response(jsonify(data), HTTP_code)
+    resp.headers['Access-Control-Allow-Origin'] = frontend_url
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    resp.headers['Access-Control-Allow-Methods'] = '*'
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    return resp
+
+
+# LOGIN SERVICE HELPERS
+def generate_session_token(user_id):
+    n = random.randint(1000000000000, 9999999999999)
+    n = hashlib.sha256(str(n).encode())
+    return str(n.hexdigest())
+
+
+def generate_refresh_token(user_id):
+    n = random.randint(1000000000000, 9999999999999)
+    n = hashlib.sha256(str(n).encode())
+    return str(n.hexdigest())
+
+
+def authorize_user(user_id, session_token):
+    # making sure userid is a string
+    user_id_str = str(user_id)
+    if (user_id_str not in Sessions) or (session_token != Sessions[user_id_str]['session_token']):
+        return False
+
+    return True
+
+
 @app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-    else:
+        return generate_response({}, 200)
+
+    request_data = request.get_json()
+    if debug_mode: print("LOGIN REQUEST " + str(request_data))
+    user_name = request_data['username']
+
+
+    # get user data from db
+    try:
         db = ChessDB_PT.ChessDB()
-        rf = request.get_json()
-        print(rf)
-        user = db.get_user(rf['username'])
+        user = db.get_user(user_name)
+        user_id = str(user[0])
+        user_pass = str(user[2])
+        user_elo = str(user[5])
+    except Exception as ex:
+        if debug_mode: ("DB ERROR" + str(ex))
+        return generate_response({"error": "Can't fetch from db"}, 503)
 
-        if user is None:
-            resp = make_response(jsonify(
-                {"error": "Username doesn't exist"}), 403)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
+    # user wasn't found in the database ergo wrong username
+    if user is None:
+        return generate_response({"error": "Username doesn't exist"}, 403)
 
-        if user[2] != rf['hashedPassword']:
-            resp = make_response(jsonify(
-                {"error": "Incorrect password"}), 403)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
+    # actual user's password doesn't match given
+    if user_pass != request_data['hashedPassword']:
+        return generate_response({"error": "Incorrect password"}, 403)
 
-        # generate session token for user
-        n = random.randint(1000000000000, 9999999999999)
-        n = hashlib.sha256(str(n).encode())
-        Sessions[str(user[0])] = str(n.hexdigest())
+    # generate session and refresh token for user
+    session_token = generate_session_token(user_id)
+    refresh_token = generate_refresh_token(user_id)
+    Sessions[user_id] = {'refresh_token': refresh_token, 'session_token': session_token}
+    print(refresh_token)
+    # create cookie with refresh token, and send back payload with sessionToken
+    resp = generate_response({"userId": user_id,"userElo":user_elo,"sessionToken": session_token}, 200)
+    #create resfresh token cookie that is only ever sent to /refresh_session path
+    resp.set_cookie('refreshToken', refresh_token,domain='127.0.0.1',samesite='None',secure='false') #path="/refresh_session"
+    return resp
 
-        resp = make_response(jsonify(
-            {"userId": user[0], "sessionID": str(n.hexdigest()), "username": user[1]}
-        ), 200)
 
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
+# takes refresh token from cookie and generates and returns new session token
+@app.route('/refresh_session', methods=['GET', 'OPTIONS'])
+def refresh_session():
+    if request.method == "OPTIONS":
+        return generate_response({}, 200)
 
-        return resp
+    if debug_mode: print("REFRESH_SESSION REQUEST " + " "+ str(request.cookies))
+    user_id = str(request.args['userId'])
+
+    # check if it even contains refresh token cookie
+    if not request.cookies.get('refreshToken'):
+        if debug_mode: print("Missing refresh token cookie.")
+        return generate_response({"error": "Missing refresh token cookie."}, 401)
+
+    refresh_token = str(request.cookies.get('refreshToken'))
+    # check if refresh token is valid
+    if (user_id not in Sessions) or Sessions[user_id]['refresh_token'] != str(refresh_token):
+        if debug_mode: print("Wrong refresh token.")
+        return generate_response({"error": "Wrong refresh token."}, 401)
+
+
+    if debug_mode: print("GOT TOKEN: "+refresh_token)
+    if debug_mode: print( "HAVE TOKEN: "+ Sessions[user_id]['refresh_token'] )
+
+    new_session_token = generate_session_token(user_id)
+    Sessions[user_id]['session_token'] = new_session_token
+    return generate_response({"sessionToken": str(new_session_token)}, 200)
 
 
 @app.route('/logout', methods=['POST', 'OPTIONS'])
 def logout():
     if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-    else:
-        rf = request.get_json()
-        print(rf)
+        return generate_response({}, 200)
 
-        if rf is None:
-            resp = make_response(jsonify(
-                {"error": "Missing playerId"}), 400)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
+    request_data = request.get_json()
+    if debug_mode: print("LOGOUT REQUEST " + str(request_data))
 
-        userId = rf['userId']
+    if request_data is None:
+        if debug_mode: print('No player id in logout')
+        return generate_response({"error": "Missing playerId"}, 400)
 
-        if userId is None or Sessions[str(userId)] != request.headers['Authorization']:
-            resp = make_response(jsonify(
-                {"error": "Unauthorised logout"}), 403)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
+    user_id = rf['userId']
+    session_token = request.headers['Authorization']
+    if not authorize_user(user_id, session_token):
+        return generate_response({"error": "Authorisation failed."}, 401)
 
-        # delete session token for user
-        del Sessions[str(userId)]
+    # delete session token for user
+    del Sessions[str(user_id)]
 
-        resp = make_response(jsonify(
-            {"logout": 'succesfull'}
-        ), 200)
-
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+    return generate_response({"logout": 'succesfull'}, 200)
 
 
 @app.route('/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-    else:
+        return generate_response({}, 200)
+
+    request_data = request.get_json()
+    username = request_data['username']
+    if debug_mode: print("REGISTER REQUEST " + str(request_data))
+
+    try:
+        # handle username taken
         db = ChessDB_PT.ChessDB()
-        rf = request.get_json()
-        print(rf)
-        user = db.get_user(rf['username'])
-
+        user = db.get_user(username)
         if user is not None:
-            resp = make_response(jsonify(
-                {"error": "Username already taken"}), 403)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
-
+            return generate_response({"error": "Username already taken"}, 403)
+        # add to database
         db.add_user(rf['username'], rf['hashedPassword'], 'PL', 1000)
-        resp = make_response(rf, 200)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+    except Exception as ex:
+        if debug_mode: ("DB ERROR" + str(ex))
+        return generate_response({"error": "Database error"}, 503)
+
+    return generate_response({"registration": 'succesfull'}, 200)
 
 
 @app.route('/is_in_game', methods=['GET', 'OPTIONS'])
 def is_in_game():
     if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+        return generate_response({}, 200)
 
+    if debug_mode: print("IS_IN_GAME REQUEST " + str(request.args))
     user_id = request.args['userId']
+
     # handle user not having a session at all or invalid authorization
-    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
-        resp = make_response(jsonify(
-            {"error": "Authorisation failed."}), 401)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+    session_token = request.headers['Authorization']
+    if not authorize_user(user_id, session_token):
+        if debug_mode: print('Authorization failed')
+        return generate_response({"error": "Authorisation failed."}, 401)
 
+    # generate info
     data = {"inGame": False}
-
     game_info = get_is_player_in_game(user_id)
     if game_info[0] != -1:
-        data = {"inGame": True, "FEN": game_info[2], "playingAs": game_info[1], "gameId": game_info[0]}
+        data = {"inGame": True, "gameId": game_info[0], "playingAs": game_info[1], "FEN": game_info[2]}
 
-    print(data)
-    resp = make_response(jsonify(data), 200)
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Headers'] = '*'
-    return resp
+    return generate_response(data, 200)
 
 
 @app.route('/player_stats', methods=['GET', 'OPTIONS'])
 def get_player_stats():
     if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+        return generate_response({}, 200)
 
+    if debug_mode: print("PLAYER_STATS REQUEST " + str(request.args))
     user_id = request.args['userId']
 
     # handle user not having a session at all or invalid authorization
-    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
-        resp = make_response(jsonify(
-            {"error": "Authorisation failed."}), 401)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-
-    # placeholder vars if cannot connect to db
-    elo = 1000
-    deviaton = 10
-    gamesPlayed = 10
-    gamesWon = 5
-    gamesLost = 5
-    draws = 5
+    session_token = request.headers['Authorization']
+    if not authorize_user(user_id, session_token):
+        if debug_mode: print('Authorization failed')
+        return generate_response({"error": "Authorisation failed."}, 401)
 
     try:
         db = ChessDB_PT.ChessDB()
         user_info = db.get_user_by_id(user_id)
         elo = user_info[5]
-        deviaton = 10
-        gamesPlayed = db.count_games(user_id)
-        gamesWon = db.count_wins(user_id)
-        gamesLost = db.count_losses(user_id)
+        deviation = 10
+        games_played = db.count_games(user_id)
+        games_won = db.count_wins(user_id)
+        games_lost = db.count_losses(user_id)
         draws = db.count_draws(user_id)
     except Exception as ex:
-        print("DB ERROR" + str(ex))
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+        if debug_mode: ("DB ERROR" + str(ex))
+        return generate_response({"error": "Database error"}, 503)
 
-    data_json = jsonify(
-        {'elo': elo,
-         'deviaton': deviaton,
-         'gamesPlayed': gamesPlayed,
-         'gamesWon': gamesWon,
-         'gamesLost': gamesLost,
-         'draws': draws}
-    )
+    data = {
+        'elo': elo,
+        'deviaton': deviation,
+        'gamesPlayed': games_played,
+        'gamesWon': games_won,
+        'gamesLost': games_lost,
+        'draws': draws
+    }
 
-    resp = make_response(data_json, 200)
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Headers'] = '*'
-    return resp
-
-
-@app.route('/match_history', methods=['GET', 'OPTIONS'])
-def get_history():
-    if request.method == "OPTIONS":
-        resp = jsonify({})
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-
-    user_id = request.args['userId']
-
-    # handle user not having a session at all or invalid authorization
-    if (str(user_id) not in Sessions) or (request.headers['Authorization'] != Sessions[str(user_id)]):
-        resp = make_response(jsonify(
-            {"error": "Authorisation failed."}), 401)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-
-    game_history = []
-    try:
-        db = ChessDB_PT.ChessDB()
-        game_history = db.get_games(user_id)
-    except Exception as ex:
-        print("DB ERROR" + str(ex))
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
-
-    print(game_history)
-    history = []
-    counter = 0
-    max_games = 10
-    for game in game_history:
-        try:
-            counter = counter + 1
-            if counter >= max_games:
-                break
-
-            white = db.get_participant('White', game[0])
-            black = db.get_participant('Black', game[0])
-            if white[0] == user_id:
-                if white[3] == '1':
-                    result = "win"
-                elif white[3] == '0':
-                    result = "loss"
-                else:
-                    result = "draw"
-            else:
-                if black[3] == '1':
-                    result = "win"
-                elif black[3] == '0':
-                    result = "loss"
-                else:
-                    result = "draw"
-
-            match = {"matchResult": result,
-                     'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
-                     'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
-                     "hour": "21:37",
-                     "dayMonthYear": str(game[2])}
-            history.append(match)
-
-        except Exception as ex:
-            print("DB ERROR" + str(ex))
-            resp = make_response(jsonify(
-                {"error": "Can't fetch from db"}), 503)
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            resp.headers['Access-Control-Allow-Headers'] = '*'
-            return resp
-
-    print(history)
-    # history = generate_example_match_data()
-    resp = make_response(json.dumps(history), 200)
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Headers'] = '*'
-    return resp
+    return generate_response(data, 200)
 
 
 def generate_example_match_data():
@@ -336,8 +284,61 @@ def generate_example_match_data():
     return [match1, match2]
 
 
+@app.route('/match_history', methods=['GET', 'OPTIONS'])
+def get_history():
+    if request.method == "OPTIONS":
+        return generate_response({}, 200)
+
+    if debug_mode: print("PLAYER_HISTORY REQUEST " + str(request.args))
+    user_id = request.args['userId']
+
+    # handle user not having a session at all or invalid authorization
+    session_token = request.headers['Authorization']
+    if not authorize_user(user_id, session_token):
+        if debug_mode: print('Authorization failed')
+        return generate_response({"error": "Authorisation failed."}, 401)
+
+    try:
+        db = ChessDB_PT.ChessDB()
+        game_history = db.get_games(user_id)
+    except Exception as ex:
+        if debug_mode: ("DB ERROR" + str(ex))
+        return generate_response({"error": "Database error"}, 503)
+
+    history = []
+    counter = 0
+    max_games = 10
+    # maps results from numbers to strings
+    possible_results = {'0': 'loss', '0.5': 'draw', '1': 'win'}
+    for game in game_history:
+        try:
+            counter = counter + 1
+            if counter >= max_games: break
+
+            white = db.get_participant('White', game[0])
+            black = db.get_participant('Black', game[0])
+
+            result = possible_results[black[3]]
+            if white[0] == user_id: result = possible_results[white[3]]
+
+            match = {"matchResult": result,
+                     'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
+                     'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
+                     "hour": "21:37",
+                     "dayMonthYear": str(game[2])}
+            history.append(match)
+
+        except Exception as ex:
+            if debug_mode: ("DB ERROR" + str(ex))
+            return generate_response({"error": "Cannot fetch from db"}, 503)
+
+    if debug_mode: print(game_history)
+    # history = generate_example_match_data()
+    return generate_response(json.dumps(history), 200)
+
+
 def get_player_from_queue(player_id, game_mode_id):
-    if str(game_mode_id) not in queues:
+    if str(game_mode_id) not in queues.copy():
         return False
 
     for player in queues[str(game_mode_id)]:
@@ -348,7 +349,7 @@ def get_player_from_queue(player_id, game_mode_id):
 
 
 def get_player_from_queue_by_sid(sid):
-    for game_mode_id, queuedPlayers in queues.items():
+    for game_mode_id, queuedPlayers in queues.copy().items():
         for player in queuedPlayers:
             if player[2] == sid:
                 return [player, game_mode_id]
@@ -386,11 +387,7 @@ def join_queue(data):
         elo = user[5]
     except Exception as ex:
         print("DB ERROR" + str(ex))
-        resp = make_response(jsonify(
-            {"error": "Can't fetch from db"}), 503)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = '*'
-        return resp
+        return
 
     # add player to queue if he's not already in it
     if get_player_from_queue(player_id, game_mode_id) is False:
@@ -415,6 +412,7 @@ def leave_queue(data):
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
+        return
 
     print("Player with id " + player_id + "left the queue for gameId " + str(game_mode_id))
     leave_room('queue' + str(game_mode_id), request.sid)
@@ -672,7 +670,7 @@ def find_match(game_mode_id, player):
 def disconnect():
     # delete player from queue if he's in it
     to_be_removed = get_player_from_queue_by_sid(request.sid)
-    if to_be_removed != False:
+    if to_be_removed:
         leave_room('queue' + str(to_be_removed[1]))
         queues[str(to_be_removed[1])].remove(to_be_removed[0])
 
@@ -707,26 +705,32 @@ def check_auth(sid, player_id):
 
 @socketio.on("authorize")
 def authorize(data):
-    auth_token = data['sessionToken']
-    player_id = data['userId']
+    if ('sessionToken' not in data) or ('userId' not in data):
+        if debug_mode: print("Missing data in socket auth request")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    session_token = data['sessionToken']
+    player_id = str(data['userId'])
 
     # communicate unauthorised access
-    if (str(player_id) not in Sessions) or Sessions[str(player_id)] != auth_token:
-        print("Authorization of player" + str(player_id) + " failed")
+    if not authorize_user(player_id, session_token):
+        if debug_mode: print("Authorization of player" + player_id + " failed")
         emit('unauthorized', {'error': 'Unauthorized access'})
-        return False
+        return
 
-    print("Authorization of player" + str(player_id) + " succeded")
-    # add socket id to authorized sockets for player
-    authorized_socket[str(player_id)] = request.sid
+    # add socket_id to authorized sockets for player
+    if debug_mode: print("Authorization of player" + player_id + " succeded")
+    authorized_socket[player_id] = request.sid
 
     # check if player was in a game/lobby and add him back [gameId,playinsAs]
     gameinfo = get_is_player_in_game(player_id)
     if gameinfo[0] != -1:
-        print("Player " + str(player_id) + " rejoined game " + str(gameinfo[0]) + " as " + str(
-            gameinfo[1] + " with FEN " + str(gameinfo[2])))
+        if debug_mode:
+            print("Player " + str(player_id) + " rejoined game " + str(gameinfo[0]) + " as " + str(
+                gameinfo[1] + " with FEN " + str(gameinfo[2])))
         join_room(gameinfo[0], request.sid)
-        # game rejoin communicata
+        # game rejoin communicate (in case player was in queue when disconnected)
         emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1], 'FEN': gameinfo[2]}, to=request.sid)
 
     emit('authorized', )
@@ -751,14 +755,13 @@ def send_chat_to_server(data):
     # check if player is in the selected game
     game_info = get_is_player_in_game(player_id)
     if game_info[0] == -1 or str(game_info[0]) != str(game_id):
-        print("Wrong game bucko!! ")
+        print("Wrong game")
         return
 
     # send to everyone in the room except sender
-    emit('receive_message', {'text': text, 'playerName': player_name},room=game_id,include_self=False)
- 
+    emit('receive_message', {'text': text, 'playerName': player_name}, room=game_id, include_self=False)
 
 
-socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+socketio.run(app, host='127.0.0.1', port=5000, debug=debug_mode)
 
 # app.run("192.168.1.56", 5000, debug=True)

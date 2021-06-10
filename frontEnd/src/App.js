@@ -3,46 +3,47 @@ import LogRegScreen from "./containers/LogRegScreen/LogRegScreen";
 import MainPageScreen from "./containers/MainPageScreen/MainPageScreen";
 import PlayGameScreen from "./containers/PlayGameScreen/PlayGameScreen";
 import NavBar from "./containers/Navigation/NavBar";
-import {BrowserRouter as Router, Switch, Route, Redirect} from 'react-router-dom';
-import {SocketContext,socket} from './context/socketContext';
-import {GameProvider} from './context/gameContext';
+import {Switch, Route, Redirect, useHistory} from 'react-router-dom';
 import ScrollToTop from "./containers/CommonComponents/ScrollToTop";
-import {make_opponents_move} from "./containers/PlayGameScreen/Game/moves";
+import {useEffect, } from "react";
+import {mapAllStateToProps} from './redux/reducers/rootReducer'
+import {connect} from 'react-redux'
+import PrivateRoute from "./containers/CommonComponents/PrivateRouter";
+import {getSessionToken} from "./serverLogic/DataFetcher";
 
 
-socket.connect();
 
-//redirects to login if user is not authenticated
-const PrivateRoute = ({ component: Component, ...rest }) => (
-    <Route {...rest} render={props => (
+function App({socket,sessionToken,userId}) {
+    const history = useHistory();
+    let routeToMain = () => history.push('/');
 
-        localStorage.getItem('sessionToken')
-            ? <Component {...props} />
-            : <Redirect to={{ pathname: '/login', state: { from: props.location } }} />
-    )} />
-)
+    //connect the socket on startup
+    useEffect(() => {
+        //try to regenerate the session on reload
+        if(sessionToken==='none' && userId){
+            getSessionToken().then( (resp)=>{
+                if(resp===undefined || !resp.sessionToken) return;
+                routeToMain();
+            }
 
+            );
+        }
 
-function App() {
+        socket.connect();
+    }, []);
 
   return (
-          <GameProvider>
-              <SocketContext.Provider value={socket}>
-                  <div className="App">
-                      <Router>
-                          <ScrollToTop />
-                          <Route path="/" component={NavBar}/>
-                          <Switch>
-                              <PrivateRoute path="/" exact component={MainPageScreen} />
-                              <PrivateRoute path="/play" component={PlayGameScreen} />
-                              <Route path="/login" component={LogRegScreen} />
-                              <Redirect from="*" to="/" />
-                          </Switch>
-                      </Router>
-                  </div>
-              </SocketContext.Provider>
-          </GameProvider>
+          <div className="App">
+              <ScrollToTop />
+                  <Route path="/" component={NavBar}/>
+                  <Switch>
+                      <PrivateRoute path="/" exact component={MainPageScreen} />
+                      <PrivateRoute path="/play" component={PlayGameScreen} />
+                      <Route path="/login" component={LogRegScreen} />
+                      <Redirect from="*" to="/" />
+                  </Switch>
+          </div>
   );
 }
 
-export default App;
+export default connect(mapAllStateToProps)(App);

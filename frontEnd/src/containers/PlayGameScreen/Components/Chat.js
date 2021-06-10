@@ -1,16 +1,16 @@
-import SocketMessagingComponent from "../../CommonComponents/SocketMessagingComponent";
 import "./Chat.css"
 import Form from "react-bootstrap/Form";
-import React from "react";
-import Button from "react-bootstrap/Button";
-import {withMyHooks} from "../../../context/gameContext";
+import React, {Component} from "react";
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../../redux/reducers/rootReducer";
 
-class Chat extends SocketMessagingComponent{
+
+class Chat extends Component{
     constructor(props) {
         super(props);
-        this.socket = this.props.socketContext;
-        this.playerName=localStorage.getItem('username');
-        this.playerId = localStorage.getItem('userId');
+        this.socket = this.props.socket;
+        this.playerName=this.props.username;
+        this.playerId = this.props.userId;
         this.gameId= this.props.gameId;
 
         let selfMessageStyle={
@@ -112,4 +112,4 @@ class Chat extends SocketMessagingComponent{
 
 }
 
-export default withMyHooks(Chat);
+export default connect(mapAllStateToProps)(Chat);

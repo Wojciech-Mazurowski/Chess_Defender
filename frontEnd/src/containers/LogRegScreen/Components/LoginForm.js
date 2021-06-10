@@ -8,10 +8,11 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 import SectionTitle from "../../CommonComponents/SectionTitle"
 import {useHistory } from 'react-router-dom';
 import {login,logout} from "../../../serverLogic/LogRegService"
+import {connect} from 'react-redux'
+import {setSessionToken, setUserElo, setUserId, setUsername} from "../../../redux/actions/userActions";
 
-
-export default function LoginForm() {
-    const [username, setUsername] = useState("");
+function LoginForm({dispatch}) {
+    const [username, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [passwordShown, setPasswordShown] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -32,7 +33,6 @@ export default function LoginForm() {
         event.preventDefault();
         //reset error message
         setErrorMessage("");
-
         let resp=await login(username,password)
 
         if (resp.error !== undefined){
@@ -40,11 +40,17 @@ export default function LoginForm() {
             return;
         }
 
+
+        dispatch(setUserId(resp.userId));
+        dispatch(setUsername(username));
+        dispatch(setUserElo(resp.userElo));
+        dispatch(setSessionToken(resp.sessionToken));
         routeToNext();
     }
 
 
     return (
+
         <div className="LogRegForm">
             <SectionTitle>LOGIN</SectionTitle>
             <Form onSubmit={HandleSubmit}>
@@ -55,7 +61,7 @@ export default function LoginForm() {
                 autoFocus
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUserName(e.target.value)}
             />
 
             <div className="pass-wrapper">
@@ -79,3 +85,6 @@ export default function LoginForm() {
         </div>
     );
 }
+
+// Connect Redux to React
+export default connect()(LoginForm)
