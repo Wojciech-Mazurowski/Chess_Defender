@@ -27,7 +27,7 @@ frontend_url = 'http://localhost:3000'
 # )
 
 app.config.update(
-    SESSION_COOKIE_HTTPONLY= True,
+    SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_SAMESITE='None'
 )
@@ -98,7 +98,6 @@ def login():
     if debug_mode: print("LOGIN REQUEST " + str(request_data))
     user_name = request_data['username']
 
-
     # get user data from db
     try:
         db = ChessDB_PT.ChessDB()
@@ -124,9 +123,10 @@ def login():
     Sessions[user_id] = {'refresh_token': refresh_token, 'session_token': session_token}
     print(refresh_token)
     # create cookie with refresh token, and send back payload with sessionToken
-    resp = generate_response({"userId": user_id,"userElo":user_elo,"sessionToken": session_token}, 200)
-    #create resfresh token cookie that is only ever sent to /refresh_session path
-    resp.set_cookie('refreshToken', refresh_token,domain='127.0.0.1',samesite='None',secure='false') #path="/refresh_session"
+    resp = generate_response({"userId": user_id, "userElo": user_elo, "sessionToken": session_token}, 200)
+    # create resfresh token cookie that is only ever sent to /refresh_session path
+    resp.set_cookie('refreshToken', refresh_token, domain='127.0.0.1', samesite='None',
+                    secure='false')  # path="/refresh_session"
     return resp
 
 
@@ -136,7 +136,7 @@ def refresh_session():
     if request.method == "OPTIONS":
         return generate_response({}, 200)
 
-    if debug_mode: print("REFRESH_SESSION REQUEST " + " "+ str(request.cookies))
+    if debug_mode: print("REFRESH_SESSION REQUEST " + " " + str(request.cookies))
     user_id = str(request.args['userId'])
 
     # check if it even contains refresh token cookie
@@ -150,36 +150,36 @@ def refresh_session():
         if debug_mode: print("Wrong refresh token.")
         return generate_response({"error": "Wrong refresh token."}, 401)
 
-
-    if debug_mode: print("GOT TOKEN: "+refresh_token)
-    if debug_mode: print( "HAVE TOKEN: "+ Sessions[user_id]['refresh_token'] )
+    if debug_mode: print("GOT TOKEN: " + refresh_token)
+    if debug_mode: print("HAVE TOKEN: " + Sessions[user_id]['refresh_token'])
 
     new_session_token = generate_session_token(user_id)
     Sessions[user_id]['session_token'] = new_session_token
     return generate_response({"sessionToken": str(new_session_token)}, 200)
 
 
-@app.route('/logout', methods=['POST', 'OPTIONS'])
+@app.route('/logout', methods=['GET', 'OPTIONS'])
 def logout():
     if request.method == "OPTIONS":
         return generate_response({}, 200)
 
-    request_data = request.get_json()
-    if debug_mode: print("LOGOUT REQUEST " + str(request_data))
-
-    if request_data is None:
+    if request.args is None:
         if debug_mode: print('No player id in logout')
         return generate_response({"error": "Missing playerId"}, 400)
 
-    user_id = rf['userId']
+    if debug_mode: print("LOGOUT REQUEST " + str(request.args))
+    user_id = request.args['userId']
+
     session_token = request.headers['Authorization']
     if not authorize_user(user_id, session_token):
         return generate_response({"error": "Authorisation failed."}, 401)
 
     # delete session token for user
     del Sessions[str(user_id)]
-
-    return generate_response({"logout": 'succesfull'}, 200)
+    # set cookie to a dummy one
+    resp = generate_response({"logout": 'succesfull'}, 200)
+    resp.set_cookie('refreshToken', 'none', domain='127.0.0.1', samesite='None', secure='false')
+    return resp
 
 
 @app.route('/register', methods=['POST', 'OPTIONS'])
@@ -223,8 +223,10 @@ def is_in_game():
     # generate info
     data = {"inGame": False}
     game_info = get_is_player_in_game(user_id)
+    # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN,game_mode
     if game_info[0] != -1:
-        data = {"inGame": True, "gameId": game_info[0], "playingAs": game_info[1], "FEN": game_info[2]}
+        data = {"inGame": True, "gameId": game_info[0], "playingAs": game_info[1], "FEN": game_info[2],
+                "gameMode": game_info[3]}
 
     return generate_response(data, 200)
 
@@ -650,15 +652,15 @@ def find_match(game_mode_id, player):
             game_id_hash = hashlib.sha256(str(game_id).encode())
             game_room_id = str(game_id_hash.hexdigest())
             # notify the players
-            emit("game_found", {'gameId': game_room_id, 'playingAs': 'w'}, to=white_sid)
-            emit("game_found", {'gameId': game_room_id, 'playingAs': 'b'}, to=black_sid)
+            emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
+            emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
 
             # create gameroom for the two players and add both of them
             join_room(game_room_id, player_sid)
             join_room(game_room_id, opponent_sid)
 
-            # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
-            games[game_room_id] = [white_id, black_id, 'w', game_id, 0, default_FEN]
+            # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN,game_mode
+            games[game_room_id] = [white_id, black_id, 'w', game_id, 0, default_FEN, game_mode_id]
 
     # notify player of scope change if it has happened
     if player_curr_scope != scope:
@@ -679,13 +681,14 @@ def disconnect():
 
 
 # returns -1 if isn't, room id if is
+# TODO refactor this into a nice dict
 def get_is_player_in_game(playerId):
     for roomId, value in games.items():
         if value[0] == playerId:
             # roomID,playingAS,FEN
-            return [roomId, 'w', value[5]]
+            return [roomId, 'w', value[5], value[6]]
         if value[1] == playerId:
-            return [roomId, 'b', value[5]]
+            return [roomId, 'b', value[5], value[6]]
 
     return [-1, 'n', "undefined"]
 
@@ -731,7 +734,7 @@ def authorize(data):
                 gameinfo[1] + " with FEN " + str(gameinfo[2])))
         join_room(gameinfo[0], request.sid)
         # game rejoin communicate (in case player was in queue when disconnected)
-        emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1], 'FEN': gameinfo[2]}, to=request.sid)
+        emit("game_found", {'gameId': gameinfo[0], 'playingAs': gameinfo[1], 'FEN': gameinfo[2],'gameMode':gameinfo[3]}, to=request.sid)
 
     emit('authorized', )
 

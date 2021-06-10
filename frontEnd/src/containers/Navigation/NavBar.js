@@ -25,13 +25,12 @@ class NavBar extends Component {
         this.logoutIcon=<FontAwesomeIcon
             className="NavBar-signout"
             icon={faSignOutAlt}
-            onClick={this.logout}
+            onClick={logout}
         />;
     }
 
-    async logout(){
-        logout(this.props.sessionToken)
-    }
+
+
 
     scrollToSection(sectionID) {
         this.closeNav();

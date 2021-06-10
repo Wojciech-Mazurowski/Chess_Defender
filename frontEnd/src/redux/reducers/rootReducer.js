@@ -11,7 +11,10 @@ const rootReducer = combineReducers({
     socket:socketReducer,
 })
 
+
 export default rootReducer;
+
+
 
 
 // Map Redux state to React component props
@@ -21,10 +24,11 @@ export const mapAllStateToProps = (state) => {
         userId: state.user.userId,
         username: state.user.username,
         elo: state.user.elo,
+        isInGame: state.user.isInGame,
         socket: state.socket.socket,
         gameId: state.game.gameId,
         gameMode: state.game.gameMode,
         playingAs: state.game.playingAs,
-        startingFEN: state.game.startingFEN
+        currentFEN: state.game.currentFEN
     };
 };

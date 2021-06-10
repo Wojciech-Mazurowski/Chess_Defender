@@ -3,6 +3,7 @@ export const SET_USERID = 'SET_USERID'
 export const SET_USERNAME = 'SET_USERNAME'
 export const SET_USERELO = 'SET_USERELO'
 export const SET_SESSION_TOKEN= 'SET_SESSION_TOKEN'
+export const SET_IS_IN_GAME= 'SET_IS_IN_GAME'
 
 //SETTERS
 export const setUserId = (userId) => ({
@@ -25,4 +26,9 @@ export const setSessionToken = (sessionToken) => ({
     payload: sessionToken,
 })
 
+
+export const setIsInGame = (isInGame) => ({
+    type: SET_IS_IN_GAME,
+    payload: isInGame,
+})
 

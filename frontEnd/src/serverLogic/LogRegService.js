@@ -2,6 +2,9 @@ import {sha256} from "js-sha256";
 import {API_URL} from "./APIConfig";
 import {handleResponse, fetchWithTimeout, FETCH_DEBUGGING_MODE, authHeader} from "./DataFetcher"
 import {setCookie} from "./Utils";
+import {store} from "../index";
+import {setSessionToken} from "../redux/actions/userActions";
+import {clearStore} from "../redux/reducers/rootReducer";
 
 export async function login(username,password){
 
@@ -47,35 +50,36 @@ export async function register(username,password){
     }
 }
 
-export async function logout(sessionToken){
+export async function logout(){
+    const storeState=store.getState();
+    let userId=storeState.user.userId;
+    let sessionToken=storeState.user.sessionToken;
 
-    //TODO logout
-    localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('elo');
+    if(sessionToken=='none' || !userId){
+        localStorage.clear();
+        sessionStorage.clear();
+         window.location.reload(true);
+         return;
+     }
 
-    // if(!sessionToken || !userId){
-    //     //window.location.reload(true); //reload to reroute to loginpage
-    //     return;
-    // }
+    try {
+        const requestOptions = {
+            method: 'GET',
+            mode: 'cors',
+            headers: authHeader(sessionToken),
+        };
 
-    // try {
-    //     const requestOptions = {
-    //         method: 'POST',
-    //         mode: 'cors',
-    //         headers: authHeader(sessionToken),
-    //         body: JSON.stringify({userId})
-    //     };
-    //
-    //     const response = await fetchWithTimeout(API_URL + '/logout', requestOptions);
-    //     const respObj = await handleResponse(response);
-    //     if (FETCH_DEBUGGING_MODE)  console.log(respObj);
-    //
-    // } catch (error) {
-    //     console.log(error.name === 'AbortError');
-    // }
+        const response = await fetchWithTimeout(API_URL + '/logout?userId='+userId, requestOptions);
+        const respBody= await response.text();
+        const respObj = JSON.parse(respBody);
+        if (FETCH_DEBUGGING_MODE) console.log(respObj);
+    } catch (error) {
+        console.log(error);
+    }
 
-    //window.location.reload(true); //reload to reroute to loginpage
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload(true); //reload to reroute to loginpage
 }
 
 

@@ -12,6 +12,7 @@ import {store} from "../../index";
 import {connect} from "react-redux";
 import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 import {setGameId, setPlayingAs, setCurrentFEN} from "../../redux/actions/gameActions";
+import {setIsInGame} from "../../redux/actions/userActions";
 
 
 class PlayGameScreen extends Component {
@@ -25,7 +26,7 @@ class PlayGameScreen extends Component {
             loading:true,
             gameStatus: "Draw",
             showResult: false,
-            startingFEN:this.props.startingFEN,
+            startingFEN:this.props.currentFEN,
             playingAs : this.props.playingAs,
             gameId: this.props.gameId
         }
@@ -44,9 +45,10 @@ class PlayGameScreen extends Component {
         }
 
         this.props.dispatch(setGameId(resp.gameId));
-        this.props.dispatch(setCurrentFEN(resp.startingFEN));
+        this.props.dispatch(setCurrentFEN(resp.FEN));
         this.props.dispatch(setPlayingAs(resp.playingAs));
-        this.setState({startingFEN:resp.startingFEN,loading:false});
+        this.props.dispatch(setIsInGame(true));
+        await this.setState({startingFEN:resp.FEN,loading:false});
     }
 
     componentDidMount() {

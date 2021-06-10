@@ -5,7 +5,7 @@ import PlayGameScreen from "./containers/PlayGameScreen/PlayGameScreen";
 import NavBar from "./containers/Navigation/NavBar";
 import {Switch, Route, Redirect, useHistory} from 'react-router-dom';
 import ScrollToTop from "./containers/CommonComponents/ScrollToTop";
-import {useEffect, } from "react";
+import {useEffect, useState,} from "react";
 import {mapAllStateToProps} from './redux/reducers/rootReducer'
 import {connect} from 'react-redux'
 import PrivateRoute from "./containers/CommonComponents/PrivateRouter";
@@ -13,28 +13,39 @@ import {getSessionToken} from "./serverLogic/DataFetcher";
 
 
 
-function App({socket,sessionToken,userId}) {
+function App({socket,sessionToken,userId,gameId,isInGame}) {
     const history = useHistory();
     let routeToMain = () => history.push('/');
+    const routeToGame = (gameId) => history.push('/play?id=' + gameId);
+    const [loading,setLoading]=useState(true);
 
-    //connect the socket on startup
     useEffect(() => {
         //try to regenerate the session on reload
         if(sessionToken==='none' && userId){
             getSessionToken().then( (resp)=>{
-                if(resp===undefined || !resp.sessionToken) return;
-                routeToMain();
-            }
+                if(resp===undefined || !resp.sessionToken){
+                    setLoading(false);
+                    return;
+                }
 
+                if(isInGame){ routeToGame(gameId);}
+                else{ routeToMain();}
+                setLoading(false);
+            }
             );
         }
-
+        else{
+            setLoading(false);
+        }
+        //connect the socket on startup
         socket.connect();
     }, []);
 
   return (
-          <div className="App">
-              <ScrollToTop />
+      <div>
+          {!loading &&
+              <div className="App">
+                  <ScrollToTop />
                   <Route path="/" component={NavBar}/>
                   <Switch>
                       <PrivateRoute path="/" exact component={MainPageScreen} />
@@ -42,8 +53,16 @@ function App({socket,sessionToken,userId}) {
                       <Route path="/login" component={LogRegScreen} />
                       <Redirect from="*" to="/" />
                   </Switch>
-          </div>
-  );
+              </div>
+          }
+      </div>
+
+      );
+
+
+
+
+
 }
 
 export default connect(mapAllStateToProps)(App);

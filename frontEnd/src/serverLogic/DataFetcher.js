@@ -30,7 +30,6 @@ export async function getSessionToken() {
             return respObj;
         }
 
-        //else delete cookie?
         return respObj;
 
     } catch (error) {

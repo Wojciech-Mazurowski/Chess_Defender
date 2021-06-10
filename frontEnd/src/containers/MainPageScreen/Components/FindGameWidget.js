@@ -9,6 +9,7 @@ import { CSSTransition } from 'react-transition-group';
 import {connect} from "react-redux";
 import {setGameId, setGameMode, setPlayingAs} from "../../../redux/actions/gameActions";
 import {mapAllStateToProps} from "../../../redux/reducers/rootReducer";
+import {setIsInGame} from "../../../redux/actions/userActions";
 
 export class GameMode {
     static classic = new GameMode('Classic', 0);
@@ -109,7 +110,8 @@ function FindGameWidget({userId,socket,dispatch}) {
             console.log("GAME_FOUND")
             dispatch(setPlayingAs(data.playingAs));
             dispatch(setGameId(data.gameId));
-            dispatch(setGameMode(selectedGameMode));
+            dispatch(setGameMode(data.gameMode));
+            dispatch(setIsInGame(true));
             routeToNext(data.gameId)
         });
 

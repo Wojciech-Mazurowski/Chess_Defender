@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import FindGameWidget from "./Components/FindGameWidget";
 import MatchHistory from "./Components/MatchHistory/MatchHistory";
 import Section from "../CommonComponents/Section";
@@ -8,9 +8,6 @@ import {connect} from "react-redux";
 import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 
 function MainPageScreen({userId,sessionToken,}) {
-
-    //getIsInGame(userId,sessionToken);
-
     return (
         <div>
             <FindGameWidget/>
