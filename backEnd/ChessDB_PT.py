@@ -20,7 +20,7 @@ class ChessDB:
         mycursor.execute('''create table if not exists Games
                              (GameID integer primary key AUTO_INCREMENT, 
                              win_type varchar(100), 
-                             played DATE);''')
+                             played DATETIME);''')
 
         mycursor.execute('''create table if not exists Users
                             (userID integer primary key AUTO_INCREMENT,
@@ -53,9 +53,16 @@ class ChessDB:
 
         mycursor.close()
 
+    def get_curr_date_time(self):
+        mycursor = self.mydb.cursor()
+        date = "SELECT CURRENT_TIMESTAMP() AS Today"
+        mycursor.execute(date)
+
+        return mycursor.fetchone()[0]
+
     def get_curr_date(self):
         mycursor = self.mydb.cursor()
-        date = "SELECT CURDATE() AS Today"
+        date = "SELECT CURRENT_DATE() AS Today"
         mycursor.execute(date)
 
         return mycursor.fetchone()[0]
@@ -81,7 +88,7 @@ class ChessDB:
                     "(win_type, played) "
                     "VALUES (%s, %s)")
 
-        date = self.get_curr_date()
+        date = self.get_curr_date_time()
         data_game = (win_type, date)
         mycursor.execute(sql_game, data_game)
         game_id = mycursor.lastrowid

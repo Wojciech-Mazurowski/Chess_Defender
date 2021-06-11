@@ -379,13 +379,18 @@ def get_history():
 
             result = possible_results[black_score]
             if str(white[2]) == user_id: result = possible_results[white_score]
+            if str(white[2]) == user_id: result = possible_results[white_score]
+
+            # extract date info from given string
+            day_mont_year = str(game[2])[:10]
+            hour = str(game[2])[11:16]
 
             match = {"matchResult": result,
                      'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
                      'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
-                     "hour": "21:37",
+                     "hour": hour,
                      "nOfMoves": numOfMoves,
-                     "dayMonthYear": str(game[2])}
+                     "dayMonthYear": day_mont_year}
             history.append(match)
         except Exception as ex:
             if debug_mode: ("DB ERROR" + str(ex))
@@ -502,7 +507,7 @@ def leave_queue(data):
 def finish_game(game_info):
     game_id = game_info.game_id
     # delete game
-    if(str(game_info.game_room_id) in games):
+    if (str(game_info.game_room_id) in games):
         games.pop(str(game_info.game_room_id), None)
 
     try:
@@ -533,7 +538,7 @@ def finish_game(game_info):
                                                                                              white_result)
 
         db.update_elo(white_id, white_ELO, white_dv, white_v)
-        db.update_elo(black_id, black_ELO,black_dv, black_v)
+        db.update_elo(black_id, black_ELO, black_dv, black_v)
 
     except Exception as ex:
         print("DB ERROR" + str(ex))
