@@ -10,6 +10,7 @@ import CSquare from "./CSquare";
 export const max_canvas_size=720;
 export var canvas_width = 720;
 export var canvas_height = canvas_width;
+export const game_mode_defender_width=canvas_width+50+canvas_width/3;
 export var Checkboard_size = canvas_height
 export var size = Checkboard_size / 8
 export const Checkboard = [];
@@ -101,7 +102,19 @@ export default function sketch(p5) {
 
     p5.setup = function () {
         board = new Board(p5);
-        canvas = p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
+        console.log(gameMode);
+
+        if (gameMode==="1") {
+            console.log(game_mode_defender_width);
+            canvas = p5.createCanvas(game_mode_defender_width,canvas_height, p5.WEBGL);
+        }
+        else{
+            canvas = p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
+            canvas.style('width','100%');
+            canvas.style('height','100%');
+        }
+
+
         if (startingFEN !== undefined) {
             board.FEN = startingFEN
             console.log(startingFEN)
@@ -113,36 +126,43 @@ export default function sketch(p5) {
         calculatePixelPositions();
         count_squares_to_edge();
         Generate_moves(board.grid, board.check, "setup");
-        canvas.style('width','100%');
-        canvas.style('height','100%');
+
     };
 
     p5.windowResized= function (){
-        //full screen mode
-        let resizeTo=p5.windowWidth;
-        //for screen widths bigger then max size, set to max size
-        if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
-
-        canvas_width=resizeTo;
-        canvas_height=resizeTo;
-        Checkboard_size=resizeTo;
-        size=Checkboard_size/8;
-        //resize piece textures
-        board.grid.forEach((piece)=>{
-                piece.scaled_size=size-scalar;
-            }
-        )
-
-        canvas.resize(canvas_width,canvas_height);
-        canvas.style('width','100%');
-        canvas.style('height','100%');
-        calculatePixelPositions();
-        board.load_FEN();
+        // //full screen mode
+        // let resizeTo=p5.windowWidth;
+        // //for screen widths bigger then max size, set to max size
+        // if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
+        //
+        // canvas_width=resizeTo;
+        // canvas_height=resizeTo;
+        // Checkboard_size=resizeTo;
+        // size=Checkboard_size/8;
+        // //resize piece textures
+        // board.grid.forEach((piece)=>{
+        //         piece.scaled_size=size-scalar;
+        //     }
+        // )
+        //
+        // canvas.resize(canvas_width,canvas_height);
+        // canvas.style('width','100%');
+        // canvas.style('height','100%');
+        // calculatePixelPositions();
+        // board.load_FEN();
     }
 
     p5.draw = function () {
         p5.background(255);
-        p5.translate(-canvas_height / 2, -canvas_width / 2);
+
+        if(gameMode==="1"){
+            p5.translate( -game_mode_defender_width / 2,-canvas_height / 2);
+        }
+        else{
+            p5.translate( -canvas_width / 2,-canvas_height / 2);
+        }
+
+
         //translate(100,100);
         for (let i = 0; i < Checkboard.length; i++) {
             Checkboard[i].setstate();

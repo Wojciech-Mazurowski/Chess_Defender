@@ -16,7 +16,7 @@ import {
     setPlayingAs,
     setCurrentFEN,
     setOpponentELO,
-    setOpponentUsername
+    setOpponentUsername, setGameMode
 } from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
@@ -52,6 +52,7 @@ class PlayGameScreen extends Component {
         }
 
         this.props.dispatch(setGameId(resp.gameId));
+        this.props.dispatch(setGameMode(resp.gameMode));
         this.props.dispatch(setCurrentFEN(resp.FEN));
         this.props.dispatch(setPlayingAs(resp.playingAs));
         this.props.dispatch(setIsInGame(true));
@@ -123,7 +124,7 @@ class PlayGameScreen extends Component {
                             sendEndGame={this.sendEndGame}
                             playingAs={this.props.playingAs}
                             startingFEN={this.props.currentFEN}
-                            gameMode={this.state.gameMode}
+                            gameMode={this.props.gameMode}
                         />
                     }
 
