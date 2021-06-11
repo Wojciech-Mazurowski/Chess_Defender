@@ -7,7 +7,7 @@ export const gameInitialState = {
     gameMode: sessionStorage.getItem('gameMode'),
     playingAs: sessionStorage.getItem('playingAs'),
     currentFEN: sessionStorage.getItem('currentFEN'),
-    oponentUsername:sessionStorage.getItem('oponentUsername'),
+    opponentUsername:sessionStorage.getItem('opponentUsername'),
     opponentElo: sessionStorage.getItem('opponentElo'),
     chatHistory:sessionStorage.getItem('chatHistory')
 };
@@ -26,6 +26,12 @@ export default function gameInfoReducer(state = gameInitialState, action) {
         case actions.SET_CURRENT_FEN:
             sessionStorage.setItem('currentFEN',action.payload)
             return {...state, currentFEN:action.payload}
+        case actions.SET_OPPONENT_USERNAME:
+            sessionStorage.setItem('opponentUsername',action.payload)
+            return {...state, opponentUsername:action.payload}
+        case actions.SET_OPPONENT_ELO:
+            sessionStorage.setItem('opponentELO',action.payload)
+            return {...state, opponentElo:action.payload}
         default:
             return state
     }

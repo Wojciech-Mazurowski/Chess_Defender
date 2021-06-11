@@ -35,7 +35,6 @@ export default class Board {
         let y;
         if(playingAs==='b')
         {
-
             x = canvas_width - size -i * size;
             y = canvas_height - size -j * size;
         }else{

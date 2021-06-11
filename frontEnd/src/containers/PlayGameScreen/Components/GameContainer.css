@@ -1,14 +1,14 @@
 :root{
-    --board-size:50vw;
+    --max-board-size:800px;
 }
 
 .GameContainer{
-    width: var(--board-size);
-    height: var(--board-size);
     background-color: var(--section-bg-color);
     display:flex;
     align-items: center;
     justify-content: center;
-
+    width: min(100vw,var(--max-board-size));
+    height: min(100vw,var(--max-board-size));
 
 }
+

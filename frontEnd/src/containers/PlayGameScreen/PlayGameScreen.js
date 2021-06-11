@@ -11,7 +11,13 @@ import GameButtons from "./Components/GameButtons";
 import {store} from "../../index";
 import {connect} from "react-redux";
 import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
-import {setGameId, setPlayingAs, setCurrentFEN} from "../../redux/actions/gameActions";
+import {
+    setGameId,
+    setPlayingAs,
+    setCurrentFEN,
+    setOpponentELO,
+    setOpponentUsername
+} from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
 
@@ -28,7 +34,7 @@ class PlayGameScreen extends Component {
             showResult: false,
             startingFEN:this.props.currentFEN,
             playingAs : this.props.playingAs,
-            gameId: this.props.gameId
+            gameId: this.props.gameId,
         }
     }
     async fetchGameData(){
@@ -49,10 +55,14 @@ class PlayGameScreen extends Component {
         this.props.dispatch(setCurrentFEN(resp.FEN));
         this.props.dispatch(setPlayingAs(resp.playingAs));
         this.props.dispatch(setIsInGame(true));
+        this.props.dispatch(setOpponentUsername(resp.opponent.username));
+        this.props.dispatch(setOpponentELO(resp.opponent.ELO));
         await this.setState({startingFEN:resp.FEN,loading:false});
     }
 
     componentDidMount() {
+        //style canvas programatically TODO maybe find a more elegant way?
+
         this.fetchGameData();
 
         this.socket.on("game_ended", data => {
@@ -86,11 +96,11 @@ class PlayGameScreen extends Component {
     render() {
 
         return (
-            <div className="PlayGameScreen">
+            <div className="PlayGameScreen" id="PLAY_GAME_SCREEN">
                 {this.state.showResult &&
                 <div className="ResultInfo">
                     <p>&nbsp;{this.state.gameStatus.toUpperCase()}</p>
-                    <button disabled={!this.state.showResult} onClick={this.props.routeToMain}>GO BACK</button>
+                    <button disabled={!this.state.showResult} onClick={()=>{this.props.history.push('/')}}>GO BACK</button>
                 </div>
                 }
 
@@ -114,7 +124,6 @@ class PlayGameScreen extends Component {
                 </GameContainer>
 
                 <GameButtons/>
-
             </div>
         );
     }

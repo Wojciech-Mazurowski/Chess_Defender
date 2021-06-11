@@ -20,15 +20,18 @@ export default rootReducer;
 // Map Redux state to React component props
 export const mapAllStateToProps = (state) => {
     return {
+        socket: state.socket.socket,
+        socketStatus:state.socket.status,
         sessionToken: state.user.sessionToken,
         userId: state.user.userId,
         username: state.user.username,
         elo: state.user.elo,
         isInGame: state.user.isInGame,
-        socket: state.socket.socket,
         gameId: state.game.gameId,
         gameMode: state.game.gameMode,
         playingAs: state.game.playingAs,
-        currentFEN: state.game.currentFEN
+        currentFEN: state.game.currentFEN,
+        opponentUsername: state.game.opponentUsername,
+        opponentElo:  state.game.opponentElo
     };
 };

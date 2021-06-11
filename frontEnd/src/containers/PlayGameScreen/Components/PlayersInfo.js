@@ -1,17 +1,16 @@
-import SocketMessagingComponent from "../../CommonComponents/SocketMessagingComponent";
-import "./PlayersInfo.css"
-import {PlayerInfo} from "../../MainPageScreen/Components/MatchHistory/MatchHistoryItem";
-import {SocketStatus} from "../../../serverLogic/WebSocket";
-import React from "react";
 
-class PlayersInfo extends SocketMessagingComponent{
+import "./PlayersInfo.css"
+import {SocketStatus} from "../../../serverLogic/WebSocket";
+import React, {Component} from "react";
+import {connect} from "react-redux";
+import {mapAllStateToProps} from "../../../redux/reducers/rootReducer";
+import SocketStatusWidget from "../../CommonComponents/SocketStatusWidget";
+
+class PlayersInfo extends Component{
     constructor(props) {
         super(props);
         this.state ={
-            whiteInfo: new PlayerInfo("Loading","WHITE","Loading"),
-            blackInfo: new PlayerInfo("Loading","WHITE","Loading"),
-            whiteStatus: SocketStatus.connecting,
-            blackStatus: SocketStatus.connecting
+            opponentStatus: SocketStatus.connecting
         }
     }
 
@@ -19,19 +18,20 @@ class PlayersInfo extends SocketMessagingComponent{
         return (
             <section className="PlayersInfo">
                 <div className="PlayersInfo-playerContainer">
-                    <div className="PlayersInfo-status" style={{'background-color':this.state.whiteStatus.color}}/>
+                    <SocketStatusWidget className="PlayersInfo-status"/>
                     <div className="MatchHistoryItem-player">
-                        <h1>{this.state.whiteInfo.username}</h1>
-                        <h2>{this.state.whiteInfo.playedAs} | {this.state.whiteInfo.ELO} ELO</h2>
+                        <h1>{this.props.username}</h1>
+                        <h2>{this.props.playingAs ==='w'? 'WHITE': 'BLACK'} | {this.props.elo} ELO</h2>
                     </div>
                 </div>
 
                 <div className="PlayersInfo-playerContainer">
-                    <div className="PlayersInfo-status" style={{'background-color':this.state.blackStatus.color}}/>
+                    <div className="PlayersInfo-status" style={{'background-color':this.state.opponentStatus.color}}/>
                     <div className="MatchHistoryItem-player">
-                        <h1>{this.state.blackInfo.username}</h1>
-                        <h2>{this.state.blackInfo.playedAs} | {this.state.blackInfo.ELO} ELO</h2>
+                        <h1>{this.props.opponentUsername}</h1>
+                        <h2>{this.props.playingAs ==='w'? 'BLACK': 'WHITE'} | {this.props.opponentElo} ELO</h2>
                     </div>
+
                 </div>
 
             </section>
@@ -40,4 +40,4 @@ class PlayersInfo extends SocketMessagingComponent{
 
 }
 
-export default PlayersInfo;
+export default connect(mapAllStateToProps)(PlayersInfo);

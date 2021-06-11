@@ -30,6 +30,8 @@ export async function getSessionToken() {
             return respObj;
         }
 
+        //invalid refresh token
+        logout();
         return respObj;
 
     } catch (error) {

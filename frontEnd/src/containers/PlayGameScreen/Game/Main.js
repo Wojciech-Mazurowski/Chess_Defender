@@ -7,18 +7,20 @@ import {
 } from "./moves";
 import CSquare from "./CSquare";
 
-export const canvas_width = 700;
-export const canvas_height = canvas_width;
-export const Checkboard_size = canvas_height
-export const size = Checkboard_size / 8
+export const max_canvas_size=720;
+export var canvas_width = 720;
+export var canvas_height = canvas_width;
+export var Checkboard_size = canvas_height
+export var size = Checkboard_size / 8
 export const Checkboard = [];
 export const pieces_dict = {King: 'k', Pawn: 'p', Knight: 'n', Bishop: 'b', Rook: 'r', Queen: 'q'};
 export const textures = {};
-export const scalar = 10;
+export const scalar = 5;
 export const pixel_positions = [];
 export const rows = Math.floor(Checkboard_size / size);
 export const cols = Math.floor(Checkboard_size / size);
 export var board;
+export var canvas;
 
 function importAll(r) {
     let images = {};
@@ -81,22 +83,7 @@ export default function sketch(p5) {
         Generate_moves(board.grid, board.check, "released");
     }
 
-
-    p5.setup = function () {
-
-        board = new Board(p5);
-
-        p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
-
-        if (startingFEN !== undefined) {
-            board.FEN = startingFEN
-            console.log(startingFEN)
-        } else {
-            board.FEN = default_FEN;
-        }
-        board.load_FEN();
-
-
+    function calculatePixelPositions(){
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 let square = new CSquare(i, j, size, p5);
@@ -108,8 +95,24 @@ export default function sketch(p5) {
                 }
             }
         }
+    }
+
+    p5.setup = function () {
+        board = new Board(p5);
+        canvas = p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
+        if (startingFEN !== undefined) {
+            board.FEN = startingFEN
+            console.log(startingFEN)
+        } else {
+            board.FEN = default_FEN;
+        }
+        board.load_FEN();
+
+        calculatePixelPositions();
         count_squares_to_edge();
         Generate_moves(board.grid, board.check, "setup");
+        canvas.style('width','100%');
+        canvas.style('height','100%');
     };
 
     p5.draw = function () {
@@ -121,4 +124,29 @@ export default function sketch(p5) {
         }
         board.draw_board();
     };
+
+    p5.windowResized= function (){
+        //full screen mode
+        let resizeTo=p5.windowWidth;
+        //for screen widths bigger then max size, set to max size
+        if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
+
+        canvas_width=resizeTo;
+        canvas_height=resizeTo;
+        Checkboard_size=resizeTo;
+        size=Checkboard_size/8;
+        //resize piece textures
+        board.grid.forEach((piece)=>{
+            piece.scaled_size=size-scalar;
+            }
+        )
+
+        canvas.resize(canvas_width,canvas_height);
+        canvas.style('width','100%');
+        canvas.style('height','100%');
+        calculatePixelPositions();
+        board.load_FEN();
+        //TODO make moves show up at right places
+
+    }
 };

@@ -4,13 +4,16 @@ import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 import {getSessionToken} from "./DataFetcher";
 import {store} from "../index";
 import {setSessionToken} from "../redux/actions/userActions";
+import {setSocketStatus} from "../redux/actions/socketActions";
 
 const socketPath = '';
 
 export class SocketStatus {
-    static connecting = new SocketStatus('connecting', '#468f84');
-    static connected = new SocketStatus('connected', '#369257');
     static disconnected = new SocketStatus('dissconnected', '#bf3d3b');
+    static connecting = new SocketStatus('connecting', '#da8b43');
+    static connected = new SocketStatus('connected', '#369257');
+    static authorized = new SocketStatus('connected and authorized', '#369257');
+
 
     constructor(name, color) {
         this.name = name;
@@ -30,8 +33,8 @@ export default class SocketClient {
         this.is_connected = false;
         this.is_authorized = false;
         this.ping = 1000;
-        this.status = SocketStatus.disconnected;
     }
+
 
 
     disconnect() {
@@ -72,12 +75,6 @@ export default class SocketClient {
                 return;
             }
 
-            // if(sessionToken==='none'){
-            //     sessionToken= await getSessionToken(userId);
-            //     dispatch(setSessionToken(sessionToken));
-            // }
-            //if goes right do its, if not don't
-
             let authData = {
                 userId: userId,
                 sessionToken: sessionToken
@@ -97,12 +94,11 @@ export default class SocketClient {
     authListeners() {
         this.on('authorized', () => {
             this.is_authorized = true;
-            this.status = SocketStatus.connected;
+            store.dispatch(setSocketStatus( SocketStatus.authorized));
         });
         this.on('unauthorized', () => {
             this.is_authorized = false;
-            //window.location.reload(true); //reload to reroute to loginpage
-            this.status = SocketStatus.connecting;
+            window.location.reload(true); //reload to reroute to loginpage
         });
     }
 
@@ -121,8 +117,7 @@ export default class SocketClient {
         this.socket = io.connect(API_URL, {path: socketPath});
         let that = this;
         let connectInterval;
-        console.log("CHANGED TO CONNECTING");
-        this.status = SocketStatus.connecting;
+        store.dispatch(setSocketStatus( SocketStatus.connecting));
 
         this.authListeners();
         this.gameListeners();
@@ -130,6 +125,7 @@ export default class SocketClient {
         this.socket.on('connect', () => {
             console.log("connected websocket!");
             this.is_connected = true;
+            store.dispatch(setSocketStatus( SocketStatus.connected));
             that.timeout = 500; // reset timer to 250 on open of websocket connection
             clearTimeout(connectInterval); // clear Interval on on open of websocket connection
             this.authorize();
@@ -146,7 +142,7 @@ export default class SocketClient {
 
             this.is_connected = false;
             this.is_authorized = false;
-            this.status = SocketStatus.disconnected;
+            store.dispatch(setSocketStatus( SocketStatus.disconnected));
             that.timeout = that.timeout + that.timeout; //increment retry interval
             //call check function after timeout
             connectInterval = setTimeout(this.check, Math.min(10000, that.timeout));
@@ -163,7 +159,7 @@ export default class SocketClient {
             );
             this.is_connected = false
             this.is_authorized = false;
-            this.status = SocketStatus.disconnected;
+            store.dispatch(setSocketStatus( SocketStatus.disconnected));
             that.timeout = that.timeout + that.timeout; //increment retry interval
             //call check function after timeout
             connectInterval = setTimeout(this.check, Math.min(10000, that.timeout));

@@ -10,7 +10,7 @@ export default class GameContainer extends SocketMessagingComponent{
 
     render() {
         return (
-            <section style={this.style} className="GameContainer">
+            <section style={this.style} className="GameContainer" id="GAME_CONTAINER">
                 {this.props.children}
             </section>
         );
