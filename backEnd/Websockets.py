@@ -504,12 +504,26 @@ def leave_queue(data):
     emit('queue_info', {'playersInQueue': str(len(queues[str(game_mode_id)]))}, to='queue' + str(game_mode_id))
 
 
-def finish_game(game_info):
+def finish_game(game_info, win_color):
+    # notify players of their respective results
+    white_sid = authorized_socket[game_info.white_player.id]
+    black_sid = authorized_socket[game_info.black_player.id]
+    if win_color == 'w' or win_color == "W":
+        emit("game_ended", {'result': 'win'}, to=white_sid)
+        emit("game_ended", {'result': 'lost'}, to=black_sid)
+    elif win_color == 'b' or win_color == "B":
+        emit("game_ended", {'result': 'lost'}, to=white_sid)
+        emit("game_ended", {'result': 'win'}, to=black_sid)
+    else:
+        emit("game_ended", {'result': 'draw'}, to=white_sid)
+        emit("game_ended", {'result': 'draw'}, to=black_sid)
+
     game_id = game_info.game_id
     # delete game
     if (str(game_info.game_room_id) in games):
         games.pop(str(game_info.game_room_id), None)
 
+    # update in database
     try:
         db = ChessDB_PT.ChessDB()
 
@@ -544,6 +558,46 @@ def finish_game(game_info):
         print("DB ERROR" + str(ex))
 
 
+@socketio.on('surrender')
+def surrender(data):
+    obj = json.loads(data)
+    print(obj)
+
+    game_room_id = obj['gameroomId']
+
+    # check if game even exists
+    if game_room_id not in games:
+        print("GAME ARLEADY GONE!! ")
+        emit('bad_move', {'error': 'Game already gone'})
+        return
+
+    player_id = obj['playerId']
+
+    # authorize player
+    if not check_auth(request.sid, player_id):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    # check if is in the game
+    players_game = get_is_player_in_game(player_id)
+    if not players_game or players_game[0].game_room_id != game_room_id:
+        print("Player doesn't play in this game!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    print("Player with id " + player_id + "surrendered the game")
+
+    game_info = games[game_room_id]
+    player_color = players_game[1]
+    # get opponents color
+    opp_color = 'w'
+    if player_color == 'w':
+        opp_color = 'b'
+
+    finish_game(game_info, opp_color)
+
+
 @socketio.on('end_game')
 def end_game(data):
     obj = json.loads(data)
@@ -565,26 +619,18 @@ def end_game(data):
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
-    print("Player with id " + player_id + "ended the game")
+    # check if is in the game
+    players_game = get_is_player_in_game(player_id)
+    if not players_game or players_game[0].game_room_id != game_room_id:
+        print("Player doesn't play in this game!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
 
-    player_sid = request.sid
-
+    print("Player with id " + player_id + "checkmated the game")
     game_info = games[game_room_id]
-    white_id = game_info.white_player.id
-    black_id = game_info.black_player.id
+    player_color = players_game[1]
 
-    white_sid = authorized_socket[white_id]
-    black_sid = authorized_socket[black_id]
-    # get opponent sid
-    opponent_sid = black_sid
-    if white_sid != player_sid:
-        opponent_sid = white_sid
-
-    # notify players of their respective results
-    emit("game_ended", {'result': 'lost'}, to=opponent_sid)
-    emit("game_ended", {'result': 'win'}, to=player_sid)
-
-    finish_game(game_info)
+    finish_game(game_info, player_color)
 
 
 @socketio.on('make_move')
@@ -601,10 +647,18 @@ def make_move(data):
     game_room_id = obj['gameroomId']
     move = obj['move']
     player_sid = request.sid
+    player_id= obj['playerId']
 
     # check if the game exists at all
     if game_room_id not in games:
         print("NO_SUCH_GAME_EXISTS")
+        return
+
+    # check if is in the game
+    players_game = get_is_player_in_game(player_id)
+    if not players_game or players_game[0].game_room_id != game_room_id:
+        print("Player doesn't play in this game!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
     # [0] white_id,[1] black_id,[2] current_turn (w/b)
@@ -624,11 +678,6 @@ def make_move(data):
     print("opponent_sid " + str(opponent_sid))
     print(authorized_socket)
 
-    # print(game_room_id)
-    # print(move)
-    # print(player_sid)
-    # print(room_info)
-
     # check if it's coming from the wrong player
     if (curr_turn == 'w' and player_sid != white_sid) or (curr_turn == 'b' and player_sid != black_sid):
         # send not ur turn packet
@@ -636,6 +685,11 @@ def make_move(data):
         return
 
     # check for illegal moves?
+
+    # send move to opponent
+    emit('make_move_local', move, to=opponent_sid)
+
+    #check for checkmates
 
     # get opposite turn
     opp_turn = 'w'
@@ -651,9 +705,6 @@ def make_move(data):
     games[game_room_id].curr_FEN = obj['FEN']
     move_order = game_info.num_of_moves
     games[game_room_id].num_of_moves = move_order + 1
-
-    # send move to opponent
-    emit('make_move_local', move, to=opponent_sid)
 
     game_id = game_info.game_id
     # increment move order

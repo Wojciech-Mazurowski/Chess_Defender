@@ -38,12 +38,13 @@ class Chat extends Component{
                 text:data.text,
                 sender:1
             };
+
             this.addMessageToLog(msg);
         })
     }
 
     scrollToBottom(){
-       this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+       //this.messagesEnd.scrollIntoView({ behavior: "smooth" });
     }
 
     addMessageToLog(msg){

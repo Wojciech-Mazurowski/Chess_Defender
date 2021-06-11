@@ -13,6 +13,9 @@ export default function socketReducer(state = socketInitialState, action) {
             return {...state, socket:action.payload}
         case actions.SET_SOCKET_STATUS:
             return {...state, status:action.payload}
+        case actions.EMIT:
+            state.socket.emit(action.payload.event,action.payload.msg)
+            return state
         default:
             return state
     }

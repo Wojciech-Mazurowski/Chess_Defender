@@ -21,6 +21,7 @@ import {
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
 import {GAME_DEBUGING_MODE} from "../../App";
+import {emit} from "../../redux/actions/socketActions";
 
 class PlayGameScreen extends Component {
 
@@ -98,7 +99,12 @@ class PlayGameScreen extends Component {
         let gameroomId =storeState.game.gameId;
 
         if ( !socket.is_connected) return;
-        await socket.emit("make_move", JSON.stringify({move, gameroomId, playerId,FEN}));
+        let eventAndMsg ={
+            event:'make_move',
+            msg:JSON.stringify({move, gameroomId, playerId,FEN})
+        }
+
+        store.dispatch(emit(eventAndMsg));
     }
 
 

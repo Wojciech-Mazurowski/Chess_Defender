@@ -41,11 +41,17 @@
     .PlayersInfo-playerContainer{
         margin-left: 2rem;
     }
-    .Chat{
+
+    .GameButtons{
         order:3;
         margin-top:1rem;
+    }
+    .Chat{
+        order:4;
+        margin-top:3rem;
         width:80%;
     }
+
 }
 
 

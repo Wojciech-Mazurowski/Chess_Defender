@@ -5,10 +5,11 @@ import Dots from "../../../CommonComponents/Dots";
 import {FETCH_DEBUGGING_MODE, getPlayerStats, getSessionToken} from "../../../../serverLogic/DataFetcher";
 import {connect} from "react-redux";
 import {mapAllStateToProps} from "../../../../redux/reducers/rootReducer";
+import {setUserElo} from "../../../../redux/actions/userActions";
 
 
 
-function StatsContainer({userId,sessionToken}) {
+function StatsContainer({userId,sessionToken,dispatch}) {
     const [currentElo, setCurrentElo] = useState("loading");
     const [rankDeviation, setRankDeviation] = useState("loading");
     const [gamesPlayed, setGamesPlayed] = useState("loading");
@@ -40,6 +41,7 @@ function StatsContainer({userId,sessionToken}) {
             return;
         }
 
+        dispatch(setUserElo(resp.elo))
         await setCurrentElo(resp.elo);
         await setRankDeviation(resp.deviation);
         await setGamesPlayed(resp.gamesPlayed);

@@ -1,0 +1,18 @@
+.GameButtons{
+    display: flex;
+    justify-content: center;
+}
+
+.GameButtons button{
+    all:unset;
+    height: 1.5rem;
+    padding: 0.7rem 3rem;
+    border-radius: 0.8rem;
+    background-color: var(--primary-color);
+    color:var(--text-color);
+}
+.GameButtons button:hover{
+    transition:200ms;
+    transform: scale(1.1);
+    background-color: var( --primary-color-dark) ;
+}
