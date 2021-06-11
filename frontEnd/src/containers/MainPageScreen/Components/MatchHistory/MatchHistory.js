@@ -17,7 +17,7 @@ class MatchHistory extends Component {
         this.state = {
             isLoading: true,
             matchHistory: [],
-            mounted:true
+            mounted: true
         }
     }
 
@@ -27,16 +27,20 @@ class MatchHistory extends Component {
 
     //clean up async calls on unmount
     componentWillUnmount() {
-        this.setState({mounted:false});
+        this.setState({mounted: false});
+    }
+
+    formatMoves(moves) {
+        moves < 10 ? moves= "0" + moves : moves=moves;
+        return moves
     }
 
     async fetchPlayerData() {
-        const resp = await getMatchHistory(this.props.userId,this.props.sessionToken);
-        if(FETCH_DEBUGGING_MODE) console.log(resp);
+        const resp = await getMatchHistory(this.props.userId, this.props.sessionToken);
+        if (FETCH_DEBUGGING_MODE) console.log(resp);
 
         //handle unmount
-        if(!this.state.mounted) return
-
+        if (!this.state.mounted) return
         this.setState({isLoading: false})
 
         //handle network errors
@@ -46,26 +50,29 @@ class MatchHistory extends Component {
         }
 
         //handle empty match history
-        if(resp.length ===0 || !Array.isArray(resp)){
+        let respArr = JSON.parse(resp);
+        if (respArr.length === 0 || !Array.isArray(respArr)) {
             this.setState({matchHistory: this.getEmptyMatchHistoryItem()});
             return;
         }
 
-        let keyGenerator=-1;
-        let matchHistoryArray= resp.map(
+        let keyGenerator = -1;
+        let matchHistoryArray = respArr.map(
             item => {
                 keyGenerator++;
+                let formatedMoves = this.formatMoves(item.nOfMoves);
                 let result = MatchResult.getResultFromString(item.matchResult);
                 let p1Info = new PlayerInfo(item.p1Username, item.p1PlayedAs, item.p1ELO);
                 let p2Info = new PlayerInfo(item.p2Username, item.p2PlayedAs, item.p2ELO);
                 let date = new MatchDate(item.hour, item.dayMonthYear);
-                let matchItemInfo = new MatchItemInfo(result, item.nOfMoves, p1Info, p2Info, date);
+                let matchItemInfo = new MatchItemInfo(result, formatedMoves, p1Info, p2Info, date);
                 return <MatchHistoryItem key={keyGenerator} matchItemInfo={matchItemInfo}/>;
             })
         this.setState({matchHistory: matchHistoryArray})
     }
 
-    getEmptyMatchHistoryItem(){
+
+    getEmptyMatchHistoryItem() {
         let p1Info = new PlayerInfo("----", "WHITE", "----");
         let p2Info = new PlayerInfo("----", "BLACK", "----");
         let date = new MatchDate("--:--", "--/--/--");
@@ -107,6 +114,7 @@ class MatchHistoryPlaceholder extends Component {
         let date = new MatchDate("--:--", "--/--/--");
         this.matchItemInfo = new MatchItemInfo(MatchResult.none, "00", p1Info, p2Info, date);
     }
+
     render() {
         return (
             <div className="MatchHistory-placeholder">
@@ -115,4 +123,5 @@ class MatchHistoryPlaceholder extends Component {
         );
     }
 }
-export default  connect(mapAllStateToProps)(MatchHistory)
+
+export default connect(mapAllStateToProps)(MatchHistory)

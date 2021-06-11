@@ -344,24 +344,32 @@ def get_history():
         if debug_mode: print('Authorization failed')
         return generate_response({"error": "Authorisation failed."}, 401)
 
+    #set page to 0 if not given in request
+    page=0
+    if 'page' in request.args:
+        page = request.args['page']
+    #num of games on given page, default 10
+    games_per_page = 10
+    if 'perPage' in request.args:
+        games_per_page = request.args['perPage']
+
     try:
         db = ChessDB_PT.ChessDB()
-        game_history = db.get_games(user_id)
+        start = page * games_per_page
+        end = page * games_per_page + games_per_page
+        game_history = db.get_games(user_id, start, end)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
         return generate_response({"error": "Database error"}, 503)
 
     history = []
-    counter = 0
-    max_games = 10
     # maps results from numbers to strings
-    possible_results = {'0': 'loss', '0.5': 'draw', '1': 'win'}
+    possible_results = {'0.0': 'loss', '0.5': 'draw', '1.0': 'win'}
     for game in game_history:
         try:
-            if counter >= max_games: break
-
             white = db.get_participant('White', game[0])
             black = db.get_participant('Black', game[0])
+            numOfMoves = db.count_moves(game[0])
 
             black_score = str(black[3])
             white_score = str(white[3])
@@ -375,16 +383,14 @@ def get_history():
                      'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
                      'p2Username': str(black[6]), 'p2PlayedAs': 'Black', 'p2ELO': str(black[5]),
                      "hour": "21:37",
+                     "nOfMoves": numOfMoves,
                      "dayMonthYear": str(game[2])}
             history.append(match)
-            counter = counter + 1
-
         except Exception as ex:
             if debug_mode: ("DB ERROR" + str(ex))
             return generate_response({"error": "Cannot fetch from db"}, 503)
 
     if debug_mode: print(game_history)
-    # history = generate_example_match_data()
     return generate_response(json.dumps(history), 200)
 
 
@@ -602,23 +608,25 @@ def make_move(data):
         opp_turn = 'b'
 
     # update local game object
+    if game_room_id not in games:
+        print("NO_SUCH_GAME_EXISTS")
+        return
+
     games[game_room_id].curr_turn = opp_turn
     games[game_room_id].curr_FEN = obj['FEN']
     move_order = game_info.num_of_moves
-    games[game_room_id].num_of_moves=move_order+1
+    games[game_room_id].num_of_moves = move_order + 1
 
     # send move to opponent
     emit('make_move_local', move, to=opponent_sid)
 
     game_id = game_info.game_id
-    #increment move order
+    # increment move order
     try:
         db = ChessDB_PT.ChessDB()
         db.add_move(game_id, str(curr_turn).upper(), move_order, move)
     except Exception as ex:
         print("DB ERROR" + str(ex))
-
-
 
 
 def match_maker():
@@ -831,7 +839,7 @@ def send_chat_to_server(data):
 
     # check if player is in the selected game
     game_info = get_is_player_in_game(player_id)
-    if not game_info or str(game_info[0].game_id) != str(game_id):
+    if not game_info or str(game_info[0].game_room_id) != str(game_id):
         print("Wrong game")
         return
 

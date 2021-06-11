@@ -207,9 +207,9 @@ class ChessDB:
     def get_moves(self, GameID):
         mycursor = self.mydb.cursor()
 
-        sql_find = ("SELECT * FROM Moves WHERE GameID = %s;")
+        sql_find = ("SELECT * FROM Moves WHERE Moves.GameID = %s")
 
-        data_find = GameID
+        data_find = (GameID,)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
         mycursor.close()
@@ -230,13 +230,15 @@ class ChessDB:
         mycursor.close()
         return result
 
-    def get_games(self, UserID):
+    def get_games(self, UserID,Start,End):
         mycursor = self.mydb.cursor()
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
-                       WHERE Participants.UserID = %s AND Games.GameID = Participants.GameID""")
+                       WHERE Participants.UserID = %s AND Games.GameID = Participants.GameID
+                       ORDER BY Games.GameID DESC
+                       LIMIT %s,%s""")
 
-        data_find = (UserID,)
+        data_find = (UserID,Start,End)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
         mycursor.close()
