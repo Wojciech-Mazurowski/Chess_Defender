@@ -251,7 +251,7 @@ function Get_king_moves(startSquare, piece, grid, t_moves) {
 
         let target = startSquare + Directions[3] * 3;
         let Piece_on_Target = grid[target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0 && board.check===0) {
             //roszada krótka
             if (grid[startSquare + Directions[3] * 2].type_letter === 'e' && grid[startSquare + Directions[3]].type_letter === 'e')
 
@@ -263,7 +263,7 @@ function Get_king_moves(startSquare, piece, grid, t_moves) {
 
         target = startSquare + Directions[2] * 4;
         Piece_on_Target = grid[target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0 && board.check===0) {
             if (grid[startSquare + Directions[2] * 2].type_letter === 'e' && grid[startSquare + Directions[2]].type_letter === 'e'
                 && grid[startSquare + Directions[2] * 3].type_letter === 'e') {
 
