@@ -4,13 +4,44 @@
     margin-top:2rem;
     display: grid;
     grid-template-columns:
-            0.8fr 1.8fr 0.6fr;
+            30rem 800px auto;
 
     grid-template-rows: 0.4fr 1.5fr;
     gap: 0px 1rem;
     grid-template-areas:
     "player-info board disclaimers"
     "chat board buttons";
+}
+
+@media (max-width: 1400px) {
+    .PlayGameScreen{
+        margin-left: 0;
+        margin-right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .GameContainer{
+        order:1
+    }
+    .PlayersInfo {
+        order: 2;
+        margin-top:2rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .PlayersInfo-playerContainer{
+        margin-left: 2rem;
+    }
+    .Chat{
+        order:3;
+        margin-top:1rem;
+        width:80%;
+    }
 }
 
 
