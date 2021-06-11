@@ -60,13 +60,16 @@ class Player:
 
 class Game:
 
-    def __init__(self, game_id, game_mode_id, white_player, black_player, curr_turn, curr_FEN):
+    def __init__(self, game_id, game_room_id, game_mode_id, white_player, black_player, curr_turn, curr_FEN,
+                 num_of_moves):
         self.game_id = game_id
+        self.game_room_id = game_room_id
         self.game_mode_id = game_mode_id
         self.white_player = white_player
         self.black_player = black_player
         self.curr_turn = curr_turn
         self.curr_FEN = curr_FEN
+        self.num_of_moves = num_of_moves
 
 
 # Websocket communication
@@ -258,7 +261,7 @@ def is_in_game():
         opponent = game.white_player
 
     data = {"inGame": True,
-            "gameId": game.game_id,
+            "gameId": game.game_room_id,
             "gameMode": game.game_mode_id,
             "playingAs": playing_as,
             "FEN": game.curr_FEN,
@@ -355,14 +358,18 @@ def get_history():
     possible_results = {'0': 'loss', '0.5': 'draw', '1': 'win'}
     for game in game_history:
         try:
-            counter = counter + 1
             if counter >= max_games: break
 
             white = db.get_participant('White', game[0])
             black = db.get_participant('Black', game[0])
 
-            result = possible_results[black[3]]
-            if white[0] == user_id: result = possible_results[white[3]]
+            black_score = str(black[3])
+            white_score = str(white[3])
+            if black_score not in possible_results or white_score not in possible_results:
+                continue
+
+            result = possible_results[black_score]
+            if white[0] == user_id: result = possible_results[white_score]
 
             match = {"matchResult": result,
                      'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
@@ -370,6 +377,7 @@ def get_history():
                      "hour": "21:37",
                      "dayMonthYear": str(game[2])}
             history.append(match)
+            counter = counter + 1
 
         except Exception as ex:
             if debug_mode: ("DB ERROR" + str(ex))
@@ -441,7 +449,7 @@ def join_queue(data):
 
     # check if player isn't in this queue already
     if get_player_from_queue(player_id, game_mode_id) is not False:
-        emit('already_in_queue',{'playerId':player_id},to=request.sid)
+        emit('already_in_queue', {'playerId': player_id}, to=request.sid)
         return
 
     player = Player(player_id, username, player_elo, 'u')
@@ -596,21 +604,21 @@ def make_move(data):
     # update local game object
     games[game_room_id].curr_turn = opp_turn
     games[game_room_id].curr_FEN = obj['FEN']
-    print(games[game_room_id])
+    move_order = game_info.num_of_moves
+    games[game_room_id].num_of_moves=move_order+1
 
     # send move to opponent
     emit('make_move_local', move, to=opponent_sid)
 
-    # TODO SAVE MOVE- get move order from FEN, and write move into DB
+    game_id = game_info.game_id
+    #increment move order
+    try:
+        db = ChessDB_PT.ChessDB()
+        db.add_move(game_id, str(curr_turn).upper(), move_order, move)
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
 
-    # game_id = game_info.game_id
-    # FEN= game_info.curr_FEN
-    # move_order =
-    # try:
-    #     db = ChessDB_PT.ChessDB()
-    #     db.add_move(game_id, str(curr_turn).upper(), move_order, move)
-    # except Exception as ex:
-    #     print("DB ERROR" + str(ex))
+
 
 
 def match_maker():
@@ -704,23 +712,23 @@ def find_match(game_mode_id, player):
             try:
                 # create game in db
                 db = ChessDB_PT.ChessDB()
-                game_id = db.add_game(white_player.id, white_player.ELO, black_player.id, black_player.ELO, 0, [])
+                game_id = db.add_game(white_player.id, float(0.5), black_player.id, float(0.5), "none", [])
+                game_id_hash = hashlib.sha256(str(game_id).encode())
+                game_room_id = str(game_id_hash.hexdigest())
+
+                # notify the players
+                emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
+                emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
+
+                # create gameroom for the two players and add both of them
+                join_room(game_room_id, white_sid)
+                join_room(game_room_id, black_sid)
+
+                # create game in server storage
+                games[game_room_id] = Game(game_id, game_room_id, game_mode_id, white_player, black_player, 'w',
+                                           default_FEN, 0)
             except Exception as ex:
                 print("DB ERROR" + str(ex))
-
-            game_id_hash = hashlib.sha256(str(game_id).encode())
-            game_room_id = str(game_id_hash.hexdigest())
-
-            # notify the players
-            emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
-            emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
-
-            # create gameroom for the two players and add both of them
-            join_room(game_room_id, white_sid)
-            join_room(game_room_id, black_sid)
-
-            # create game in server storage
-            games[game_room_id] = Game(game_room_id, game_mode_id, white_player, black_player, 'w', default_FEN)
 
     # notify player of scope change if it has happened
     if player_curr_scope != scope:

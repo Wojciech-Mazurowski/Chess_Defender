@@ -41,17 +41,15 @@ class MatchHistory extends Component {
 
         //handle network errors
         if (resp === undefined || resp.error !== undefined) {
-            //TODO show some error messagae
             this.setState({matchHistory: this.getEmptyMatchHistoryItem()});
             return;
         }
 
         //handle empty match history
-        if(resp.length ===0){
+        if(resp.length ===0 || !Array.isArray(resp)){
             this.setState({matchHistory: this.getEmptyMatchHistoryItem()});
             return;
         }
-
 
         let keyGenerator=-1;
         let matchHistoryArray= resp.map(

@@ -5,9 +5,9 @@ import mysql.connector
 class ChessDB:
 
     def __init__(self):
-       # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
+        # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
         self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
-                                             password="ChessDB1!",
+                                            password="ChessDB1!",
                                             database="ChessDB")
 
     def __del__(self):
@@ -35,7 +35,7 @@ class ChessDB:
                             UserID Integer not null,
                             Foreign key (GameID) references  Games(GameID) on delete cascade,
                             Foreign key (UserID) references  Users(UserID) on delete cascade, 
-                            Score decimal not null, 
+                            Score FLOAT not null, 
                             Color varchar(32) not null,
                             currELO int not null);''')
 
@@ -112,8 +112,9 @@ class ChessDB:
                     "(GameID, ParticipantID, move_order, Move)"
                     "VALUES (%s, %s, %s, %s)")
 
-        data_move = (game_id, self.get_participant(Color, game_id)[0], move_order, Move)
-        mycursor.execute(sql_move,data_move)
+        move_string = str(Move['startingSquare']) + str(Move['targetSquare']) + " " + Move['mtype']
+        data_move = (game_id, self.get_participant(Color, game_id)[0], move_order, move_string)
+        mycursor.execute(sql_move, data_move)
         self.mydb.commit()
         mycursor.close()
 
@@ -140,24 +141,24 @@ class ChessDB:
     def update_scores(self, Color, game_id):
         mycursor = self.mydb.cursor()
 
-        sql_update = ("""UPDATE Participant SET Score = 1 WHERE UserID = %s AND GameID = %s""")
-        if(Color == "W"):
-            data_update = (self.get_participant("White", game_id)[0], game_id)
+        sql_update = ("""UPDATE Participants SET Score = 1 WHERE Color = %s AND GameID = %s""")
+        if (Color == "W"):
+            data_update = ("White", game_id)
             mycursor.execute(sql_update, data_update)
-            sql_update = ("""UPDATE Participant SET Score = 0 WHERE UserID = %s AND GameID = %s""")
-            data_update = (self.get_participant("Black", game_id)[0], game_id)
+            sql_update = ("""UPDATE Participants SET Score = 0 WHERE Color = %s AND GameID = %s""")
+            data_update = ("Black", game_id)
             mycursor.execute(sql_update, data_update)
-        elif(Color == "B"):
-            data_update = (self.get_participant("Black", game_id)[0], game_id)
+        elif (Color == "B"):
+            data_update = ("Black", game_id)
             mycursor.execute(sql_update, data_update)
-            sql_update = ("""UPDATE Participant SET Score = 0 WHERE UserID = %s AND GameID = %s""")
-            data_update = (self.get_participant("White", game_id)[0], game_id)
+            sql_update = ("""UPDATE Participants SET Score = 0 WHERE Color = %s AND GameID = %s""")
+            data_update = ("White", game_id)
             mycursor.execute(sql_update, data_update)
         else:
-            sql_update = ("""UPDATE Participant SET Score = 0.5 WHERE UserID = %s AND GameID = %s""")
-            data_update = (self.get_participant("White", game_id)[0], game_id)
+            sql_update = ("""UPDATE Participants SET Score = 0.5 WHERE Color = %s AND GameID = %s""")
+            data_update = ("White", game_id)
             mycursor.execute(sql_update, data_update)
-            data_update = (self.get_participant("Black", game_id)[0], game_id)
+            data_update = ("Black", game_id)
             mycursor.execute(sql_update, data_update)
 
         self.mydb.commit()
@@ -187,6 +188,12 @@ class ChessDB:
 
     def get_participant(self, Color, GameID):
         mycursor = self.mydb.cursor()
+
+        if Color == 'w' or Color == "W":
+            Color = "White"
+
+        if Color == 'b' or Color == 'B':
+            Color = "Black"
 
         sql_find = ("""SELECT t1.*, Users.Username FROM (SELECT * FROM Participants WHERE Color = %s AND GameID = %s)t1, Users
                                WHERE t1.UserID = Users.UserID""")
@@ -228,7 +235,7 @@ class ChessDB:
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
                        WHERE Participants.UserID = %s AND Games.GameID = Participants.GameID""")
-        
+
         data_find = (UserID,)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
