@@ -677,7 +677,8 @@ def make_move(data):
         return
 
     # check for illegal moves?
-    if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
+    new_FEN =ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare'])
+    if not new_FEN:
         #send invalid move packet
         print("INVALID MOVE")
         return
@@ -702,7 +703,7 @@ def make_move(data):
         opp_turn = 'b'
 
     games[game_room_id].curr_turn = opp_turn
-    games[game_room_id].curr_FEN = data_obj['FEN']
+    games[game_room_id].curr_FEN = new_FEN
     move_order = game_info.num_of_moves
     games[game_room_id].num_of_moves = move_order + 1
 
