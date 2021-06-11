@@ -1,4 +1,4 @@
-import {cols, rows,size} from "./Main";
+import {cols, rows,size,playingAs} from "./Main";
 
 function index(i, j) {
     if (i < 0 || j < 0 || i > cols - 1 || j > rows - 1) {
@@ -18,11 +18,13 @@ export default class CSquare {
         this.x2 = this.x + size;
         let parityFlag = this.j % 2;
 
-        if (index(this.i, this.j) % 2 === 0) {
-            parityFlag === 0 ? this.state = "black" : this.state = "white";
-        } else {
-            parityFlag === 0 ? this.state = "white" : this.state = "black";
-        }
+            if (index(this.i, this.j) % 2 === 0) {
+                parityFlag === 0 ? this.state = "white" : this.state = "black";
+            } else {
+                parityFlag === 0 ? this.state = "black" : this.state = "white";
+            }
+
+
 
     }
 
