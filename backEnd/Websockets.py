@@ -1,6 +1,4 @@
 import json
-import string
-import time
 
 from flask import Flask, render_template, session, request, copy_current_request_context, jsonify, make_response
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
@@ -8,7 +6,7 @@ import ChessDB_PT
 import random
 import hashlib
 from flask_cors import CORS
-import queue
+import rating
 from timeit import default_timer as timer
 
 app = Flask(__name__)
@@ -212,6 +210,7 @@ def register():
 
     request_data = request.get_json()
     username = request_data['username']
+    hashed_password = request_data['hashedPassword']
     if debug_mode: print("REGISTER REQUEST " + str(request_data))
 
     try:
@@ -221,7 +220,8 @@ def register():
         if user is not None:
             return generate_response({"error": "Username already taken"}, 403)
         # add to database
-        db.add_user(request_data['username'], request_data['hashedPassword'], 'PL', 1000)
+        db.add_user(username, hashed_password, 'PL', rating.starting_ELO, rating.starting_ELO_deviation,
+                    rating.starting_ELO_volatility)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
         return generate_response({"error": "Database error"}, 503)
@@ -292,8 +292,9 @@ def get_player_stats():
     try:
         db = ChessDB_PT.ChessDB()
         user_info = db.get_user_by_id(user_id)
+        print(user_info)
         elo = user_info[5]
-        deviation = 10
+        deviation = user_info[6]
         games_played = db.count_games(user_id)
         games_won = db.count_wins(user_id)
         games_lost = db.count_losses(user_id)
@@ -304,7 +305,7 @@ def get_player_stats():
 
     data = {
         'elo': elo,
-        'deviaton': deviation,
+        'deviation': deviation,
         'gamesPlayed': games_played,
         'gamesWon': games_won,
         'gamesLost': games_lost,
@@ -344,11 +345,11 @@ def get_history():
         if debug_mode: print('Authorization failed')
         return generate_response({"error": "Authorisation failed."}, 401)
 
-    #set page to 0 if not given in request
-    page=0
+    # set page to 0 if not given in request
+    page = 0
     if 'page' in request.args:
         page = request.args['page']
-    #num of games on given page, default 10
+    # num of games on given page, default 10
     games_per_page = 10
     if 'perPage' in request.args:
         games_per_page = request.args['perPage']
@@ -377,7 +378,7 @@ def get_history():
                 continue
 
             result = possible_results[black_score]
-            if white[0] == user_id: result = possible_results[white_score]
+            if str(white[2]) == user_id: result = possible_results[white_score]
 
             match = {"matchResult": result,
                      'p1Username': str(white[6]), 'p1PlayedAs': 'White', 'p1ELO': str(white[5]),
@@ -498,6 +499,46 @@ def leave_queue(data):
     emit('queue_info', {'playersInQueue': str(len(queues[str(game_mode_id)]))}, to='queue' + str(game_mode_id))
 
 
+def finish_game(game_info):
+    game_id = game_info.game_id
+    # delete game
+    if(str(game_info.game_room_id) in games):
+        games.pop(str(game_info.game_room_id), None)
+
+    try:
+        db = ChessDB_PT.ChessDB()
+
+        # add match result to db
+        curr_turn = game_info.curr_turn
+        db.update_scores(str(curr_turn).upper(), game_id)
+
+        # update players' rankings
+        white_id = game_info.white_player.id
+        black_id = game_info.black_player.id
+        white_user_info = db.get_user_by_id(white_id)
+        black_user_info = db.get_user_by_id(black_id)
+
+        white_ELO = white_user_info[5]
+        white_dv = white_user_info[6]
+        white_v = white_user_info[7]
+        black_ELO = black_user_info[5]
+        black_dv = black_user_info[6]
+        black_v = black_user_info[7]
+
+        # game ended by white,ergo he won, else he didn't
+        white_result = int(curr_turn == 'w')
+        white_ELO, white_dv, white_v, black_ELO, black_dv, black_v = rating.calculate_glicko(white_ELO, white_dv,
+                                                                                             white_v, black_ELO,
+                                                                                             black_dv, black_v,
+                                                                                             white_result)
+
+        db.update_elo(white_id, white_ELO, white_dv, white_v)
+        db.update_elo(black_id, black_ELO,black_dv, black_v)
+
+    except Exception as ex:
+        print("DB ERROR" + str(ex))
+
+
 @socketio.on('end_game')
 def end_game(data):
     obj = json.loads(data)
@@ -523,14 +564,12 @@ def end_game(data):
 
     player_sid = request.sid
 
-    # [0] white_id,[1] black_id,[2] current_turn (w/b)
     game_info = games[game_room_id]
     white_id = game_info.white_player.id
     black_id = game_info.black_player.id
 
     white_sid = authorized_socket[white_id]
     black_sid = authorized_socket[black_id]
-
     # get opponent sid
     opponent_sid = black_sid
     if white_sid != player_sid:
@@ -540,16 +579,7 @@ def end_game(data):
     emit("game_ended", {'result': 'lost'}, to=opponent_sid)
     emit("game_ended", {'result': 'win'}, to=player_sid)
 
-    # delete game
-    games.pop(str(game_room_id), None)
-
-    curr_turn = game_info.curr_turn
-    game_id = game_info.game_id
-    try:
-        db = ChessDB_PT.ChessDB()
-        db.update_scores(str(curr_turn).upper(), game_id)
-    except Exception as ex:
-        print("DB ERROR" + str(ex))
+    finish_game(game_info)
 
 
 @socketio.on('make_move')

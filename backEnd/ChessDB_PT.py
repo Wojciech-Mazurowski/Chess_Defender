@@ -1,5 +1,6 @@
 from datetime import date
 import mysql.connector
+import rating
 
 
 class ChessDB:
@@ -27,7 +28,9 @@ class ChessDB:
                             Password varchar(64) not null, 
                             Country varchar(64), 
                             Joined DATE not null,
-                            ELO int not null);''')
+                            ELO int not null DEFAULT ''' + str(rating.starting_ELO) + ''', 
+                            ELODeviation int not null DEFAULT ''' + str(rating.starting_ELO_deviation) + ''',
+                            ELOVolatility FLOAT not null DEFAULT ''' + str(rating.starting_ELO_volatility) + ''' );''')
 
         mycursor.execute('''CREATE table if not exists Participants
                             (ParticipantID integer primary key AUTO_INCREMENT, 
@@ -57,15 +60,15 @@ class ChessDB:
 
         return mycursor.fetchone()[0]
 
-    def add_user(self, Username, Password, Country, Elo):
+    def add_user(self, Username, Password, Country, Elo, ELO_dv, ELO_v):
         mycursor = self.mydb.cursor()
 
         sql_user = ("INSERT INTO Users "
                     "(Username, Password, Country, Joined, ELO) "
-                    "VALUES (%s, %s, %s, %s, %s)")
+                    "VALUES (%s, %s, %s, %s, %s,%s,%s)")
 
         date = self.get_curr_date()
-        data_user = (Username, Password, Country, date, Elo)
+        data_user = (Username, Password, Country, date, Elo, ELO_dv, ELO_v)
         mycursor.execute(sql_user, data_user)
         self.mydb.commit()
         mycursor.close()
@@ -118,12 +121,12 @@ class ChessDB:
         self.mydb.commit()
         mycursor.close()
 
-    def update_elo(self, new_elo, Username):
+    def update_elo(self, user_id, new_ELO, new_ELO_dv, new_ELO_v):
         mycursor = self.mydb.cursor()
 
-        sql_update = ("""UPDATE Users SET ELO = %s WHERE UserID = %s""")
+        sql_update = ("""UPDATE Users SET ELO = %s,ELODeviation = %s,ELOVolatility =%s WHERE UserID = %s""")
 
-        data_update = (new_elo, self.get_user(Username)[0])
+        data_update = (new_ELO, new_ELO_dv, new_ELO_v, user_id)
         mycursor.execute(sql_update, data_update)
         self.mydb.commit()
         mycursor.close()
@@ -230,7 +233,7 @@ class ChessDB:
         mycursor.close()
         return result
 
-    def get_games(self, UserID,Start,End):
+    def get_games(self, UserID, Start, End):
         mycursor = self.mydb.cursor()
 
         sql_find = ("""SELECT Games.* FROM Games, Participants
@@ -238,7 +241,7 @@ class ChessDB:
                        ORDER BY Games.GameID DESC
                        LIMIT %s,%s""")
 
-        data_find = (UserID,Start,End)
+        data_find = (UserID, Start, End)
         mycursor.execute(sql_find, data_find)
         result = mycursor.fetchall()
         mycursor.close()
