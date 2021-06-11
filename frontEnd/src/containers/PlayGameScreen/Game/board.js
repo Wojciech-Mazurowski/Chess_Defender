@@ -3,7 +3,7 @@ import {
     pixel_positions,
     size,
     playingAs,
-    canvas_height, canvas_width, rows, cols, Checkboard,
+    canvas_height, canvas_width, rows, cols, Checkboard, Checkboard_size,
 } from "./Main";
 import Piece from "./Piece";
 import {moves} from "./moves";
@@ -36,8 +36,8 @@ export default class Board {
         let y;
         if(playingAs==='b')
         {
-            x = canvas_width - size -i * size;
-            y = canvas_height - size -j * size;
+            x = Checkboard_size - size -i * size;
+            y = Checkboard_size - size -j * size;
         }else{
             x = i * size;
             y = j * size;

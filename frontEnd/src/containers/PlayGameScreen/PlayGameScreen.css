@@ -13,6 +13,10 @@
     "chat board buttons";
 }
 
+.chessDefenderGameScreen{
+    grid-template-columns: 30rem 1010px auto;
+}
+
 @media (max-width: 1400px) {
     .PlayGameScreen{
         margin-left: 0;

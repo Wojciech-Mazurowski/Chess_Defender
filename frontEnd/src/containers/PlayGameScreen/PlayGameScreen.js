@@ -60,7 +60,7 @@ class PlayGameScreen extends Component {
         this.props.dispatch(setOpponentELO(resp.opponent.ELO));
 
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
-        await this.setState({loading:false});
+        await this.setState({gameMode:resp.gameMode,loading:false});
     }
 
     setDebugingGameValues(){
@@ -103,9 +103,8 @@ class PlayGameScreen extends Component {
 
 
     render() {
-
         return (
-            <div className="PlayGameScreen" id="PLAY_GAME_SCREEN">
+            <div className={this.props.gameMode==='0'? "PlayGameScreen":"PlayGameScreen chessDefenderGameScreen"} id="PLAY_GAME_SCREEN">
                 {this.state.showResult &&
                 <div className="ResultInfo">
                     <p>&nbsp;{this.state.gameStatus.toUpperCase()}</p>

@@ -10,10 +10,10 @@ import CSquare from "./CSquare";
 export const max_canvas_size=720;
 export var canvas_width = 720;
 export var canvas_height = canvas_width;
-export const game_mode_defender_width=canvas_width+50+canvas_width/3;
+export var game_mode_defender_width=canvas_width+50+canvas_width/3;
 export var Checkboard_size = canvas_height
 export var size = Checkboard_size / 8
-export const Checkboard = [];
+export var Checkboard = [];
 export const pieces_dict = {King: 'k', Pawn: 'p', Knight: 'n', Bishop: 'b', Rook: 'r', Queen: 'q'};
 export const textures = {};
 export const scalar = 5;
@@ -86,13 +86,14 @@ export default function sketch(p5) {
 
     function calculatePixelPositions(){
         pixel_positions=[];
+        Checkboard=[];
 
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 let square = new CSquare(i, j, size, p5);
                 Checkboard.push(square);
                 if (playingAs === 'b') {
-                    pixel_positions.push([canvas_width - size - j * size, canvas_height - size - i * size]);
+                    pixel_positions.push([Checkboard_size - size - j * size, Checkboard_size - size - i * size]);
                 } else {
                     pixel_positions.push([j * size, i * size]);
                 }
@@ -105,15 +106,9 @@ export default function sketch(p5) {
         console.log(gameMode);
 
         if (gameMode==="1") {
-            console.log(game_mode_defender_width);
-            canvas = p5.createCanvas(game_mode_defender_width,canvas_height, p5.WEBGL);
+            canvas_width=game_mode_defender_width;
         }
-        else{
-            canvas = p5.createCanvas(canvas_height, canvas_width, p5.WEBGL);
-            canvas.style('width','100%');
-            canvas.style('height','100%');
-        }
-
+        canvas = p5.createCanvas(canvas_width,canvas_height,  p5.WEBGL);
 
         if (startingFEN !== undefined) {
             board.FEN = startingFEN
@@ -126,44 +121,42 @@ export default function sketch(p5) {
         calculatePixelPositions();
         count_squares_to_edge();
         Generate_moves(board.grid, board.check, "setup");
-
+        canvas.style('width','100%');
+        canvas.style('height','100%');
     };
 
     p5.windowResized= function (){
-        // //full screen mode
-        // let resizeTo=p5.windowWidth;
-        // //for screen widths bigger then max size, set to max size
-        // if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
-        //
-        // canvas_width=resizeTo;
-        // canvas_height=resizeTo;
-        // Checkboard_size=resizeTo;
-        // size=Checkboard_size/8;
-        // //resize piece textures
-        // board.grid.forEach((piece)=>{
-        //         piece.scaled_size=size-scalar;
-        //     }
-        // )
-        //
-        // canvas.resize(canvas_width,canvas_height);
-        // canvas.style('width','100%');
-        // canvas.style('height','100%');
-        // calculatePixelPositions();
-        // board.load_FEN();
+        //full screen mode
+        let resizeTo=p5.windowWidth;
+        //for screen widths bigger then max size, set to max size
+        if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
+
+
+        canvas_width=resizeTo;
+        if(gameMode==="1"){
+            canvas_width=canvas_width+50+canvas_width/3;
+        }
+
+        canvas_height=resizeTo;
+        Checkboard_size=canvas_height;
+        size=Checkboard_size/8;
+        //resize piece textures
+        board.grid.forEach((piece)=>{
+                piece.scaled_size=size-scalar;
+            }
+        )
+
+        canvas.resize(canvas_width,canvas_height);
+        calculatePixelPositions();
+        board.load_FEN();
+        canvas.style('width','100%');
+        canvas.style('height','100%');
     }
 
     p5.draw = function () {
         p5.background(255);
+        p5.translate( -canvas_width / 2,-canvas_height / 2);
 
-        if(gameMode==="1"){
-            p5.translate( -game_mode_defender_width / 2,-canvas_height / 2);
-        }
-        else{
-            p5.translate( -canvas_width / 2,-canvas_height / 2);
-        }
-
-
-        //translate(100,100);
         for (let i = 0; i < Checkboard.length; i++) {
             Checkboard[i].setstate();
         }

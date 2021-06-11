@@ -1,5 +1,6 @@
 :root{
     --max-board-size:800px;
+    --chess-defender-max-board-size:1010px;
 }
 
 .GameContainer{
@@ -8,7 +9,8 @@
     align-items: center;
     justify-content: center;
     width: min(100vw,var(--max-board-size));
-    height: min(100vw,var(--max-board-size));
-
 }
 
+.ChessDefenderGameContainer{
+    width: min(100vw,var(--chess-defender-max-board-size));
+}
