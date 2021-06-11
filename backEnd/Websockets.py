@@ -677,11 +677,11 @@ def make_move(data):
         return
 
     # check for illegal moves?
-    new_FEN =ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare'])
-    if not new_FEN:
+    if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
         #send invalid move packet
         print("INVALID MOVE")
         return
+
 
     # send move to opponent
     opponent_sid =  authorized_socket[white_id]
@@ -697,13 +697,14 @@ def make_move(data):
     if game_room_id not in games:
         print("NO_SUCH_GAME_EXISTS")
         return
+
     # get opposite turn
     opp_turn = 'w'
     if curr_turn == 'w':
         opp_turn = 'b'
 
     games[game_room_id].curr_turn = opp_turn
-    games[game_room_id].curr_FEN = new_FEN
+    games[game_room_id].curr_FEN =  data_obj['FEN']
     move_order = game_info.num_of_moves
     games[game_room_id].num_of_moves = move_order + 1
 

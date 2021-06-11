@@ -27,11 +27,7 @@ def convert_pos_to_stockfish_notation(pos):
 def is_valid_move(FEN, startSquare, targetSquare):
     stockfish.set_fen_position(FEN)
     stockfish_move = convert_pos_to_stockfish_notation(startSquare) + convert_pos_to_stockfish_notation(targetSquare)
-    if stockfish.is_move_correct(stockfish_move):
-        stockfish.set_position([stockfish_move])
-        return stockfish.get_fen_position()
-        
-    return False
+    return stockfish.is_move_correct(stockfish_move)
 
 def is_checkmate(FEN):
     stockfish.set_fen_position(FEN)
