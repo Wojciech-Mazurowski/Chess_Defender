@@ -1,10 +1,8 @@
 import {sha256} from "js-sha256";
 import {API_URL} from "./APIConfig";
 import {handleResponse, fetchWithTimeout, FETCH_DEBUGGING_MODE, authHeader} from "./DataFetcher"
-import {setCookie} from "./Utils";
 import {store} from "../index";
-import {setSessionToken} from "../redux/actions/userActions";
-import {clearStore} from "../redux/reducers/rootReducer";
+import {GAME_DEBUGING_MODE} from "../App";
 
 export async function login(username,password){
 
@@ -51,6 +49,9 @@ export async function register(username,password){
 }
 
 export async function logout(){
+    if (GAME_DEBUGING_MODE) return;
+
+
     const storeState=store.getState();
     let userId=storeState.user.userId;
     let sessionToken=storeState.user.sessionToken;

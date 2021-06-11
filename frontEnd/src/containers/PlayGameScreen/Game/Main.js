@@ -16,7 +16,7 @@ export const Checkboard = [];
 export const pieces_dict = {King: 'k', Pawn: 'p', Knight: 'n', Bishop: 'b', Rook: 'r', Queen: 'q'};
 export const textures = {};
 export const scalar = 5;
-export const pixel_positions = [];
+export var pixel_positions = [];
 export const rows = Math.floor(Checkboard_size / size);
 export const cols = Math.floor(Checkboard_size / size);
 export var board;
@@ -84,6 +84,8 @@ export default function sketch(p5) {
     }
 
     function calculatePixelPositions(){
+        pixel_positions=[];
+
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 let square = new CSquare(i, j, size, p5);
@@ -115,16 +117,6 @@ export default function sketch(p5) {
         canvas.style('height','100%');
     };
 
-    p5.draw = function () {
-        p5.background(255);
-        p5.translate(-canvas_height / 2, -canvas_width / 2);
-        //translate(100,100);
-        for (let i = 0; i < Checkboard.length; i++) {
-            Checkboard[i].setstate();
-        }
-        board.draw_board();
-    };
-
     p5.windowResized= function (){
         //full screen mode
         let resizeTo=p5.windowWidth;
@@ -137,7 +129,7 @@ export default function sketch(p5) {
         size=Checkboard_size/8;
         //resize piece textures
         board.grid.forEach((piece)=>{
-            piece.scaled_size=size-scalar;
+                piece.scaled_size=size-scalar;
             }
         )
 
@@ -146,7 +138,17 @@ export default function sketch(p5) {
         canvas.style('height','100%');
         calculatePixelPositions();
         board.load_FEN();
-        //TODO make moves show up at right places
-
     }
+
+    p5.draw = function () {
+        p5.background(255);
+        p5.translate(-canvas_height / 2, -canvas_width / 2);
+        //translate(100,100);
+        for (let i = 0; i < Checkboard.length; i++) {
+            Checkboard[i].setstate();
+        }
+        board.draw_board();
+    };
+
+
 };

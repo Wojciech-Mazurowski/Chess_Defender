@@ -3,10 +3,11 @@ import {
     pixel_positions,
     size,
     playingAs,
-    canvas_height, canvas_width
+    canvas_height, canvas_width, rows, cols, Checkboard,
 } from "./Main";
 import Piece from "./Piece";
 import {moves} from "./moves";
+import CSquare from "./CSquare";
 
 
 
@@ -138,16 +139,17 @@ export default class Board {
 
 
         for (let i = 0; i < moves.length; i++) {
-
-            let highlight = pixel_positions[moves[i].EndSquare];
             let type = moves[i].type;
             if(board.grid[moves[i].StartSquare].dragging) {
+                let highlight = pixel_positions[moves[i].EndSquare];
                 if (type!=='C') {
                     this.p5.push()
                     this.p5.translate(size / 2, size / 2);
                     this.p5.noStroke();
                     this.p5.fill(this.p5.color(66, 129, 74));
                     this.p5.circle(highlight[0], highlight[1], size / 3);
+                    console.log(pixel_positions)
+                    console.log(highlight)
                     this.p5.pop();
                 }else if(type==='C')
                 {

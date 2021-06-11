@@ -20,6 +20,7 @@ import {
 } from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
+import {GAME_DEBUGING_MODE} from "../../App";
 
 class PlayGameScreen extends Component {
 
@@ -32,7 +33,6 @@ class PlayGameScreen extends Component {
             loading:true,
             gameStatus: "Draw",
             showResult: false,
-            startingFEN:this.props.currentFEN,
             playingAs : this.props.playingAs,
             gameId: this.props.gameId,
         }
@@ -45,7 +45,7 @@ class PlayGameScreen extends Component {
         if (resp === undefined) return
 
         //if not in game REROUTE back
-        if(!resp.inGame){
+        if(!resp.inGame && !GAME_DEBUGING_MODE){
             this.props.dispatch(setIsInGame(false));
             this.props.history.push('/');
             return;
@@ -57,9 +57,16 @@ class PlayGameScreen extends Component {
         this.props.dispatch(setIsInGame(true));
         this.props.dispatch(setOpponentUsername(resp.opponent.username));
         this.props.dispatch(setOpponentELO(resp.opponent.ELO));
-        await this.setState({startingFEN:resp.FEN,loading:false});
+
+        if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
+        await this.setState({loading:false});
     }
 
+    setDebugingGameValues(){
+        this.props.dispatch(setPlayingAs('w'));
+        this.props.dispatch(setCurrentFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
+        this.props.dispatch(setOpponentUsername("YOURSELF"));
+    }
     componentDidMount() {
         //style canvas programatically TODO maybe find a more elegant way?
 
@@ -68,6 +75,7 @@ class PlayGameScreen extends Component {
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
             this.setState({gameStatus: data.result, showResult: true});
+            this.props.dispatch(setIsInGame(false));
         });
     }
 
@@ -106,17 +114,15 @@ class PlayGameScreen extends Component {
 
                 <PlayersInfo/>
 
-                {!this.state.loading && <Chat gameId={this.state.gameId}/>}
+                <Chat/>
                 <GameContainer>
                     {!this.state.loading &&
                         <P5Wrapper
                             sketch={sketch}
-                            playingAs={this.props.playingAs}
-                            gameId={this.state.gameId}
-                            socket={this.socket}
                             sendMoveToServer={this.sendMove}
                             sendEndGame={this.sendEndGame}
-                            startingFEN={this.state.startingFEN}
+                            playingAs={this.props.playingAs}
+                            startingFEN={this.props.currentFEN}
                             gameMode={this.state.gameMode}
                         />
                     }

@@ -11,7 +11,7 @@ import {connect} from 'react-redux'
 import PrivateRoute from "./containers/CommonComponents/PrivateRouter";
 import {getSessionToken} from "./serverLogic/DataFetcher";
 
-
+export const GAME_DEBUGING_MODE=false;
 
 function App({socket,sessionToken,userId,gameId,isInGame}) {
     const history = useHistory();
@@ -48,8 +48,10 @@ function App({socket,sessionToken,userId,gameId,isInGame}) {
                   <ScrollToTop />
                   <Route path="/" component={NavBar}/>
                   <Switch>
-                      <PrivateRoute path="/" exact component={MainPageScreen} />
-                      <PrivateRoute path="/play" component={PlayGameScreen} />
+                      {!GAME_DEBUGING_MODE &&  <PrivateRoute path="/" exact component={MainPageScreen} /> }
+                      {!GAME_DEBUGING_MODE &&   <PrivateRoute path="/play" component={PlayGameScreen} />}
+                      {GAME_DEBUGING_MODE &&  <Route path="/" exact component={MainPageScreen} /> }
+                      {GAME_DEBUGING_MODE &&   <Route path="/play" component={PlayGameScreen} />}
                       <Route path="/login" component={LogRegScreen} />
                       <Redirect from="*" to="/" />
                   </Switch>
