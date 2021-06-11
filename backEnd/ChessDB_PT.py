@@ -2,6 +2,8 @@ from datetime import date
 import mysql.connector
 import rating
 
+#to account for time difference due to timezones (in hh:mm:ss)
+server_time_difference='02:00:00'
 
 class ChessDB:
 
@@ -55,7 +57,7 @@ class ChessDB:
 
     def get_curr_date_time(self):
         mycursor = self.mydb.cursor()
-        date = "SELECT CURRENT_TIMESTAMP() AS Today"
+        date = "SELECT ADDTIME(CURRENT_TIMESTAMP(), '"+server_time_difference+"') AS Today"
         mycursor.execute(date)
 
         return mycursor.fetchone()[0]
