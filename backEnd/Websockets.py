@@ -8,6 +8,10 @@ import hashlib
 from flask_cors import CORS
 import rating
 from timeit import default_timer as timer
+import ChessLogic
+
+
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
@@ -635,19 +639,18 @@ def end_game(data):
 
 @socketio.on('make_move')
 def make_move(data):
-    obj = json.loads(data)
-    print(obj)
+    data_obj = json.loads(data)
+    print(data_obj)
 
     # authorize player
-    if not check_auth(request.sid, obj['playerId']):
+    if not check_auth(request.sid, data_obj['playerId']):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
-    game_room_id = obj['gameroomId']
-    move = obj['move']
-    player_sid = request.sid
-    player_id= obj['playerId']
+    game_room_id = data_obj['gameroomId']
+    move = data_obj['move']
+    player_id= data_obj['playerId']
 
     # check if the game exists at all
     if game_room_id not in games:
@@ -661,54 +664,50 @@ def make_move(data):
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
-    # [0] white_id,[1] black_id,[2] current_turn (w/b)
+    player_color= players_game[1]
     game_info = games[game_room_id]
     white_id = game_info.white_player.id
     black_id = game_info.black_player.id
     curr_turn = game_info.curr_turn
 
-    white_sid = authorized_socket[white_id]
-    black_sid = authorized_socket[black_id]
-
-    print("player sid " + str(white_sid))
-    # get opponent sid
-    opponent_sid = black_sid
-    if white_sid != player_sid:
-        opponent_sid = white_sid
-    print("opponent_sid " + str(opponent_sid))
-    print(authorized_socket)
-
     # check if it's coming from the wrong player
-    if (curr_turn == 'w' and player_sid != white_sid) or (curr_turn == 'b' and player_sid != black_sid):
+    if str(curr_turn) != str(player_color):
         # send not ur turn packet
         print("NOT UR TURN")
         return
 
     # check for illegal moves?
+    if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
+        #send invalid move packet
+        print("INVALID MOVE")
+        return
 
     # send move to opponent
+    opponent_sid =  authorized_socket[white_id]
+    if player_color=='w':
+        opponent_sid=authorized_socket[black_id]
+
     emit('make_move_local', move, to=opponent_sid)
 
     #check for checkmates
 
-    # get opposite turn
-    opp_turn = 'w'
-    if curr_turn == 'w':
-        opp_turn = 'b'
 
     # update local game object
     if game_room_id not in games:
         print("NO_SUCH_GAME_EXISTS")
         return
+    # get opposite turn
+    opp_turn = 'w'
+    if curr_turn == 'w':
+        opp_turn = 'b'
 
     games[game_room_id].curr_turn = opp_turn
-    games[game_room_id].curr_FEN = obj['FEN']
+    games[game_room_id].curr_FEN = data_obj['FEN']
     move_order = game_info.num_of_moves
     games[game_room_id].num_of_moves = move_order + 1
 
-    game_id = game_info.game_id
-    # increment move order
     try:
+        game_id = game_info.game_id
         db = ChessDB_PT.ChessDB()
         db.add_move(game_id, str(curr_turn).upper(), move_order, move)
     except Exception as ex:

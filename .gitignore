@@ -621,3 +621,10 @@ node_modules/@babel/runtime/helpers/applyDecoratedDescriptor.js
 node_modules/.bin/loose-envify.ps1
 node_modules/.bin/loose-envify.cmd
 node_modules/.bin/loose-envify
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/INSTALLER
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/LICENSE
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/METADATA
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/RECORD
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/REQUESTED
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/top_level.txt
+venv/Lib/site-packages/stockfish-3.16.0.dist-info/WHEEL
