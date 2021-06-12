@@ -1,7 +1,9 @@
 from stockfish import Stockfish
 
 
-stockfish = Stockfish("./stockfish_13_win.exe",parameters={"Threads": 1,  "Write Debug Log":"true"})
+stockfish = Stockfish("StockFish/stockfish_13_win.exe", parameters={"Threads": 1, "Write Debug Log": "true"})
+#linux config
+#stockfish = Stockfish("StockFish/stockfish_13_linux.exe", parameters={"Threads": 1, "Write Debug Log": "true"})
 
 def generate_pos_to_stocknot_dict():
     board_letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -32,3 +34,5 @@ def is_valid_move(FEN, startSquare, targetSquare):
 def is_checkmate(FEN):
     stockfish.set_fen_position(FEN)
     return stockfish.get_evaluation()
+
+#TODO update given FEN by move to get a new FEN

@@ -1,6 +1,6 @@
 from datetime import date
 import mysql.connector
-import rating
+import RatingSystem
 
 #to account for time difference due to timezones (in hh:mm:ss)
 server_time_difference='02:00:00'
@@ -30,9 +30,9 @@ class ChessDB:
                             Password varchar(64) not null, 
                             Country varchar(64), 
                             Joined DATE not null,
-                            ELO int not null DEFAULT ''' + str(rating.starting_ELO) + ''', 
-                            ELODeviation int not null DEFAULT ''' + str(rating.starting_ELO_deviation) + ''',
-                            ELOVolatility FLOAT not null DEFAULT ''' + str(rating.starting_ELO_volatility) + ''' );''')
+                            ELO int not null DEFAULT ''' + str(RatingSystem.starting_ELO) + ''', 
+                            ELODeviation int not null DEFAULT ''' + str(RatingSystem.starting_ELO_deviation) + ''',
+                            ELOVolatility FLOAT not null DEFAULT ''' + str(RatingSystem.starting_ELO_volatility) + ''' );''')
 
         mycursor.execute('''CREATE table if not exists Participants
                             (ParticipantID integer primary key AUTO_INCREMENT, 
