@@ -1,4 +1,4 @@
-import {board, pixel_positions, playingAs, sendMoveToServer,sendEndGame} from "./Main";
+import {board, pixel_positions, playingAs, sendMoveToServer} from "./Main";
 import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
@@ -79,11 +79,6 @@ export function Generate_moves(grid, check, gtype) {
 
         if (check === 1 && ally_moves.length === 0) {
             console.log("tu szachmat");
-
-            let data = {
-                //maybe make it send some data later
-            }
-            sendEndGame(data,board.FEN);
         }
 
 

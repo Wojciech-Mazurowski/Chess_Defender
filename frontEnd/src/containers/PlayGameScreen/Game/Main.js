@@ -35,7 +35,6 @@ function importAll(r) {
 const images = importAll(require.context('./Pieces', false, /\.(png|jpe?g|svg)$/));
 export let playingAs;
 export let sendMoveToServer;
-export let sendEndGame;
 export let gameMode;
 let startingFEN;
 
@@ -50,9 +49,6 @@ export default function sketch(p5) {
         }
         if (props.sendMoveToServer) {
             sendMoveToServer = props.sendMoveToServer;
-        }
-        if (props.sendEndGame) {
-            sendEndGame = props.sendEndGame
         }
         if (props.startingFEN) {
             startingFEN = props.startingFEN

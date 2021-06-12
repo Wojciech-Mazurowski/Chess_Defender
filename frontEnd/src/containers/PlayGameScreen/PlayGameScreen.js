@@ -82,16 +82,6 @@ class PlayGameScreen extends Component {
     }
 
 
-    async sendEndGame(data,FEN) {
-        const storeState=store.getState();
-        let playerId = storeState.user.userId;
-        let socket =storeState.socket.socket;
-        let gameroomId =storeState.game.gameId;
-
-        if (!socket.is_connected)  return;
-        await socket.emit("end_game", JSON.stringify({data, gameroomId, playerId,FEN}));
-    }
-
     async sendMove(move,FEN) {
         const storeState=store.getState();
         let playerId = storeState.user.userId;
@@ -126,7 +116,6 @@ class PlayGameScreen extends Component {
                         <P5Wrapper
                             sketch={sketch}
                             sendMoveToServer={this.sendMove}
-                            sendEndGame={this.sendEndGame}
                             playingAs={this.props.playingAs}
                             startingFEN={this.props.currentFEN}
                             gameMode={this.props.gameMode}

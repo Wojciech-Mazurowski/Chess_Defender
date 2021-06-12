@@ -42,7 +42,7 @@ Sessions = {}
 # Matchmaking variables
 queues = {}
 q_max_wait_time = 10000  # in ms
-initial_scope = 50  # +-elo when looking for opponents
+initial_scope = 1000  # +-elo when looking for opponents
 scope_update_interval = 10000  # time it takes for scope to widen (in ms)
 scope_update_ammount = 50  # ammount by which scope widens every scope_update_interval
 
@@ -602,41 +602,6 @@ def surrender(data):
     finish_game(game_info, opp_color)
 
 
-@socketio.on('end_game')
-def end_game(data):
-    obj = json.loads(data)
-    print(obj)
-
-    game_room_id = obj['gameroomId']
-
-    # check if game even exists
-    if game_room_id not in games:
-        print("GAME ARLEADY GONE!! ")
-        emit('bad_move', {'error': 'Game already gone'})
-        return
-
-    player_id = obj['playerId']
-
-    # authorize player
-    if not check_auth(request.sid, player_id):
-        print("Unathorized!! ")
-        emit('unauthorized', {'error': 'Unauthorized access'})
-        return
-
-    # check if is in the game
-    players_game = get_is_player_in_game(player_id)
-    if not players_game or players_game[0].game_room_id != game_room_id:
-        print("Player doesn't play in this game!! ")
-        emit('unauthorized', {'error': 'Unauthorized access'})
-        return
-
-    print("Player with id " + player_id + "checkmated the game")
-    game_info = games[game_room_id]
-    player_color = players_game[1]
-
-    finish_game(game_info, player_color)
-
-
 @socketio.on('make_move')
 def make_move(data):
     data_obj = json.loads(data)
@@ -682,7 +647,6 @@ def make_move(data):
         print("INVALID MOVE")
         return
 
-
     # send move to opponent
     opponent_sid =  authorized_socket[white_id]
     if player_color=='w':
@@ -691,7 +655,10 @@ def make_move(data):
     emit('make_move_local', move, to=opponent_sid)
 
     #check for checkmates
-
+    eval =ChessLogic.is_checkmate(game_info.curr_FEN)
+    if eval['type']=='mate':
+        print(eval)
+        finish_game(game_info,curr_turn)
 
     # update local game object
     if game_room_id not in games:
