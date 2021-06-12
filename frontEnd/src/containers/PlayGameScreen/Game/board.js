@@ -28,6 +28,7 @@ export default class Board {
         this.lastmove = [-1,-1];
         this.numOfMoves=parseInt(this.FEN.split(' ')[5],10);
         this.check = 0;
+        this.enPassant = "-";
     }
 
 
@@ -79,7 +80,9 @@ export default class Board {
 
         //TODO
         //sprawdzic czy król sie juz ruszył i wieza czy sie da roszade zrobic i wtedy dopisać ją do fena, tak samo który jest teraz ruch
-        temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.FEN.split(' ')[3] + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
+        //split 2 - roszady
+        //split 3 - en passant
+        temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.enPassant + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
         this.FEN = temp_fen;
         this.load_FEN();
     }

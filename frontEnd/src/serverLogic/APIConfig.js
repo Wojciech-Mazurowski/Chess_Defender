@@ -1,5 +1,5 @@
 const API = {
-    IP: '34.118.14.151',
+    IP: 'localhost',
     PORT: '5000',
 }
 

@@ -1,4 +1,4 @@
-import {board, pixel_positions, playingAs, sendMoveToServer} from "./Main";
+import {board, pixel_positions, playingAs, pos_to_stocknot_dict, sendMoveToServer} from "./Main";
 import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
@@ -8,6 +8,8 @@ export var future_opponent_moves = [];
 export var future_opponent_moves2 = [];
 export var future_moves = [];
 export var future_moves2 = [];
+
+
 
 class move {
     constructor(starting_square, ending_square, type) {
@@ -552,6 +554,23 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
     Generate_moves(board.grid, board.check,"after_opponent");
 }
 
+export function generate_pos_to_stocknot_dict() {
+    let board_letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    let a;
+    for(let i=0;i<8;i++)
+    {
+        for(let j=0;j<8;j++)
+        {
+            let cur_letter = board_letters[j]
+            a = 8-i;
+            pos_to_stocknot_dict[i * 8 + j] = cur_letter + a.toString();
+        }
+    }
+
+}
+
+
+
 export function make_a_move() {
     for (let i = 0; i < board.grid.length; i++) {
         let piece = board.grid[i];
@@ -596,6 +615,7 @@ export function make_a_move() {
                         } else if (move.type === 'CP') {
                             let EP_target;
                             piece.color === 'w' ? EP_target = TargetSquare + Directions[0] : EP_target = TargetSquare + Directions[1];
+                            board.enPassant = pos_to_stocknot_dict[EP_target];
                             board.grid[EP_target].get_taken();
                             board.lastPawnMoveOrCapture = 0;
 
@@ -607,6 +627,7 @@ export function make_a_move() {
                         }
                         //kolejnosc wazna
                         board.set_FEN_by_move(StartingSquare, TargetSquare, true);
+                        console.log(board.FEN);
 
                         piece.snap();
                     }

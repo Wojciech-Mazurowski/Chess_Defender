@@ -3,10 +3,13 @@ import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
     Generate_moves,
-    make_a_move
+    make_a_move, generate_pos_to_stocknot_dict
 } from "./moves";
 import CSquare from "./CSquare";
 
+
+
+export var pos_to_stocknot_dict = [];
 export const max_canvas_size=720;
 export var canvas_width = 720;
 export var canvas_height = canvas_width;
@@ -98,6 +101,8 @@ export default function sketch(p5) {
     }
 
     p5.setup = function () {
+        generate_pos_to_stocknot_dict();
+        console.log(pos_to_stocknot_dict[1]);
         board = new Board(p5);
 
 
