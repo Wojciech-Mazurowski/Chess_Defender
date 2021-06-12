@@ -507,7 +507,14 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
         board.numOfMoves += 1;
     }
     board.lastPawnMoveOrCapture += 1;
-
+    if(mType === 'P')
+    {
+        let EP_target2;
+        piece.color === 'w' ? EP_target2 = TargetSquare + Directions[0] : EP_target2 = TargetSquare + Directions[1];
+        board.enPassant = pos_to_stocknot_dict[EP_target2];
+    }else{
+        board.enPassant = '-';
+    }
     //TODO zbijanko + moze case z tego zrob
     if (mType === 'R' || mType === 'r') {
         let Target;
@@ -542,7 +549,9 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
             board.lastPawnMoveOrCapture = 0;
         }
         //kolejnosc wazna
+
         board.set_FEN_by_move(StartingSquare, TargetSquare, true);
+        console.log(board.FEN);
         piece.snap_back();
     }
     piece.did_move = 1;
@@ -590,6 +599,14 @@ export function make_a_move() {
                     }
                     board.lastPawnMoveOrCapture += 1;
                     //TODO zbijanko + moze case z tego zrob
+                    if(move.type === 'P')
+                    {
+                        let EP_target2;
+                        piece.color === 'w' ? EP_target2 = TargetSquare + Directions[0] : EP_target2 = TargetSquare + Directions[1];
+                        board.enPassant = pos_to_stocknot_dict[EP_target2];
+                    }else{
+                        board.enPassant = '-';
+                    }
 
                     if (move.type === 'R' || move.type === 'r') {
                         let Target;
@@ -615,7 +632,6 @@ export function make_a_move() {
                         } else if (move.type === 'CP') {
                             let EP_target;
                             piece.color === 'w' ? EP_target = TargetSquare + Directions[0] : EP_target = TargetSquare + Directions[1];
-                            board.enPassant = pos_to_stocknot_dict[EP_target];
                             board.grid[EP_target].get_taken();
                             board.lastPawnMoveOrCapture = 0;
 
