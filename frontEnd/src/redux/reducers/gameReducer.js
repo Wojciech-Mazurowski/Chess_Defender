@@ -1,5 +1,6 @@
 // Import all actions
 import * as actions from '../actions/gameActions'
+import {SocketStatus} from "../../serverLogic/WebSocket";
 
 
 export const gameInitialState = {
@@ -9,7 +10,8 @@ export const gameInitialState = {
     currentFEN: sessionStorage.getItem('currentFEN'),
     opponentUsername:sessionStorage.getItem('opponentUsername'),
     opponentElo: sessionStorage.getItem('opponentElo'),
-    chatHistory:sessionStorage.getItem('chatHistory')
+    chatHistory:sessionStorage.getItem('chatHistory'),
+    opponentsStatus: SocketStatus.connected //opponent presumed connected until notified otherwise
 };
 
 export default function gameInfoReducer(state = gameInitialState, action) {
@@ -32,6 +34,9 @@ export default function gameInfoReducer(state = gameInitialState, action) {
         case actions.SET_OPPONENT_ELO:
             sessionStorage.setItem('opponentELO',action.payload)
             return {...state, opponentElo:action.payload}
+        case actions.SET_OPPONENT_STATUS:
+            sessionStorage.setItem('opponentsStatus',action.payload)
+            return {...state, opponentsStatus:action.payload}
         default:
             return state
     }

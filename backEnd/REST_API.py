@@ -9,6 +9,7 @@ import RatingSystem
 from ServerState import *
 
 frontend_url = 'http://localhost:3000'
+domain = '127.0.0.1'
 debug_mode = True
 
 # FLASK CONFIG
@@ -100,7 +101,7 @@ def login():
     # create cookie with refresh token, and send back payload with sessionToken
     resp = generate_response({"userId": user_id, "userElo": user_elo, "sessionToken": session_token}, 200)
     # create resfresh token cookie that is only ever sent to /refresh_session path
-    resp.set_cookie('refreshToken', refresh_token, domain='127.0.0.1', samesite='None',
+    resp.set_cookie('refreshToken', refresh_token, domain=domain, samesite='None',
                     secure='false')  # path="/refresh_session"
     return resp
 

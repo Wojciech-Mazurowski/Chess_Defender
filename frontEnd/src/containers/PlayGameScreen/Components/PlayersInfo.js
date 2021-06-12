@@ -14,6 +14,7 @@ class PlayersInfo extends Component{
         }
     }
 
+
     render() {
         return (
             <section className="PlayersInfo">
@@ -26,7 +27,7 @@ class PlayersInfo extends Component{
                 </div>
 
                 <div className="PlayersInfo-playerContainer">
-                    <div className="PlayersInfo-status" style={{'background-color':this.state.opponentStatus.color}}/>
+                    <SocketStatusWidget className="PlayersInfo-status" isOpponentSocket={true}/>
                     <div className="MatchHistoryItem-player">
                         <h1>{this.props.opponentUsername}</h1>
                         <h2>{this.props.playingAs ==='w'? 'BLACK': 'WHITE'} | {this.props.opponentElo} ELO</h2>

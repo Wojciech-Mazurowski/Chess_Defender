@@ -1,23 +1,33 @@
 import io from 'socket.io-client';
 import {API_URL} from "./APIConfig";
 import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
-import {getSessionToken} from "./DataFetcher";
 import {store} from "../index";
-import {setSessionToken} from "../redux/actions/userActions";
 import {setSocketStatus} from "../redux/actions/socketActions";
+import {setOpponentStatus} from "../redux/actions/gameActions";
 
 const socketPath = '';
 
 export class SocketStatus {
-    static disconnected = new SocketStatus('dissconnected', '#bf3d3b');
+    static disconnected = new SocketStatus('disconnected', '#bf3d3b');
     static connecting = new SocketStatus('connecting', '#da8b43');
     static connected = new SocketStatus('connected', '#369257');
     static authorized = new SocketStatus('connected and authorized', '#369257');
+    static unknown =  new SocketStatus('unknown', '#69aca2');
 
 
     constructor(name, color) {
         this.name = name;
         this.color = color;
+    }
+
+    static getStatusFromString(status_name){
+        switch (status_name){
+            case 'disconnected': return SocketStatus.disconnected;
+            case 'connecting': return SocketStatus.connecting;
+            case 'connected': return SocketStatus.connected;
+            case 'connected and authorized': return SocketStatus.authorized
+            default: return SocketStatus.unknown;
+        }
     }
 
     toString() {
@@ -88,6 +98,14 @@ export default class SocketClient {
         this.on("make_move_local", data => {
             if (data === undefined) return;
             make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
+        });
+
+        this.on('update_opponents_socket_status', data =>{
+            if (data === undefined) return;
+
+            console.log("GOT OPPONENTS STATUS "+data.status)
+            let opp_status= SocketStatus.getStatusFromString(data.status)
+            store.dispatch(setOpponentStatus(opp_status))
         });
     }
 

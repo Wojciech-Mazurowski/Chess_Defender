@@ -1,13 +1,9 @@
-import json
-from flask import request, copy_current_request_context
+from flask import copy_current_request_context
 from flask_socketio import SocketIO, emit, join_room, leave_room
-import ChessDB
-import random
-import hashlib
-import RatingSystem
 from timeit import default_timer as timer
 import ChessLogic
 from REST_API import *
+from enum import Enum
 
 debug_mode = True
 
@@ -18,7 +14,6 @@ thread = None
 
 
 # SOCKET CONNECTION
-
 def check_auth(sid, player_id):
     if (str(player_id) not in authorized_sockets) or (sid != authorized_sockets[str(player_id)]):
         return False
@@ -40,8 +35,19 @@ def disconnect():
         leave_room('queue' + str(to_be_removed[1]))
         queues[str(to_be_removed[1])].remove(to_be_removed[0])
 
-    # remove from game he was in?
     print('Player disconnected ', request.sid)
+
+    # if he was in game notify opponent that the player disconnected
+    player_id = get_id_by_sid(request.sid)
+    if player_id is None:
+        return
+
+    game_info = get_is_player_in_game(player_id)
+    if game_info:
+        game = game_info[0]
+        print("SENDING SOCKET STATUS UPDATE")
+        emit('update_opponents_socket_status', {'status': 'disconnected'}, room=game.game_room_id, include_self=False)
+        leave_room(game.game_room_id, request.sid)
 
 
 @socketio.on("authorize")
@@ -74,11 +80,16 @@ def authorize(data):
             print("Player " + str(player_id) + " rejoined game " + str(game.game_id) + " as " + str(
                 playing_as + " with FEN " + str(game.curr_FEN)))
 
-        join_room(game.game_id, request.sid)
+        join_room(game.game_room_id, request.sid)
         # game rejoin communicate (in case player was in queue when disconnected)
         emit("game_found",
-             {'gameId': game.game_id, 'playingAs': playing_as, 'FEN': game.curr_FEN, 'gameMode': game.game_mode_id},
+             {'gameId': game.game_room_id, 'playingAs': playing_as, 'FEN': game.curr_FEN, 'gameMode': game.game_mode_id},
              to=request.sid)
+
+        # notify opponent that the player reconnected
+        print("SENDING SOCKET STATUS UPDATE")
+        emit('update_opponents_socket_status', {'status': 'connected'}, room=game.game_room_id,
+             include_self=False)
 
     emit('authorized', )
 
@@ -414,28 +425,19 @@ def make_move(data):
 
     emit('make_move_local', move, to=opponent_sid)
 
-    # check for checkmates
-    eval = ChessLogic.is_checkmate(game_info.curr_FEN)
-    if eval['type'] == 'mate':
-        print(eval)
-        finish_game(game_info, curr_turn)
-
     # update local game object
     if game_room_id not in games:
         print("NO_SUCH_GAME_EXISTS")
         return
 
+    games[game_room_id].curr_FEN = data_obj['FEN']
+    move_order = game_info.num_of_moves
+    games[game_room_id].num_of_moves = move_order + 1
     # get opposite turn
     opp_turn = 'w'
     if curr_turn == 'w':
         opp_turn = 'b'
-
-    # TODO change this shit up cause this way last move doesn't get added int db'
-
     games[game_room_id].curr_turn = opp_turn
-    games[game_room_id].curr_FEN = data_obj['FEN']
-    move_order = game_info.num_of_moves
-    games[game_room_id].num_of_moves = move_order + 1
 
     try:
         game_id = game_info.game_id
@@ -443,6 +445,16 @@ def make_move(data):
         db.add_move(game_id, str(curr_turn).upper(), move_order, move)
     except Exception as ex:
         print("DB ERROR" + str(ex))
+
+
+    # check for checkmates
+    eval = ChessLogic.is_checkmate(game_info.curr_FEN)
+    if eval['type'] == 'mate':
+        print(eval)
+        finish_game(game_info, curr_turn)
+
+
+
 
 
 # in game chat
@@ -462,13 +474,13 @@ def send_chat_to_server(data):
         return
 
     # check if player is in the selected game
-    game_info = get_is_player_in_game(player_id)
-    if not game_info or str(game_info[0].game_room_id) != str(game_id):
+    game_info = get_is_player_in_game(player_id)[0]
+    if not game_info or str(game_info.game_room_id) != str(game_id):
         print("Wrong game")
         return
 
     # send to everyone in the room except sender
-    emit('receive_message', {'text': text, 'playerName': player_name}, room=game_id, include_self=False)
+    emit('receive_message', {'text': text, 'playerName': player_name}, room=game_info.game_room_id, include_self=False)
 
 
 socketio.run(app, host='127.0.0.1', port=5000, debug=debug_mode)

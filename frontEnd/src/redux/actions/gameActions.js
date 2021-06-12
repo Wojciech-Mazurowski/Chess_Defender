@@ -5,6 +5,7 @@ export const SET_PLAYINGAS = 'SET_PLAYINGAS'
 export const SET_CURRENT_FEN= 'SET_CURRENT_FEN'
 export const SET_OPPONENT_USERNAME='SET_OPPONENT_USERNAME'
 export const SET_OPPONENT_ELO='SET_OPPONENT_ELO'
+export const SET_OPPONENT_STATUS = 'SET_OPPONENT_STATUS'
 
 //SETTERS
 export const setGameId = (gameId) => ({
@@ -31,6 +32,10 @@ export const setOpponentUsername = (oppUsername) => ({
 export const setOpponentELO = (oppELO) => ({
     type: SET_OPPONENT_ELO,
     payload: oppELO,
+})
+export const setOpponentStatus = (socketStatus) => ({
+    type: SET_OPPONENT_STATUS,
+    payload: socketStatus,
 })
 
 

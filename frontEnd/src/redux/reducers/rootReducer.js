@@ -32,6 +32,7 @@ export const mapAllStateToProps = (state) => {
         playingAs: state.game.playingAs,
         currentFEN: state.game.currentFEN,
         opponentUsername: state.game.opponentUsername,
-        opponentElo:  state.game.opponentElo
+        opponentElo:  state.game.opponentElo,
+        opponentsStatus: state.game.opponentsStatus
     };
 };
