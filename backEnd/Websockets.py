@@ -304,7 +304,7 @@ def finish_game(game_info, win_color):
 
         # add match result to db
         curr_turn = game_info.curr_turn
-        db.update_scores(str(curr_turn).upper(), game_id)
+        db.update_scores(str(win_color).upper(), game_id)
 
         # update players' rankings
         white_id = game_info.white_player.id

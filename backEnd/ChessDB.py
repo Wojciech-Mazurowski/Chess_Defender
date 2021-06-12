@@ -9,8 +9,8 @@ class ChessDB:
 
     def __init__(self):
         # self.mydb = mysql.connector.connect(host="localhost", user="root", password="Pudzian123", database="ChessDB1")
-        self.mydb = mysql.connector.connect(host=" ec2-3-143-148-217.us-east-2.compute.amazonaws.com", user="Admin",
-                                            password="ChessDB1!",
+        self.mydb = mysql.connector.connect(host="34.118.115.87", user="root",
+                                            password="!Serek123!",
                                             database="ChessDB")
 
     def __del__(self):
