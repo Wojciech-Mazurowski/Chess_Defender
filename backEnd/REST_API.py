@@ -154,7 +154,7 @@ def logout():
     del Sessions[str(user_id)]
     # set cookie to a dummy one
     resp = generate_response({"logout": 'succesfull'}, 200)
-    resp.set_cookie('refreshToken', 'none', domain='127.0.0.1', samesite='None', secure='false')
+    resp.set_cookie('refreshToken', 'none', domain=domain, samesite='None', secure='false')
     return resp
 
 
