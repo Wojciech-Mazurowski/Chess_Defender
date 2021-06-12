@@ -31,7 +31,9 @@ export function simulate_moves_for_ally(grid, ally_moves) {
         board.color_to_move === 'w' ? opponent_king = simulate_white_king_pos(simulation_grid) : opponent_king = simulate_black_king_pos(simulation_grid);
         for (let j = 0; j < future_opponent_moves2.length; j++) {
             future_move = future_opponent_moves2[j];
-            if (opponent_king === future_move) {
+
+            if (opponent_king === future_move.EndSquare && future_move.type !=='n') {
+
                 check_flag = 1;
             }
         }
@@ -53,7 +55,7 @@ export function simulate_moves_for_ally(grid, ally_moves) {
         board.color_to_move === 'w' ? opponent_king = simulate_white_king_pos(simulation_grid) : opponent_king = simulate_black_king_pos(simulation_grid);
         for (let j = 0; j < future_opponent_moves2.length; j++) {
             future_move = future_opponent_moves2[j];
-            if (ally_king === future_move.EndSquare && find_move_in_moves_for_simulation(future_moves[i], ally_moves) !== -1) {
+            if (ally_king === future_move.EndSquare&& future_move.type !=='n' && find_move_in_moves_for_simulation(future_moves[i], ally_moves) !== -1) {
 
             }
         }
