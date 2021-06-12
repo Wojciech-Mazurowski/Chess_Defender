@@ -148,8 +148,6 @@ export default class Board {
                     this.p5.noStroke();
                     this.p5.fill(this.p5.color(66, 129, 74));
                     this.p5.circle(highlight[0], highlight[1], size / 3);
-                    console.log(pixel_positions)
-                    console.log(highlight)
                     this.p5.pop();
                 }else if(type==='C')
                 {

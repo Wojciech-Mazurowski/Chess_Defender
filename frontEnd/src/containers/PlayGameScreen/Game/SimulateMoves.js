@@ -19,6 +19,7 @@ export function simulate_moves_for_ally(grid, ally_moves) {
     board.color_to_move === 'w' ? opponent_king = get_white_king_pos(board.grid) : opponent_king = get_black_king_pos(board.grid);
     let temp_grid = grid.slice();
     Generate_moves(temp_grid, 0, "future");
+    console.log("NOwa paczka")
     console.log(future_moves);
 
     let future_move;

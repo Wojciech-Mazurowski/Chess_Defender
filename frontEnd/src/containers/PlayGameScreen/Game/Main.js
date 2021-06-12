@@ -103,7 +103,7 @@ export default function sketch(p5) {
 
     p5.setup = function () {
         board = new Board(p5);
-        console.log(gameMode);
+
 
         if (gameMode==="1") {
             canvas_width=game_mode_defender_width;
@@ -112,7 +112,6 @@ export default function sketch(p5) {
 
         if (startingFEN !== undefined) {
             board.FEN = startingFEN
-            console.log(startingFEN)
         } else {
             board.FEN = default_FEN;
         }
