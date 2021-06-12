@@ -448,9 +448,9 @@ def make_move(data):
 
 
     # check for checkmates
-    eval = ChessLogic.is_checkmate(game_info.curr_FEN)
-    if eval['type'] == 'mate':
-        print(eval)
+    eval = ChessLogic.is_checkmate(games[game_room_id].curr_FEN )
+    print(eval)
+    if eval['type'] == 'mate' and eval['value'] == 0:
         finish_game(game_info, curr_turn)
 
 
