@@ -73,7 +73,7 @@ class ChessDB:
         mycursor = self.mydb.cursor()
 
         sql_user = ("INSERT INTO Users "
-                    "(Username, Password, Country, Joined, ELO) "
+                    "(Username, Password, Country, Joined, ELO,ELODeviation,ELOVolatility) "
                     "VALUES (%s, %s, %s, %s, %s,%s,%s)")
 
         date = self.get_curr_date()

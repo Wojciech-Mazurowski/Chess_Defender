@@ -8,7 +8,7 @@ import {faEye} from "@fortawesome/free-solid-svg-icons";
 import SectionTitle from "../../CommonComponents/SectionTitle";
 import {useHistory} from "react-router-dom";
 import {login, register} from "../../../serverLogic/LogRegService"
-import {setSessionToken, setUserElo, setUserId} from "../../../redux/actions/userActions"
+import {setSessionToken, setUserElo, setUserId, setUsername} from "../../../redux/actions/userActions"
 import {connect} from 'react-redux'
 
 
@@ -16,7 +16,7 @@ import {connect} from 'react-redux'
 
 function RegisterForm({dispatch}) {
     //fields in form
-    const [username, setUsername] = useState("");
+    const [username, setUserName] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
@@ -113,7 +113,7 @@ function RegisterForm({dispatch}) {
 
 
     function checkUsername(username) {
-        setUsername(username);
+        setUserName(username);
         hasWhiteSpace(username) ? setUsernameContainsWhitespace(true) : setUsernameContainsWhitespace(false);
         username.length >= minUsernameLength ? setIsUsernameLongEnough(true) : setIsUsernameLongEnough(false);
         username.length > maxUsernameLength ? setIsUsernameTooLong(true) : setIsUsernameTooLong(false);
