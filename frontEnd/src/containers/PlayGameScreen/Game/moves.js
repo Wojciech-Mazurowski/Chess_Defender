@@ -10,7 +10,6 @@ export var future_moves = [];
 export var future_moves2 = [];
 
 
-
 class move {
     constructor(starting_square, ending_square, type) {
         this.StartSquare = starting_square;
@@ -48,7 +47,7 @@ export function Generate_moves(grid, check, gtype) {
 
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
-        if (p.color === board.color_to_move && check === 0  && board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
+        if (p.color === board.color_to_move && check === 0 && board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
             let type = p.type_letter;
             if (type === 'b' || type === 'r' || type === 'q' || type === 'B' || type === 'R' || type === 'Q') {
                 Get_long_moves(startSquare, p, grid, ally_moves);
@@ -72,17 +71,15 @@ export function Generate_moves(grid, check, gtype) {
         }
     }
 
-    if(gtype!=="future"&&gtype!=="future2")
-    {
+    if (gtype !== "future" && gtype !== "future2") {
         simulate_moves_for_ally(board.grid, ally_moves);
-       // simulate_moves_for_opponent(board.grid,ally_moves);
+        // simulate_moves_for_opponent(board.grid,ally_moves);
     }
     if (check === 1 && ally_moves.length === 0) {
 
-        if (check === 1 && ally_moves.length === 0&&board.color_to_move===playingAs) {
+        if (check === 1 && ally_moves.length === 0 && board.color_to_move === playingAs) {
             console.log("tu szachmat");
         }
-
 
 
     }
@@ -164,7 +161,7 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
     if (board.lastmove.type === 'P') {
         let Target = board.lastmove.EndSquare;
         let numbers_to_edge;        //TODO napraw zeby nie dalo sie bić z rogów planszy XD
-        piece.color === 'w' ? numbers_to_edge = Numbers_of_squares_to_edge[startSquare][2] :  numbers_to_edge =  Numbers_of_squares_to_edge[startSquare][3];
+        piece.color === 'w' ? numbers_to_edge = Numbers_of_squares_to_edge[startSquare][2] : numbers_to_edge = Numbers_of_squares_to_edge[startSquare][3];
         if (Math.abs(startSquare - Target) === 1) {
             piece.color === 'w' ? Target = Target + Directions[1] : Target = Target + Directions[0];
             t_moves.push(new move(startSquare, Target, 'CP'));
@@ -212,7 +209,7 @@ function check_if_promotion(piece, targetsquare) {
 
 function is_square_save(targetSquare) {
     for (let i = 0; i < opponent_moves.length; i++) {
-        if (opponent_moves[i]['EndSquare'] === targetSquare&&opponent_moves[i].type!=='n') {
+        if (opponent_moves[i]['EndSquare'] === targetSquare && opponent_moves[i].type !== 'n') {
             return -1
         }
     }
@@ -505,12 +502,11 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
         board.numOfMoves += 1;
     }
     board.lastPawnMoveOrCapture += 1;
-    if(mType === 'P')
-    {
+    if (mType === 'P') {
         let EP_target2;
         piece.color === 'w' ? EP_target2 = TargetSquare + Directions[0] : EP_target2 = TargetSquare + Directions[1];
         board.enPassant = pos_to_stocknot_dict[EP_target2];
-    }else{
+    } else {
         board.enPassant = '-';
     }
     //TODO zbijanko + moze case z tego zrob
@@ -554,22 +550,20 @@ export function make_opponents_move(StartingSquare, TargetSquare, mType) {
     }
     piece.did_move = 1;
     moves = [];
-    opponent_moves=[];
+    opponent_moves = [];
     board.lastmove = new move(StartingSquare, TargetSquare, mType);
     Generate_opponent_moves(board.grid);
     check_if_check();
-    Generate_moves(board.grid, board.check,"after_opponent");
+    Generate_moves(board.grid, board.check, "after_opponent");
 }
 
 export function generate_pos_to_stocknot_dict() {
     let board_letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     let a;
-    for(let i=0;i<8;i++)
-    {
-        for(let j=0;j<8;j++)
-        {
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
             let cur_letter = board_letters[j]
-            a = 8-i;
+            a = 8 - i;
             pos_to_stocknot_dict[i * 8 + j] = cur_letter + a.toString();
         }
     }
@@ -587,22 +581,21 @@ export function make_a_move() {
 
             let StartingSquare = pixel_positions.indexOf(get_pixel_position_from_pixel_positon_array(Starting_Square_position)); //TODO optymalizacja robie to drugi raz w set fen by move!!!
             let TargetSquare = pixel_positions.indexOf(Target_Square_position);
-            board.lastmove = get_move(StartingSquare, TargetSquare);
+
             if (Target_Square_position[0] !== Starting_Square_position[0] || Target_Square_position[1] !== Starting_Square_position[1]) {
                 let move = check_move(StartingSquare, TargetSquare);
                 if (move !== -1) {
-
+                    board.lastmove = get_move(StartingSquare, TargetSquare); //fix
                     if (board.color_to_move === 'b') {
                         board.numOfMoves += 1;
                     }
                     board.lastPawnMoveOrCapture += 1;
                     //TODO zbijanko + moze case z tego zrob
-                    if(move.type === 'P')
-                    {
+                    if (move.type === 'P') {
                         let EP_target2;
                         piece.color === 'w' ? EP_target2 = TargetSquare + Directions[0] : EP_target2 = TargetSquare + Directions[1];
                         board.enPassant = pos_to_stocknot_dict[EP_target2];
-                    }else{
+                    } else {
                         board.enPassant = '-';
                     }
 
@@ -654,7 +647,7 @@ export function make_a_move() {
                         'targetSquare': TargetSquare,
                         'mtype': move.type
                     }
-                    sendMoveToServer(data,board.FEN);
+                    sendMoveToServer(data, board.FEN);
 
                 } else {
                     piece.snap_back();

@@ -3,43 +3,59 @@ import {
     pixel_positions,
     size,
     playingAs,
-    canvas_height, canvas_width, rows, cols, Checkboard, Checkboard_size,
+    canvas_height, canvas_width, rows, cols, Checkboard, Checkboard_size, pieces_dict, myFont, Font, textures, scalar,
 } from "./Main";
 import Piece from "./Piece";
 import {moves} from "./moves";
 import CSquare from "./CSquare";
+import {forEach} from "react-bootstrap/ElementChildren";
 
 
-
-export const default_FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
+export const default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export const default_FEN_Gamemode_2 = "8/8/8/8/8/8/8/8 w KQkq - 0 1";
 export default class Board {
 
     constructor(p5) {
         this.p5 = p5;
         this.grid = [];
         for (let i = 0; i < 64; i++) {
-            this.grid.push(new Piece("e",this.p5));
+            this.grid.push(new Piece("e", this.p5));
+        }
+
+        this.gameMode2_grid = [];
+        let i = 0;
+
+        for (var key in pieces_dict) {
+            i += 1;
+            if (playingAs === 'b') {
+                this.gameMode2_grid.push(new Piece(pieces_dict[key], this.p5, 800 ,  100 * i));
+            } else {
+                this.gameMode2_grid.push(new Piece(pieces_dict[key].toUpperCase(), this.p5, 800, 100 * i));
+                this.gameMode2_grid[this.gameMode2_grid.length-1].color = 'w'; //TODO w konstrukotrze koloru nie da sie podac XD
+            }
+
         }
         this.FEN = "";
         this.load_FEN()
         this.color_to_move = "";
         this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
-        this.lastmove = [-1,-1];
-        this.numOfMoves=parseInt(this.FEN.split(' ')[5],10);
+        this.lastmove = [-1, -1];
+        this.numOfMoves = parseInt(this.FEN.split(' ')[5], 10);
         this.check = 0;
         this.enPassant = "-";
+        this.SetupState = 50;
+
+
     }
 
 
     get_pos(i, j) {
         let x;
         let y;
-        if(playingAs==='b')
-        {
-            x = Checkboard_size - size -i * size;
-            y = Checkboard_size - size -j * size;
-        }else{
+        if (playingAs === 'b') {
+            x = Checkboard_size - size - i * size;
+            y = Checkboard_size - size - j * size;
+        } else {
             x = i * size;
             y = j * size;
         }
@@ -84,6 +100,7 @@ export default class Board {
         //split 3 - en passant
         temp_fen += " " + this.color_to_move + " " + this.FEN.split(' ')[2] + " " + this.enPassant + " " + this.lastPawnMoveOrCapture + " " + this.numOfMoves;
         this.FEN = temp_fen;
+        console.log("AAAAA " + temp_fen);
         this.load_FEN();
     }
 
@@ -138,34 +155,32 @@ export default class Board {
     draw_board() {
         let i = 0;
         let dragged_index = -1;
+        let dragged_index2 = -1;
         let j = 0;
 
 
         for (let i = 0; i < moves.length; i++) {
             let type = moves[i].type;
-            if(board.grid[moves[i].StartSquare].dragging) {
+            if (board.grid[moves[i].StartSquare].dragging) {
                 let highlight = pixel_positions[moves[i].EndSquare];
-                if (type!=='C') {
+                if (type !== 'C') {
                     this.p5.push()
                     this.p5.translate(size / 2, size / 2);
                     this.p5.noStroke();
                     this.p5.fill(this.p5.color(66, 129, 74));
                     this.p5.circle(highlight[0], highlight[1], size / 3);
                     this.p5.pop();
-                }else if(type==='C')
-                {
+                } else if (type === 'C') {
                     this.p5.push()
                     //this.p5.translate(size / 2, size / 2);
                     this.p5.stroke(66, 129, 74);
                     this.p5.strokeWeight(-6);
                     this.p5.noFill();
-                    this.p5.rect(highlight[0], highlight[1], size,size);
+                    this.p5.rect(highlight[0], highlight[1], size, size);
                     this.p5.pop();
                 }
             }
         }
-
-
 
         for (let k = 0; k < this.grid.length; k++) {
             let piece = this.grid[k];
@@ -177,25 +192,92 @@ export default class Board {
                     piece.draw_piece();
                 }
                 i++;
-                if (i % 8 === 0) {
+                if (i % 8 === 0) {      //TODO co to wogole jest to i XDDDDDD
                     i = 0;
-                    //j++; usuwanie bledu
                 }
             } else {
                 i++;
                 if (i % 8 === 0) {
                     i = 0;
-                    //j++;  usuwanie bledu
                 }
             }
         }
         if (dragged_index !== -1) {
             this.grid[dragged_index].draw_piece();
         }
+        //images "hidden" under pieces, will apear when piece is dragged or when state is low enough
+        let rew=0;
+        for(var texture in textures)
+        {
+            rew += 1;
+            if(playingAs==='w'&&rew%2===1) {
+                this.p5.push()
+                this.p5.translate(scalar / 2, scalar / 2);
+                this.p5.tint(255,127);
+                this.p5.image(textures[texture], 800,  100*(rew+1)/2 , size - scalar, size - scalar);
+                this.p5.pop()
+            }else if(playingAs==='b'&&rew%2===0){
+
+                this.p5.push()
+                this.p5.translate(scalar / 2, scalar / 2);
+                this.p5.tint(200,127);
+                this.p5.image(textures[texture], 800, 100 * rew/2, size - scalar, size - scalar);
+                this.p5.pop()
+
+            }
+
+
+        }rew=0;
+
+        //making pieces for gamemode2 purposes they only appear above the image for setupstate
+        if (this.SetupState >-1) {
+            if(this.SetupState<1&&this.gameMode2_grid.length>1)
+            {
+                this.gameMode2_grid.pop();
+            }
+            if(this.SetupState<3&&this.gameMode2_grid.length>3)
+            {
+                this.gameMode2_grid.pop();
+                this.gameMode2_grid.pop();
+            }
+            if(this.SetupState<5&&this.gameMode2_grid.length>4)
+            {
+                this.gameMode2_grid.pop();
+            }
+            if(this.SetupState<9&&this.gameMode2_grid.length>5)
+            {
+                this.gameMode2_grid.pop();
+            }
+            this.p5.push();
+            this.p5.textFont(Font);
+            this.p5.textSize(60);
+            this.p5.fill(0,0,0);
+            this.p5.text(this.SetupState.toString(),800,50);
+            this.p5.pop();
+
+            for (let z = 0; z < this.gameMode2_grid.length; z++) {
+
+                if (this.gameMode2_grid[z].drag()) {
+                    this.gameMode2_grid[z].movePiece();
+                    dragged_index2 = z;
+                } else {
+                    this.gameMode2_grid[z].draw_piece();
+                }
+                if (dragged_index2 !== -1) {
+                    this.gameMode2_grid[dragged_index2].draw_piece();
+                }
+
+            }
+
+        }else if(this.SetupState<0&&this.gameMode2_grid.length===1)
+        {
+            this.gameMode2_grid = [];
+        }
 
     }
-    change_Turn(){
-        this.color_to_move ==='b' ? this.color_to_move = 'w' : this.color_to_move = 'b';
+
+    change_Turn() {
+        this.color_to_move === 'b' ? this.color_to_move = 'w' : this.color_to_move = 'b';
     }
 
 }

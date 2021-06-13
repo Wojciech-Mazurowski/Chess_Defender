@@ -6,9 +6,10 @@ import {
     make_a_move, generate_pos_to_stocknot_dict
 } from "./moves";
 import CSquare from "./CSquare";
+import myFont from './Pieces/Inconsolata.otf'
+import {add_piece} from "./gameMode2_moves";
 
-
-
+export var Font;
 export var pos_to_stocknot_dict = [];
 export const max_canvas_size=720;
 export var canvas_width = 720;
@@ -60,6 +61,7 @@ export default function sketch(p5) {
 
 
     p5.preload = function () {
+        Font = p5.loadFont(myFont);
         for (let key in pieces_dict) {
             let value = pieces_dict[key];
             textures[value.toUpperCase()] = p5.loadImage(images['w' + value + ".png"]['default']);
@@ -75,8 +77,21 @@ export default function sketch(p5) {
             }
         }
 
+            //for setup in gamemode 2
+        if(gameMode==='1' && board.SetupState>-1) {
+            for (let i = 0; i < board.gameMode2_grid.length; i++) {
+                let piece = board.gameMode2_grid[i];
+                if (piece.isIntersecting()) {
+                    piece.dragging = 1;
+                }
+            }
+        }
+
     }
     p5.mouseReleased = function () {
+        if(gameMode==='1'&&board.SetupState>-1){
+            add_piece();
+        }
         make_a_move();
         Generate_opponent_moves(board.grid);
         check_if_check();
@@ -109,13 +124,17 @@ export default function sketch(p5) {
             canvas_width=game_mode_defender_width;
         }
         canvas = p5.createCanvas(canvas_width,canvas_height,  p5.WEBGL);
+        if(gameMode ==='0') {
+            if (startingFEN !== undefined) {
+                board.FEN = startingFEN
+            } else {
+                board.FEN = default_FEN;
+            }
+            board.load_FEN();
+        }else{
+            board.FEN = "";
 
-        if (startingFEN !== undefined) {
-            board.FEN = startingFEN
-        } else {
-            board.FEN = default_FEN;
         }
-        board.load_FEN();
 
         calculatePixelPositions();
         count_squares_to_edge();
