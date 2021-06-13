@@ -141,8 +141,6 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
             if (Piece_on_Target.type_letter !== 'e') {
                 break;
             } else {
-
-
                 if (i === 0) {
                     t_moves.push(new move(startSquare, Target));
                 } else {
@@ -155,20 +153,20 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
     } else if (Squares_to_end > 0 && piece.did_move === 1) {
         piece.color === 'w' ? Target = startSquare + Directions[1] : Target = startSquare + Directions[0];
         let Piece_on_Target = grid[Target];
-
         if (Piece_on_Target.type_letter === 'e') {
             t_moves.push(new move(startSquare, Target));
         }
     }
 
 
-//5 i 7     //TODO
+//5 i 7
     //EN PASSEANT
     if (board.lastmove.type === 'P') {
         let Target = board.lastmove.EndSquare;
+        let numbers_to_edge;        //TODO napraw zeby nie dalo sie bić z rogów planszy XD
+        piece.color === 'w' ? numbers_to_edge = Numbers_of_squares_to_edge[startSquare][2] :  numbers_to_edge =  Numbers_of_squares_to_edge[startSquare][3];
         if (Math.abs(startSquare - Target) === 1) {
             piece.color === 'w' ? Target = Target + Directions[1] : Target = Target + Directions[0];
-
             t_moves.push(new move(startSquare, Target, 'CP'));
         }
     }
@@ -179,14 +177,14 @@ function Get_Pawn_moves(startSquare, piece, grid, t_moves) {
         piece.color === 'w' ? Target = startSquare + Directions[5] : Target = startSquare + Directions[4];
         let Piece_on_Target = grid[Target];
 
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color && Numbers_of_squares_to_edge[startSquare][1] > 0) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color && Numbers_of_squares_to_edge[startSquare][2] > 0) {
 
             t_moves.push(new move(startSquare, Target, 'C'));
 
         }
         piece.color === 'w' ? Target = startSquare + Directions[7] : Target = startSquare + Directions[6];
         Piece_on_Target = grid[Target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color && Numbers_of_squares_to_edge[startSquare][2] > 0) {
+        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.color !== piece.color && Numbers_of_squares_to_edge[startSquare][3] > 0) {
 
             t_moves.push(new move(startSquare, Target, 'C'));
 
@@ -214,7 +212,7 @@ function check_if_promotion(piece, targetsquare) {
 
 function is_square_save(targetSquare) {
     for (let i = 0; i < opponent_moves.length; i++) {
-        if (opponent_moves[i]['EndSquare'] === targetSquare) {
+        if (opponent_moves[i]['EndSquare'] === targetSquare&&opponent_moves[i].type!=='n') {
             return -1
         }
     }
@@ -642,6 +640,7 @@ export function make_a_move() {
                             board.lastPawnMoveOrCapture = 0;
                         }
                         //kolejnosc wazna
+                        console.log(move);
                         board.set_FEN_by_move(StartingSquare, TargetSquare, true);
                         console.log(board.FEN);
 
