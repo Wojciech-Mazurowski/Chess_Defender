@@ -25,6 +25,7 @@ import {emit} from "../../redux/actions/socketActions";
 import GameTimer from "./Components/GameTimer";
 import {sleep} from "../../serverLogic/Utils";
 import {CSSTransition} from "react-transition-group";
+import GameTimersWidget from "./Components/GameTimersWidget";
 
 class PlayGameScreen extends Component {
 
@@ -133,14 +134,11 @@ class PlayGameScreen extends Component {
                             />
                         </GameContainer>
 
-
-
-                        <div className="Timers">
-                            <GameTimer playerColor='w'/>
-                            <GameTimer playerColor='b'/>
+                        <div className="Game-info">
+                            <GameButtons/>
+                            <GameTimersWidget/>
                         </div>
 
-                        <GameButtons/>
                     </div>
                 </div>
             </CSSTransition>

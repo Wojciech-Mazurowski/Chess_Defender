@@ -199,7 +199,10 @@ def match_maker():
     while True:
         # TODO move to another thread, but my computer can't handle it :(
         for game_id, game in games.copy().items():
-            won_game = game.timer.update_timers(game.curr_turn)
+            won_game,full_second_passed = game.timer.update_timers(game.curr_turn)
+            if full_second_passed:
+                emit('update_timers', {'whiteTime': game.timer.white_time, 'blackTime': game.timer.black_time},
+                     room=game.game_room_id)
             if won_game:
                 finish_game(game, won_game)
 
@@ -295,7 +298,6 @@ def find_match(game_mode_id, player):
                 emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
                 emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
                 emit('update_opponents_socket_status', {'status': 'connected'}, room=game_room_id)
-
 
                 # create game in server storage
                 games[game_room_id] = Game(game_id, game_room_id, game_mode_id, white_player, black_player, 'w',
