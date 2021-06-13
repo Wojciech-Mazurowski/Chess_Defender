@@ -23,8 +23,8 @@ default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 defender_FEN= "8/8/8/8/8/8/8/8 w KQkq - 0 1"
 
 #TODO HERE YOU CAN CHANGE MAX_TIMES
-time_dialation=1.15 #should be 1 in ideal conditions >1 if server lags behind
-game_mode_times= [20,20] #defines time constraint IN SECONDS for gametype at index
+time_dialation=1 #should be 1 in ideal conditions >1 if server lags behind
+game_mode_times= [3600,3600] #defines time constraint IN SECONDS for gametype at index
 game_mode_starting_FEN = [default_FEN,defender_FEN]
 
 
