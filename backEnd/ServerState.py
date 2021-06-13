@@ -21,7 +21,9 @@ scope_update_ammount = 50  # ammount by which scope widens every scope_update_in
 games = {}
 default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 defender_FEN= "8/8/8/8/8/8/8/8 w KQkq - 0 1"
+
 #TODO HERE YOU CAN CHANGE MAX_TIMES
+time_dialation=1.15 #should be 1 in ideal conditions >1 if server lags behind
 game_mode_times= [20,20] #defines time constraint IN SECONDS for gametype at index
 game_mode_starting_FEN = [default_FEN,defender_FEN]
 
@@ -119,7 +121,9 @@ class Timer:
 
     #returns color that won by time
     def update_timers(self, curr_turn):
-        time_passed = timer()- self.last_move_timestamp
+        time_passed = time_dialation*(timer()- self.last_move_timestamp)
+        self.last_move_timestamp = timer()
+
         if curr_turn == 'w':
             self.white_time = self.white_time - time_passed
         elif curr_turn == 'b':
@@ -130,6 +134,5 @@ class Timer:
         if self.white_time<=0:
             return 'w'
 
-        self.last_move_timestamp = timer()
         return None
 
