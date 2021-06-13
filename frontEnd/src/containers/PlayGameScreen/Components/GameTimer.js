@@ -11,7 +11,7 @@ function GameTimer ({currentTurn,playerColor,blackTime,whiteTime}){
 
     //on intialization
     useEffect(() => {
-        playerColor==='w'?  setTime(parseInt(whiteTime)): setTime(parseInt(blackTime))
+        playerColor==='w'?  setTime(Math.floor(whiteTime)): setTime(Math.floor(blackTime))
     }, [blackTime,whiteTime]);
 
     //everytime turn changes
