@@ -4,6 +4,7 @@ import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 import {store} from "../index";
 import {setSocketStatus} from "../redux/actions/socketActions";
 import {flipCurrentTurn, setBlackTime, setOpponentStatus, setWhiteTime} from "../redux/actions/gameActions";
+import {board} from "../containers/PlayGameScreen/Game/Main";
 
 const socketPath = '';
 
@@ -98,6 +99,15 @@ export default class SocketClient {
         this.on("make_move_local", data => {
             if (data === undefined) return;
             make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
+            store.dispatch(flipCurrentTurn());
+        });
+
+        this.on("place_defender_piece_local", data => {
+            if (data === undefined) return;
+            console.log("GOT OPPONENT DEFENDER");
+            board.FEN=data.FEN;
+            board.load_FEN();
+            board.change_Turn();
             store.dispatch(flipCurrentTurn());
         });
 

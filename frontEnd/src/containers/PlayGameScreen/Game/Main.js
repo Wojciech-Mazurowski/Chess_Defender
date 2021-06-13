@@ -44,6 +44,9 @@ export let playingAs;
 export let sendMoveToServer;
 export let gameMode;
 let startingFEN;
+export let placeDefenderPiece;
+
+
 
 export default function sketch(p5) {
 
@@ -59,6 +62,9 @@ export default function sketch(p5) {
         }
         if (props.startingFEN) {
             startingFEN = props.startingFEN
+        }
+        if(props.placeDefenderPiece){
+            placeDefenderPiece=props.placeDefenderPiece;
         }
     }
 

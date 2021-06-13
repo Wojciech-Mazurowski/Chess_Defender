@@ -199,7 +199,7 @@ def match_maker():
     while True:
         # TODO move to another thread, but my computer can't handle it :(
         for game_id, game in games.copy().items():
-            won_game,full_second_passed = game.timer.update_timers(game.curr_turn)
+            won_game, full_second_passed = game.timer.update_timers(game.curr_turn)
             if full_second_passed:
                 emit('update_timers', {'whiteTime': game.timer.white_time, 'blackTime': game.timer.black_time},
                      room=game.game_room_id)
@@ -404,6 +404,79 @@ def surrender(data):
         opp_color = 'b'
 
     finish_game(game_info, opp_color)
+
+
+@socketio.on('place_defender_piece')
+def place_defender_piece(data):
+    data_obj = json.loads(data)
+    print(data_obj)
+
+    # authorize player
+    if not check_auth(request.sid, data_obj['playerId']):
+        print("Unathorized!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    game_room_id = data_obj['gameroomId']
+    player_id = data_obj['playerId']
+
+    # check if the game exists at all
+    if game_room_id not in games:
+        print("NO_SUCH_GAME_EXISTS")
+        return
+
+    # check if is in the game
+    players_game = get_is_player_in_game(player_id)
+    if not players_game or players_game[0].game_room_id != game_room_id:
+        print("Player doesn't play in this game!! ")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    player_color = players_game[1]
+    game_info = games[game_room_id]
+
+    # defender game already in making moves phase
+    if game_info.defender_state.phase != 0:
+        print("Defender game already in making moves phase")
+        emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    white_id = game_info.white_player.id
+    black_id = game_info.black_player.id
+    curr_turn = game_info.curr_turn
+    got_FEN = data_obj['FEN']
+    spend_points = data_obj['spentPoints']
+
+    # check if it's coming from the wrong player
+    if str(curr_turn) != str(player_color):
+        # send not ur turn packet
+        print("NOT UR TURN")
+        return
+
+    if games[game_room_id].defender_state.update_score(player_color, spend_points):
+        print("AIN't GOT THAT MANY POINTS TO SPENT BUCKO")
+        return
+
+    # send move to opponent
+    opponent_sid = authorized_sockets[white_id]
+    if player_color == 'w':
+        opponent_sid = authorized_sockets[black_id]
+
+    emit('place_defender_piece_local', {'FEN': got_FEN, 'spentPoints': spend_points}, to=opponent_sid)
+
+    # update local game object
+    if game_room_id not in games:
+        print("NO_SUCH_GAME_EXISTS")
+        return
+
+    games[game_room_id].curr_FEN = data_obj['FEN']
+    games[game_room_id].check_for_phase_change()
+
+    # get opposite turn
+    opp_turn = 'w'
+    if curr_turn == 'w':
+        opp_turn = 'b'
+    games[game_room_id].curr_turn = opp_turn
 
 
 @socketio.on('make_move')

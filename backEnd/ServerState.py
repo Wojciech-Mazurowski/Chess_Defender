@@ -27,6 +27,7 @@ defender_FEN = "8/8/8/8/8/8/8/8 w KQkq - 0 1"
 time_dialation = 1  # should be 1 in ideal conditions >1 if server lags behind
 game_mode_times = [20, 3599]  # defines time constraint IN SECONDS for gametype at index
 game_mode_starting_FEN = [default_FEN, defender_FEN]
+defender_starting_score = 50
 
 # Socket auth service
 authorized_sockets = {}
@@ -111,6 +112,36 @@ class Game:
         self.curr_FEN = curr_FEN
         self.num_of_moves = num_of_moves
         self.timer = timer
+        self.defender_state = Defender_State()
+
+
+# state 0- placing pieces stage, 1- making them movesss
+class Defender_State:
+
+    def __init__(self):
+        self.black_score = defender_starting_score
+        self.white_score = defender_starting_score
+        self.phase = 0
+
+    # returns false on illegal place
+    def update_score(self, player_color, spent_points):
+        if player_color == 'w':
+            new_score = self.white_score - spent_points
+            if new_score < 0:
+                return False
+            self.white_score = new_score
+
+        if player_color == 'b':
+            new_score = self.black_score - spent_points
+            if new_score < 0:
+                return False
+            self.black_score = new_score
+
+        return True
+
+    def check_for_phase_change(self):
+        if self.black_score == 0 and self.white_score == 0:
+            self.phase = 1
 
 
 class Timer:

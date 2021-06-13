@@ -1,5 +1,5 @@
 //for gamemode 2
-import {board, pixel_positions, playingAs} from "./Main";
+import {board, pixel_positions, placeDefenderPiece, playingAs} from "./Main";
 import Piece from "./Piece";
 
 export const points_dict = {
@@ -28,10 +28,7 @@ export function add_piece() {
                 let clonedPiece = new Piece(piece.type_letter, board.p5, 100, 100);
                 clonedPiece.color = piece.color;
                 board.grid[TargetSquare] = clonedPiece;
-                board.set_FEN_from_grid();
-
             }
-
         }
         if (piece.dragging === 1 && piece.type_letter !== 'e' && board.SetupState === 0) {
             let Target_Square_position = piece.get_closest_position();
@@ -41,7 +38,6 @@ export function add_piece() {
                 clonedPiece.color = piece.color;
                 board.grid[TargetSquare] = clonedPiece;
                 board.SetupState = -1;
-                board.set_FEN_from_grid();
             }
 
 

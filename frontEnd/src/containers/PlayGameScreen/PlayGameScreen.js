@@ -85,14 +85,25 @@ class PlayGameScreen extends Component {
         });
     }
 
+    async placeDefenderPiece(FEN){
+        const storeState=store.getState();
+        let playerId = storeState.user.userId;
+        let gameroomId =storeState.game.gameId;
 
+        console.log("SEND OPPONENT DEFENDER");
+        let makeMoveEvent ={
+            event:'place_defender_piece',
+            msg:JSON.stringify({gameroomId, playerId,FEN})
+        }
+
+        store.dispatch(emit(makeMoveEvent));
+        store.dispatch(flipCurrentTurn());
+    }
     async sendMove(move,FEN) {
         const storeState=store.getState();
         let playerId = storeState.user.userId;
-        let socket =storeState.socket.socket;
         let gameroomId =storeState.game.gameId;
 
-        if ( !socket.is_connected) return;
         let makeMoveEvent ={
             event:'make_move',
             msg:JSON.stringify({move, gameroomId, playerId,FEN})
@@ -128,6 +139,7 @@ class PlayGameScreen extends Component {
                             <P5Wrapper
                                 sketch={sketch}
                                 sendMoveToServer={this.sendMove}
+                                placeDefenderPiece={this.placeDefenderPiece}
                                 playingAs={this.props.playingAs}
                                 startingFEN={this.props.currentFEN}
                                 gameMode={this.props.gameMode}
