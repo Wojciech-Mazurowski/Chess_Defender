@@ -1,6 +1,5 @@
 from flask import copy_current_request_context
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from timeit import default_timer as timer
 import ChessLogic
 from REST_API import *
 from enum import Enum
@@ -11,6 +10,7 @@ debug_mode = True
 app = app
 socketio = SocketIO(app, cors_allowed_origins="*")
 thread = None
+timer_thread = None
 
 
 # SOCKET CONNECTION
@@ -83,13 +83,22 @@ def authorize(data):
         join_room(game.game_room_id, request.sid)
         # game rejoin communicate (in case player was in queue when disconnected)
         emit("game_found",
-             {'gameId': game.game_room_id, 'playingAs': playing_as, 'FEN': game.curr_FEN, 'gameMode': game.game_mode_id},
+             {'gameId': game.game_room_id, 'playingAs': playing_as, 'FEN': game.curr_FEN,
+              'gameMode': game.game_mode_id},
              to=request.sid)
 
         # notify opponent that the player reconnected
         print("SENDING SOCKET STATUS UPDATE")
         emit('update_opponents_socket_status', {'status': 'connected'}, room=game.game_room_id,
              include_self=False)
+
+        # notify player whether the opponent is connected
+        opponent_status = 'connected'
+        if (playing_as == 'w' and (game.black_player.id not in authorized_sockets)) or (
+                playing_as == 'b' and (game.white_player.id not in authorized_sockets)):
+            opponent_status = 'disconnected'
+
+        emit('update_opponents_socket_status', {'status': opponent_status}, to=request.sid)
 
     emit('authorized', )
 
@@ -104,6 +113,19 @@ def join_queue(data):
     global thread
     if thread is None:
         thread = socketio.start_background_task(run_match_maker)
+
+    # # TIMERS THREAD
+    # @copy_current_request_context
+    # def update_timers():
+    #     while True:
+    #         for game in games:
+    #             won_game = game.timer.update_timers(game.curr_turn)
+    #             if won_game:
+    #                 finish_game(game, won_game)
+    #
+    # global timer_thread
+    # if timer_thread is None:
+    #     timer_thread = socketio.start_background_task(update_timers())
 
     data_obj = json.loads(data)
     player_id = data_obj['playerId']
@@ -175,6 +197,12 @@ def leave_queue(data):
 
 def match_maker():
     while True:
+        # TODO move to another thread, but my computer can't handle it :(
+        for game_id, game in games.copy().items():
+            won_game = game.timer.update_timers(game.curr_turn)
+            if won_game:
+                finish_game(game, won_game)
+
         for game_mode_id, players in queues.copy().items():
             for player in players:
                 start = timer()
@@ -269,7 +297,8 @@ def find_match(game_mode_id, player):
 
                 # create game in server storage
                 games[game_room_id] = Game(game_id, game_room_id, game_mode_id, white_player, black_player, 'w',
-                                           default_FEN, 0)
+                                           game_mode_starting_FEN[int(game_mode_id)], 0,
+                                           Timer(game_mode_times[int(game_mode_id)]))
             except Exception as ex:
                 print("DB ERROR" + str(ex))
 
@@ -446,15 +475,11 @@ def make_move(data):
     except Exception as ex:
         print("DB ERROR" + str(ex))
 
-
     # check for checkmates
-    eval = ChessLogic.is_checkmate(games[game_room_id].curr_FEN )
+    eval = ChessLogic.is_checkmate(games[game_room_id].curr_FEN)
     print(eval)
     if eval['type'] == 'mate' and eval['value'] == 0:
         finish_game(game_info, curr_turn)
-
-
-
 
 
 # in game chat

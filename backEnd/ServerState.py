@@ -1,3 +1,5 @@
+from timeit import default_timer as timer
+
 ########################
 # SERVER STATE VARIABLES#
 ########################
@@ -18,6 +20,13 @@ scope_update_ammount = 50  # ammount by which scope widens every scope_update_in
 # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
 games = {}
 default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+defender_FEN= "8/8/8/8/8/8/8/8 w KQkq - 0 1"
+
+#TODO HERE YOU CAN CHANGE MAX_TIMES
+time_dialation=1.15 #should be 1 in ideal conditions >1 if server lags behind
+game_mode_times= [20,20] #defines time constraint IN SECONDS for gametype at index
+game_mode_starting_FEN = [default_FEN,defender_FEN]
+
 
 # Socket auth service
 authorized_sockets = {}
@@ -92,7 +101,7 @@ class Player:
 class Game:
 
     def __init__(self, game_id, game_room_id, game_mode_id, white_player, black_player, curr_turn, curr_FEN,
-                 num_of_moves):
+                 num_of_moves,timer):
         self.game_id = game_id
         self.game_room_id = game_room_id
         self.game_mode_id = game_mode_id
@@ -101,3 +110,29 @@ class Game:
         self.curr_turn = curr_turn
         self.curr_FEN = curr_FEN
         self.num_of_moves = num_of_moves
+        self.timer=timer
+
+
+class Timer:
+    def __init__(self, max_time):
+        self.white_time = max_time
+        self.black_time = max_time
+        self.last_move_timestamp = timer()
+
+    #returns color that won by time
+    def update_timers(self, curr_turn):
+        time_passed = time_dialation*(timer()- self.last_move_timestamp)
+        self.last_move_timestamp = timer()
+
+        if curr_turn == 'w':
+            self.white_time = self.white_time - time_passed
+        elif curr_turn == 'b':
+            self.black_time = self.black_time - time_passed
+
+        if self.black_time<=0:
+            return 'b'
+        if self.white_time<=0:
+            return 'w'
+
+        return None
+

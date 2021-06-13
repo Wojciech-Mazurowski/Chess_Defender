@@ -16,12 +16,13 @@ import {
     setPlayingAs,
     setCurrentFEN,
     setOpponentELO,
-    setOpponentUsername, setGameMode
+    setOpponentUsername, setGameMode, setCurrentTurn, flipCurrentTurn, setBlackTime, setWhiteTime
 } from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
 import {GAME_DEBUGING_MODE} from "../../App";
 import {emit} from "../../redux/actions/socketActions";
+import GameTimer from "./Components/GameTimer";
 
 class PlayGameScreen extends Component {
 
@@ -59,6 +60,10 @@ class PlayGameScreen extends Component {
         this.props.dispatch(setIsInGame(true));
         this.props.dispatch(setOpponentUsername(resp.opponent.username));
         this.props.dispatch(setOpponentELO(resp.opponent.ELO));
+        this.props.dispatch(setCurrentTurn(resp.currentTurn));
+        console.log(resp)
+        this.props.dispatch(setBlackTime(resp.blackTime));
+        this.props.dispatch(setWhiteTime(resp.whiteTime));
 
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
         await this.setState({gameMode:resp.gameMode,loading:false});
@@ -89,12 +94,13 @@ class PlayGameScreen extends Component {
         let gameroomId =storeState.game.gameId;
 
         if ( !socket.is_connected) return;
-        let eventAndMsg ={
+        let makeMoveEvent ={
             event:'make_move',
             msg:JSON.stringify({move, gameroomId, playerId,FEN})
         }
 
-        store.dispatch(emit(eventAndMsg));
+        store.dispatch(emit(makeMoveEvent));
+        store.dispatch(flipCurrentTurn());
     }
 
 
@@ -123,6 +129,10 @@ class PlayGameScreen extends Component {
                     }
 
                 </GameContainer>
+                <div className="Timers">
+                    <GameTimer playerColor='w'/>
+                    <GameTimer playerColor='b'/>
+                </div>
 
                 <GameButtons/>
             </div>

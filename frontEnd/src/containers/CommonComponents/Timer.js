@@ -9,18 +9,22 @@ export function timerWraper(Component) {
     }
 }
 
-
-const useTimer = (initialState = 0) => {
+//countdirection 1 for counting up, -1 for counting down
+const useTimer = (initialState = 0,countDirection=1) => {
     const [timer, setTimer] = useState(initialState)
     const [isActive, setIsActive] = useState(false)
     const [isPaused, setIsPaused] = useState(false)
     const countRef = useRef(null)
 
+    const setTime = (time) => {
+        setTimer(time);
+    }
+
     const handleStart = () => {
         setIsActive(true)
         setIsPaused(true)
         countRef.current = setInterval(() => {
-            setTimer((timer) => timer + 1)
+            setTimer((timer) => timer + countDirection)
         }, 1000)
     }
 
@@ -30,7 +34,7 @@ const useTimer = (initialState = 0) => {
         setIsActive(true)
         setIsPaused(true)
         countRef.current = setInterval(() => {
-            setTimer((timer) => timer + 1)
+            setTimer((timer) => timer + countDirection)
         }, 1000)
     }
 
@@ -42,7 +46,7 @@ const useTimer = (initialState = 0) => {
     const handleResume = () => {
         setIsPaused(true)
         countRef.current = setInterval(() => {
-            setTimer((timer) => timer + 1)
+            setTimer((timer) => timer + countDirection)
         }, 1000)
     }
 
@@ -53,7 +57,7 @@ const useTimer = (initialState = 0) => {
         setTimer(0)
     }
 
-    return { timer, isActive, isPaused, handleStart, handlePause, handleResume, handleReset,timerRestart }
+    return { timer, isActive, isPaused, handleStart, handlePause, handleResume, handleReset,timerRestart,setTime }
 }
 
 export default useTimer
