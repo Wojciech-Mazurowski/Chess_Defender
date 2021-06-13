@@ -3,7 +3,7 @@ import {API_URL} from "./APIConfig";
 import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 import {store} from "../index";
 import {setSocketStatus} from "../redux/actions/socketActions";
-import {setOpponentStatus} from "../redux/actions/gameActions";
+import {flipCurrentTurn, setOpponentStatus} from "../redux/actions/gameActions";
 
 const socketPath = '';
 
@@ -98,6 +98,7 @@ export default class SocketClient {
         this.on("make_move_local", data => {
             if (data === undefined) return;
             make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
+            store.dispatch(flipCurrentTurn());
         });
 
         this.on('update_opponents_socket_status', data =>{

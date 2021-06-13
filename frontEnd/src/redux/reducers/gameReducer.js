@@ -11,7 +11,10 @@ export const gameInitialState = {
     opponentUsername:sessionStorage.getItem('opponentUsername'),
     opponentElo: sessionStorage.getItem('opponentElo'),
     chatHistory:sessionStorage.getItem('chatHistory'),
-    opponentsStatus: SocketStatus.connected //opponent presumed connected until notified otherwise
+    opponentsStatus: SocketStatus.unknown,
+    currentTurn:sessionStorage.getItem('currentTurn'),
+    whiteTime:'420',
+    blackTime:'420'
 };
 
 export default function gameInfoReducer(state = gameInitialState, action) {
@@ -37,6 +40,18 @@ export default function gameInfoReducer(state = gameInitialState, action) {
         case actions.SET_OPPONENT_STATUS:
             sessionStorage.setItem('opponentsStatus',action.payload)
             return {...state, opponentsStatus:action.payload}
+        case actions.SET_CURRENT_TURN:
+            sessionStorage.setItem('currentTurn',action.payload)
+            return {...state, currentTurn:action.payload}
+        case actions.FLIP_CURRENT_TURN:
+            let nextTurn;
+            state.currentTurn == 'w' ? nextTurn='b':nextTurn='w';
+            sessionStorage.setItem('currentTurn',nextTurn)
+            return {...state, currentTurn:nextTurn}
+        case actions.SET_WHITE_TIME:
+            return {...state, whiteTime:action.payload}
+        case actions.SET_BLACK_TIME:
+            return {...state, blackTime:action.payload}
         default:
             return state
     }
