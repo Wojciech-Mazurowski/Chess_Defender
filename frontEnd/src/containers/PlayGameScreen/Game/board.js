@@ -23,7 +23,7 @@ import {forEach} from "react-bootstrap/ElementChildren";
 
 
 export const default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-export const default_FEN_Gamemode_2 = "8/8/8/8/8/8/8/8 w KQkq - 0 1";
+export const default_FEN_Gamemode_2 = "8/8/8/8/8/8/8/8 w ---- - 0 1";
 export default class Board {
 
     constructor(p5) {

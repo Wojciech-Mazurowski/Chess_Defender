@@ -21,11 +21,11 @@ scope_update_ammount = 50  # ammount by which scope widens every scope_update_in
 # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
 games = {}
 default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-defender_FEN = "8/8/8/8/8/8/8/8 w KQkq - 0 1"
+defender_FEN = "8/8/8/8/8/8/8/8 w ---- - 0 1"
 
 # TODO HERE YOU CAN CHANGE MAX_TIMES
 time_dialation = 1  # should be 1 in ideal conditions >1 if server lags behind
-game_mode_times = [20, 3599]  # defines time constraint IN SECONDS for gametype at index
+game_mode_times = [20, 600]  # defines time constraint IN SECONDS for gametype at index
 game_mode_starting_FEN = [default_FEN, defender_FEN]
 defender_starting_score = 50
 
