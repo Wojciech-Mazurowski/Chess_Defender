@@ -28,7 +28,7 @@ function GameTimer ({currentTurn,playerColor,blackTime,whiteTime}){
 
     return (
         <div className="GameTimer">
-            {playerColor} {formatTime(timer)}
+            {playerColor} {formatTimeMinutes(timer)}
         </div>
     );
 
