@@ -60,8 +60,8 @@ export default class Piece {
 
 
     get_closest_position() {
-        let min = 10000000;
-        let position = [0, 0];
+        let min = size;
+        let position = [-1, -1];
         for (let i = 0; i < pixel_positions.length; i++) {
             let dist = Distance_between_points(this.p5.mouseX, this.p5.mouseY, pixel_positions[i][0] + size / 2, pixel_positions[i][1] + size / 2);
             if (dist < min) {
