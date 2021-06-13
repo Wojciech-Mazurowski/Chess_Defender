@@ -29,7 +29,7 @@ export default class CSquare {
     }
 
 
-    setstate() {
+    drawSquares() {
         if (this.state === "black") {
             this.p5.push();
             this.p5.noStroke();

@@ -102,7 +102,6 @@ export default function sketch(p5) {
 
     p5.setup = function () {
         generate_pos_to_stocknot_dict();
-        console.log(pos_to_stocknot_dict[1]);
         board = new Board(p5);
 
 
@@ -154,13 +153,14 @@ export default function sketch(p5) {
     }
 
     p5.draw = function () {
-        p5.background(255);
-        p5.translate( -canvas_width / 2,-canvas_height / 2);
+            p5.background(255);
+            p5.translate(-canvas_width / 2, -canvas_height / 2);
 
-        for (let i = 0; i < Checkboard.length; i++) {
-            Checkboard[i].setstate();
-        }
-        board.draw_board();
+            for (let i = 0; i < Checkboard.length; i++) {
+                Checkboard[i].drawSquares();
+            }
+            board.draw_board();
+
     };
 
 
