@@ -44,7 +44,7 @@ export function count_squares_to_edge() {
 export function Generate_moves(grid, check, gtype) {
     let ally_moves = [];
 
-
+    console.log("playingsas" + playingAs)
     for (let startSquare = 0; startSquare < 64; startSquare++) {
         let p = grid[startSquare];
         if (p.color === board.color_to_move && check === 0 && board.color_to_move === playingAs) { //TODO removed  && board.color_to_move === playingAs for now
@@ -93,6 +93,7 @@ export function Generate_moves(grid, check, gtype) {
     } else {
         moves = ally_moves;
     }
+    console.log(moves);
 
 }
 

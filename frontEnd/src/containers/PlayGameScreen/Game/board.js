@@ -37,10 +37,10 @@ export default class Board {
         }
         this.FEN = "";
         this.load_FEN()
-        this.color_to_move = "";
-        this.lastPawnMoveOrCapture = this.FEN.split(' ')[4]
+        this.color_to_move = "w";
+        this.lastPawnMoveOrCapture = 0;
         this.lastmove = [-1, -1];
-        this.numOfMoves = parseInt(this.FEN.split(' ')[5], 10);
+        this.numOfMoves = 1;
         this.check = 0;
         this.enPassant = "-";
         this.SetupState = 50;
@@ -231,30 +231,14 @@ export default class Board {
 
         //making pieces for gamemode2 purposes they only appear above the image for setupstate
         if (this.SetupState >-1) {
-            if(this.SetupState<1&&this.gameMode2_grid.length>1)
-            {
-                this.gameMode2_grid.pop();
-            }
-            if(this.SetupState<3&&this.gameMode2_grid.length>3)
-            {
-                this.gameMode2_grid.pop();
-                this.gameMode2_grid.pop();
-            }
-            if(this.SetupState<5&&this.gameMode2_grid.length>4)
-            {
-                this.gameMode2_grid.pop();
-            }
-            if(this.SetupState<9&&this.gameMode2_grid.length>5)
-            {
-                this.gameMode2_grid.pop();
-            }
+
             this.p5.push();
             this.p5.textFont(Font);
             this.p5.textSize(60);
             this.p5.fill(0,0,0);
             this.p5.text(this.SetupState.toString(),800,50);
             this.p5.pop();
-
+            this.GameMode2_checkState()
             for (let z = 0; z < this.gameMode2_grid.length; z++) {
 
                 if (this.gameMode2_grid[z].drag()) {
@@ -280,5 +264,35 @@ export default class Board {
         this.color_to_move === 'b' ? this.color_to_move = 'w' : this.color_to_move = 'b';
     }
 
+
+    GameMode2_checkState(){
+
+        if(this.SetupState<1&&this.gameMode2_grid.length>1)
+        {
+            this.gameMode2_grid.pop();
+        }
+        if(this.SetupState<3&&this.gameMode2_grid.length>2)
+        {
+            this.gameMode2_grid.pop();
+        }
+        if(this.SetupState<3&&this.gameMode2_grid.length>3)
+        {
+            this.gameMode2_grid.pop();
+            this.gameMode2_grid.pop();
+        }
+        if(this.SetupState<5&&this.gameMode2_grid.length>4)
+        {
+            this.gameMode2_grid.pop();
+        }
+        if(this.SetupState<9&&this.gameMode2_grid.length>5)
+        {
+            this.gameMode2_grid.pop();
+        }
+
+    }
+
+
 }
+
+
 

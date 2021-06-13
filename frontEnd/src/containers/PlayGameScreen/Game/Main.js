@@ -1,4 +1,4 @@
-import Board, {default_FEN} from "./board";
+import Board, {default_FEN, default_FEN_Gamemode_2} from "./board";
 import {
     check_if_check,
     count_squares_to_edge, Generate_opponent_moves,
@@ -77,6 +77,7 @@ export default function sketch(p5) {
             }
         }
 
+
             //for setup in gamemode 2
         if(gameMode==='1' && board.SetupState>-1) {
             for (let i = 0; i < board.gameMode2_grid.length; i++) {
@@ -93,9 +94,11 @@ export default function sketch(p5) {
             add_piece();
         }
         make_a_move();
-        Generate_opponent_moves(board.grid);
-        check_if_check();
-        Generate_moves(board.grid, board.check, "released");
+        if(board.SetupState===-1) {
+            Generate_opponent_moves(board.grid);
+            check_if_check();
+            Generate_moves(board.grid, board.check, "released");
+        }
     }
 
     function calculatePixelPositions(){
@@ -132,7 +135,7 @@ export default function sketch(p5) {
             }
             board.load_FEN();
         }else{
-            board.FEN = "";
+            board.FEN = default_FEN_Gamemode_2;
 
         }
 
