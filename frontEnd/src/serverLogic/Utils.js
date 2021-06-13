@@ -26,3 +26,15 @@ export const formatTimeMinutes = (timer) => {
 
     return `${getMinutes} : ${getSeconds}`
 }
+
+export const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+//for adding multple classes on conditions to react elements
+export function classNames(classes) {
+    return Object.entries(classes)
+        .filter(([key, value]) => value)
+        .map(([key, value]) => key)
+        .join(' ');
+}

@@ -16,13 +16,16 @@ import {
     setPlayingAs,
     setCurrentFEN,
     setOpponentELO,
-    setOpponentUsername, setGameMode, setCurrentTurn, flipCurrentTurn, setBlackTime, setWhiteTime
+    setOpponentUsername, setGameMode, setCurrentTurn, flipCurrentTurn, setBlackTime, setWhiteTime, setLoadingGameInfo
 } from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
 import {GAME_DEBUGING_MODE} from "../../App";
 import {emit} from "../../redux/actions/socketActions";
 import GameTimer from "./Components/GameTimer";
+import {sleep} from "../../serverLogic/Utils";
+import {CSSTransition} from "react-transition-group";
+import GameTimersWidget from "./Components/GameTimersWidget";
 
 class PlayGameScreen extends Component {
 
@@ -31,15 +34,12 @@ class PlayGameScreen extends Component {
 
         this.socket = this.props.socket;
         this.state = {
-            gameMode:0,
-            loading:true,
             gameStatus: "Draw",
             showResult: false,
-            playingAs : this.props.playingAs,
-            gameId: this.props.gameId,
         }
     }
     async fetchGameData(){
+        await this.props.dispatch(setLoadingGameInfo(true));
         //check if opponent is in game, if not REROUTE back
         let playerId = this.props.userId;
 
@@ -52,21 +52,20 @@ class PlayGameScreen extends Component {
             this.props.history.push('/');
             return;
         }
-
-        this.props.dispatch(setGameId(resp.gameId));
-        this.props.dispatch(setGameMode(resp.gameMode));
-        this.props.dispatch(setCurrentFEN(resp.FEN));
-        this.props.dispatch(setPlayingAs(resp.playingAs));
-        this.props.dispatch(setIsInGame(true));
-        this.props.dispatch(setOpponentUsername(resp.opponent.username));
-        this.props.dispatch(setOpponentELO(resp.opponent.ELO));
-        this.props.dispatch(setCurrentTurn(resp.currentTurn));
         console.log(resp)
-        this.props.dispatch(setBlackTime(resp.blackTime));
-        this.props.dispatch(setWhiteTime(resp.whiteTime));
+        await this.props.dispatch(setGameId(resp.gameId));
+        await this.props.dispatch(setGameMode(resp.gameMode));
+        await this.props.dispatch(setCurrentFEN(resp.FEN));
+        await this.props.dispatch(setPlayingAs(resp.playingAs));
+        await this.props.dispatch(setIsInGame(true));
+        await this.props.dispatch(setOpponentUsername(resp.opponent.username));
+        await this.props.dispatch(setOpponentELO(resp.opponent.ELO));
+        await this.props.dispatch(setCurrentTurn(resp.currentTurn));
+        await this.props.dispatch(setBlackTime(resp.blackTime));
+        await this.props.dispatch(setWhiteTime(resp.whiteTime));
+        await this.props.dispatch(setLoadingGameInfo(false));
 
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
-        await this.setState({gameMode:resp.gameMode,loading:false});
     }
 
     setDebugingGameValues(){
@@ -106,36 +105,44 @@ class PlayGameScreen extends Component {
 
     render() {
         return (
-            <div className={this.props.gameMode==='0'? "PlayGameScreen":"PlayGameScreen chessDefenderGameScreen"} id="PLAY_GAME_SCREEN">
-                {this.state.showResult &&
-                <div className="ResultInfo">
-                    <p>&nbsp;{this.state.gameStatus.toUpperCase()}</p>
-                    <button disabled={!this.state.showResult} onClick={()=>{this.props.history.push('/')}}>GO BACK</button>
+            <CSSTransition
+                in={!this.props.loadingGameInfo}
+                timeout={200}
+                classNames="PlayGameScreenContainer"
+                unmountOnExit
+            >
+                <div className="PlayGameScreenContainer">
+                    <div className={this.props.gameMode==='0'? "PlayGameScreen":"PlayGameScreen chessDefenderGameScreen"} id="PLAY_GAME_SCREEN">
+                        {this.state.showResult &&
+                        <div className="ResultInfo">
+                            <p>&nbsp;{this.state.gameStatus.toUpperCase()}</p>
+                            <button disabled={!this.state.showResult} onClick={()=>{this.props.history.push('/')}}>GO BACK</button>
+                        </div>
+                        }
+
+                        <PlayersInfo/>
+
+                        <Chat/>
+
+                        <GameContainer>
+                            <P5Wrapper
+                                sketch={sketch}
+                                sendMoveToServer={this.sendMove}
+                                playingAs={this.props.playingAs}
+                                startingFEN={this.props.currentFEN}
+                                gameMode={this.props.gameMode}
+                            />
+                        </GameContainer>
+
+                        <div className="Game-info">
+                            <GameButtons/>
+                            <GameTimersWidget/>
+                        </div>
+
+                    </div>
                 </div>
-                }
+            </CSSTransition>
 
-                <PlayersInfo/>
-
-                <Chat/>
-                <GameContainer>
-                    {!this.state.loading &&
-                        <P5Wrapper
-                            sketch={sketch}
-                            sendMoveToServer={this.sendMove}
-                            playingAs={this.props.playingAs}
-                            startingFEN={this.props.currentFEN}
-                            gameMode={this.props.gameMode}
-                        />
-                    }
-
-                </GameContainer>
-                <div className="Timers">
-                    <GameTimer playerColor='w'/>
-                    <GameTimer playerColor='b'/>
-                </div>
-
-                <GameButtons/>
-            </div>
         );
     }
 }

@@ -8,6 +8,7 @@ import {
 import CSquare from "./CSquare";
 import myFont from './Pieces/Inconsolata.otf'
 import {add_piece} from "./gameMode2_moves";
+import {store} from "../../../index";
 
 export var Font;
 export var pos_to_stocknot_dict = [];
@@ -78,7 +79,6 @@ export default function sketch(p5) {
         }
 
 
-            //for setup in gamemode 2
         if(gameMode==='1' && board.SetupState>-1) {
             for (let i = 0; i < board.gameMode2_grid.length; i++) {
                 let piece = board.gameMode2_grid[i];
@@ -144,14 +144,14 @@ export default function sketch(p5) {
         Generate_moves(board.grid, board.check, "setup");
         canvas.style('width','100%');
         canvas.style('height','100%');
+        readjustCanvas(); //weird but fixes canvas always setting up as game defender DO NOT TOUCH
     };
 
-    p5.windowResized= function (){
+    function readjustCanvas(){
         //full screen mode
         let resizeTo=p5.windowWidth;
         //for screen widths bigger then max size, set to max size
         if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
-
 
         canvas_width=resizeTo;
         if(gameMode==="1"){
@@ -172,6 +172,10 @@ export default function sketch(p5) {
         board.load_FEN();
         canvas.style('width','100%');
         canvas.style('height','100%');
+    }
+
+    p5.windowResized= function (){
+       readjustCanvas();
     }
 
     p5.draw = function () {

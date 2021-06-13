@@ -5,7 +5,7 @@ import {SocketStatus} from "../../serverLogic/WebSocket";
 
 export const gameInitialState = {
     gameId: sessionStorage.getItem('gameId'),
-    gameMode: sessionStorage.getItem('gameMode'),
+    gameMode: -1,
     playingAs: sessionStorage.getItem('playingAs'),
     currentFEN: sessionStorage.getItem('currentFEN'),
     opponentUsername:sessionStorage.getItem('opponentUsername'),
@@ -14,7 +14,8 @@ export const gameInitialState = {
     opponentsStatus: SocketStatus.unknown,
     currentTurn:sessionStorage.getItem('currentTurn'),
     whiteTime:'420',
-    blackTime:'420'
+    blackTime:'420',
+    loadingGameInfo:true
 };
 
 export default function gameInfoReducer(state = gameInitialState, action) {
@@ -26,7 +27,6 @@ export default function gameInfoReducer(state = gameInitialState, action) {
             sessionStorage.setItem('gameId',action.payload)
             return {...state, gameId:action.payload}
         case actions.SET_GAMEMODE:
-            sessionStorage.setItem('gameMode',action.payload)
             return {...state, gameMode:action.payload}
         case actions.SET_CURRENT_FEN:
             sessionStorage.setItem('currentFEN',action.payload)
@@ -52,6 +52,8 @@ export default function gameInfoReducer(state = gameInitialState, action) {
             return {...state, whiteTime:action.payload}
         case actions.SET_BLACK_TIME:
             return {...state, blackTime:action.payload}
+        case actions.SET_LOADING_GAME_INFO:
+            return {...state, loadingGameInfo:action.payload}
         default:
             return state
     }

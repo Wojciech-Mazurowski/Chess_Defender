@@ -1,3 +1,4 @@
+import math
 from timeit import default_timer as timer
 
 ########################
@@ -20,13 +21,12 @@ scope_update_ammount = 50  # ammount by which scope widens every scope_update_in
 # white_id, #black_id,#curr_turn,#game_id,#numOfMoves,FEN
 games = {}
 default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-defender_FEN= "8/8/8/8/8/8/8/8 w KQkq - 0 1"
+defender_FEN = "8/8/8/8/8/8/8/8 w KQkq - 0 1"
 
-#TODO HERE YOU CAN CHANGE MAX_TIMES
-time_dialation=1 #should be 1 in ideal conditions >1 if server lags behind
-game_mode_times= [3600,3600] #defines time constraint IN SECONDS for gametype at index
-game_mode_starting_FEN = [default_FEN,defender_FEN]
-
+# TODO HERE YOU CAN CHANGE MAX_TIMES
+time_dialation = 1  # should be 1 in ideal conditions >1 if server lags behind
+game_mode_times = [20, 3599]  # defines time constraint IN SECONDS for gametype at index
+game_mode_starting_FEN = [default_FEN, defender_FEN]
 
 # Socket auth service
 authorized_sockets = {}
@@ -101,7 +101,7 @@ class Player:
 class Game:
 
     def __init__(self, game_id, game_room_id, game_mode_id, white_player, black_player, curr_turn, curr_FEN,
-                 num_of_moves,timer):
+                 num_of_moves, timer):
         self.game_id = game_id
         self.game_room_id = game_room_id
         self.game_mode_id = game_mode_id
@@ -110,7 +110,7 @@ class Game:
         self.curr_turn = curr_turn
         self.curr_FEN = curr_FEN
         self.num_of_moves = num_of_moves
-        self.timer=timer
+        self.timer = timer
 
 
 class Timer:
@@ -119,20 +119,25 @@ class Timer:
         self.black_time = max_time
         self.last_move_timestamp = timer()
 
-    #returns color that won by time
+    # returns color that won by time
     def update_timers(self, curr_turn):
-        time_passed = time_dialation*(timer()- self.last_move_timestamp)
+        time_passed = time_dialation * (timer() - self.last_move_timestamp)
         self.last_move_timestamp = timer()
 
         if curr_turn == 'w':
+            dec_val, seconds_before = math.modf(self.white_time)
             self.white_time = self.white_time - time_passed
+            dec_val, seconds_after = math.modf(self.white_time)
+            full_second_passed = seconds_before > seconds_after
         elif curr_turn == 'b':
+            dec_val, seconds_before = math.modf(self.black_time)
             self.black_time = self.black_time - time_passed
+            dec_val, seconds_after = math.modf(self.black_time)
+            full_second_passed = seconds_before > seconds_after
 
-        if self.black_time<=0:
-            return 'b'
-        if self.white_time<=0:
-            return 'w'
+        if self.black_time <= 0:
+            return 'w', full_second_passed
+        if self.white_time <= 0:
+            return 'b', full_second_passed
 
-        return None
-
+        return None, full_second_passed

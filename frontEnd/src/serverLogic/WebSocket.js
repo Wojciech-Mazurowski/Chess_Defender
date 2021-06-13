@@ -3,7 +3,7 @@ import {API_URL} from "./APIConfig";
 import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 import {store} from "../index";
 import {setSocketStatus} from "../redux/actions/socketActions";
-import {flipCurrentTurn, setOpponentStatus} from "../redux/actions/gameActions";
+import {flipCurrentTurn, setBlackTime, setOpponentStatus, setWhiteTime} from "../redux/actions/gameActions";
 
 const socketPath = '';
 
@@ -107,6 +107,13 @@ export default class SocketClient {
             console.log("GOT OPPONENTS STATUS "+data.status)
             let opp_status= SocketStatus.getStatusFromString(data.status)
             store.dispatch(setOpponentStatus(opp_status))
+        });
+
+        this.on('update_timers',data =>{
+            if (data === undefined) return;
+            console.log("GOT TIMERS UPDATE "+data.whiteTime)
+            store.dispatch(setWhiteTime(data.whiteTime))
+            store.dispatch(setBlackTime(data.blackTime))
         });
     }
 

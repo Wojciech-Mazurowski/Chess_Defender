@@ -10,6 +10,7 @@ export const FLIP_CURRENT_TURN = 'FLIP_CURRENT_TURN'
 export const SET_CURRENT_TURN = 'SET_CURRENT_TURN'
 export const SET_WHITE_TIME = 'SET_WHITE_TIME'
 export const SET_BLACK_TIME = 'SET_BLACK_TIME'
+export const SET_LOADING_GAME_INFO='SET_LOADING_GAME_INFO'
 
 //SETTERS
 export const setGameId = (gameId) => ({
@@ -59,5 +60,11 @@ export const setBlackTime  = (btime) =>({
     type: SET_BLACK_TIME,
     payload: btime,
 })
+
+export const setLoadingGameInfo  = (bool) =>({
+    type: SET_LOADING_GAME_INFO,
+    payload: bool,
+})
+
 
 
