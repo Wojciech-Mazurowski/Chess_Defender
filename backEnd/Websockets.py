@@ -434,7 +434,7 @@ def place_defender_piece(data):
 
     player_color = players_game[1]
     game_info = games[game_room_id]
-
+    spent_points = data_obj['spentPoints']
     # defender game already in making moves phase
     if game_info.defender_state.phase != 0:
         print("Defender game already in making moves phase")
@@ -445,7 +445,7 @@ def place_defender_piece(data):
     black_id = game_info.black_player.id
     curr_turn = game_info.curr_turn
     got_FEN = data_obj['FEN']
-    spend_points = data_obj['spentPoints']
+
 
     # check if it's coming from the wrong player
     if str(curr_turn) != str(player_color):
@@ -453,7 +453,7 @@ def place_defender_piece(data):
         print("NOT UR TURN")
         return
 
-    if games[game_room_id].defender_state.update_score(player_color, spend_points):
+    if not games[game_room_id].defender_state.update_score(player_color, spent_points):
         print("AIN't GOT THAT MANY POINTS TO SPENT BUCKO")
         return
 
@@ -462,21 +462,26 @@ def place_defender_piece(data):
     if player_color == 'w':
         opponent_sid = authorized_sockets[black_id]
 
-    emit('place_defender_piece_local', {'FEN': got_FEN, 'spentPoints': spend_points}, to=opponent_sid)
-
-    # update local game object
-    if game_room_id not in games:
-        print("NO_SUCH_GAME_EXISTS")
-        return
-
-    games[game_room_id].curr_FEN = data_obj['FEN']
-    games[game_room_id].check_for_phase_change()
+    if spent_points == 0:
+        games[game_room_id].defender_state.end_phase(player_color)
+        games[game_room_id].defender_state.check_change_phase()
+        spent_points = 1
 
     # get opposite turn
     opp_turn = 'w'
     if curr_turn == 'w':
         opp_turn = 'b'
     games[game_room_id].curr_turn = opp_turn
+    #update FEN with turn info
+    updated_FEN= ChessLogic.update_fen_with_turn_info(got_FEN,opp_turn)
+    games[game_room_id].curr_FEN = updated_FEN
+
+
+    emit('place_defender_piece_local', {'FEN': updated_FEN, 'spentPoints': spent_points}, to=opponent_sid)
+
+
+
+
 
 
 @socketio.on('make_move')

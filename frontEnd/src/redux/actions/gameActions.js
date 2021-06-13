@@ -10,6 +10,8 @@ export const FLIP_CURRENT_TURN = 'FLIP_CURRENT_TURN'
 export const SET_CURRENT_TURN = 'SET_CURRENT_TURN'
 export const SET_WHITE_TIME = 'SET_WHITE_TIME'
 export const SET_BLACK_TIME = 'SET_BLACK_TIME'
+export const SET_WHITE_SCORE='SET_WHITE_SCORE'
+export const SET_BLACK_SCORE='SET_BLACK_SCORE'
 export const SET_LOADING_GAME_INFO='SET_LOADING_GAME_INFO'
 
 //SETTERS
@@ -64,6 +66,15 @@ export const setBlackTime  = (btime) =>({
 export const setLoadingGameInfo  = (bool) =>({
     type: SET_LOADING_GAME_INFO,
     payload: bool,
+})
+
+export const setWhiteScore  = (wScore) =>({
+    type: SET_WHITE_SCORE,
+    payload: wScore,
+})
+export const setBlackScore  = (bScore) =>({
+    type: SET_BLACK_SCORE,
+    payload: bScore,
 })
 
 

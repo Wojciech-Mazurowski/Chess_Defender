@@ -16,7 +16,14 @@ import {
     setPlayingAs,
     setCurrentFEN,
     setOpponentELO,
-    setOpponentUsername, setGameMode, setCurrentTurn, flipCurrentTurn, setBlackTime, setWhiteTime, setLoadingGameInfo
+    setOpponentUsername,
+    setGameMode,
+    setCurrentTurn,
+    flipCurrentTurn,
+    setBlackTime,
+    setWhiteTime,
+    setLoadingGameInfo,
+    setWhiteScore, setBlackScore
 } from "../../redux/actions/gameActions";
 import {setIsInGame} from "../../redux/actions/userActions";
 import {withRouter} from "react-router-dom"
@@ -62,7 +69,13 @@ class PlayGameScreen extends Component {
         await this.props.dispatch(setOpponentELO(resp.opponent.ELO));
         await this.props.dispatch(setCurrentTurn(resp.currentTurn));
         await this.props.dispatch(setBlackTime(resp.blackTime));
-        await this.props.dispatch(setWhiteTime(resp.whiteTime));
+        await this.props.dispatch(setWhiteTime(resp.whiteTime))
+
+        if (resp.gameMode==1){
+            await this.props.dispatch(setWhiteScore(resp.whiteScore));
+            await this.props.dispatch(setBlackScore(resp.blackScore));
+        }
+
         await this.props.dispatch(setLoadingGameInfo(false));
 
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
@@ -85,7 +98,7 @@ class PlayGameScreen extends Component {
         });
     }
 
-    async placeDefenderPiece(FEN){
+    async placeDefenderPiece(FEN,spentPoints){
         const storeState=store.getState();
         let playerId = storeState.user.userId;
         let gameroomId =storeState.game.gameId;
@@ -93,7 +106,7 @@ class PlayGameScreen extends Component {
         console.log("SEND OPPONENT DEFENDER");
         let makeMoveEvent ={
             event:'place_defender_piece',
-            msg:JSON.stringify({gameroomId, playerId,FEN})
+            msg:JSON.stringify({gameroomId, playerId,FEN,spentPoints})
         }
 
         store.dispatch(emit(makeMoveEvent));
@@ -142,7 +155,10 @@ class PlayGameScreen extends Component {
                                 placeDefenderPiece={this.placeDefenderPiece}
                                 playingAs={this.props.playingAs}
                                 startingFEN={this.props.currentFEN}
+                                currentTurn={this.props.currentTurn}
                                 gameMode={this.props.gameMode}
+                                whiteScore={this.props.whiteScore}
+                                blackScore={this.props.blackScore}
                             />
                         </GameContainer>
 

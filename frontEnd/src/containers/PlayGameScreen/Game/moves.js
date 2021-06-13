@@ -1,4 +1,4 @@
-import {board, pixel_positions, playingAs, pos_to_stocknot_dict, sendMoveToServer} from "./Main";
+import {board, gameMode, pixel_positions, playingAs, pos_to_stocknot_dict, sendMoveToServer} from "./Main";
 import {simulate_moves_for_ally} from "./SimulateMoves";
 
 
@@ -241,10 +241,9 @@ function Get_king_moves(startSquare, piece, grid, t_moves) {
 
 
     if (piece.did_move === 0) {
-
         let target = startSquare + Directions[3] * 3;
         let Piece_on_Target = grid[target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
+        if (Piece_on_Target!=undefined && Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
             //roszada krótka
             if (grid[startSquare + Directions[3] * 2].type_letter === 'e' && grid[startSquare + Directions[3]].type_letter === 'e')
 
@@ -256,7 +255,7 @@ function Get_king_moves(startSquare, piece, grid, t_moves) {
 
         target = startSquare + Directions[2] * 4;
         Piece_on_Target = grid[target];
-        if (Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
+        if (Piece_on_Target!=undefined && Piece_on_Target.type_letter !== 'e' && Piece_on_Target.did_move === 0) {
             if (grid[startSquare + Directions[2] * 2].type_letter === 'e' && grid[startSquare + Directions[2]].type_letter === 'e'
                 && grid[startSquare + Directions[2] * 3].type_letter === 'e') {
 
@@ -643,12 +642,16 @@ export function make_a_move() {
                     piece.did_move = 1;
                     moves = [];
                     opponent_moves = [];
-                    let data = {
-                        'startingSquare': StartingSquare,
-                        'targetSquare': TargetSquare,
-                        'mtype': move.type
+
+                    if(gameMode!==1 && board.SetupState==-1){
+                        let data = {
+                            'startingSquare': StartingSquare,
+                            'targetSquare': TargetSquare,
+                            'mtype': move.type
+                        }
+                        sendMoveToServer(data, board.FEN);
                     }
-                    sendMoveToServer(data, board.FEN);
+
 
                 } else {
                     piece.snap_back();

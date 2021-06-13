@@ -31,9 +31,12 @@ export const mapAllStateToProps = (state) => {
         gameMode: state.game.gameMode,
         playingAs: state.game.playingAs,
         currentFEN: state.game.currentFEN,
+        currentTurn:state.game.currentTurn,
         opponentUsername: state.game.opponentUsername,
         opponentElo:  state.game.opponentElo,
         opponentsStatus: state.game.opponentsStatus,
-        loadingGameInfo: state.game.loadingGameInfo
+        loadingGameInfo: state.game.loadingGameInfo,
+        whiteScore:state.game.whiteScore,
+        blackScore:state.game.blackScore
     };
 };

@@ -139,9 +139,18 @@ class Defender_State:
 
         return True
 
-    def check_for_phase_change(self):
-        if self.black_score == 0 and self.white_score == 0:
+    #ends puting down phase for given color
+    def end_phase(self,player_color):
+        if player_color == 'w':
+            self.white_score=-1
+
+        if player_color == 'b':
+            self.black_score = -1
+
+    def check_change_phase(self):
+        if self.black_score == -1 and self.white_score == -1:
             self.phase = 1
+
 
 
 class Timer:

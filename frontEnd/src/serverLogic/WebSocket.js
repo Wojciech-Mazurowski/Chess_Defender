@@ -106,8 +106,8 @@ export default class SocketClient {
             if (data === undefined) return;
             console.log("GOT OPPONENT DEFENDER");
             board.FEN=data.FEN;
-            board.load_FEN();
             board.change_Turn();
+            board.load_FEN();
             store.dispatch(flipCurrentTurn());
         });
 

@@ -15,7 +15,9 @@ export const gameInitialState = {
     currentTurn:sessionStorage.getItem('currentTurn'),
     whiteTime:'420',
     blackTime:'420',
-    loadingGameInfo:true
+    loadingGameInfo:true,
+    whiteScore:'0',
+    blackScore:'0'
 };
 
 export default function gameInfoReducer(state = gameInitialState, action) {
@@ -52,6 +54,10 @@ export default function gameInfoReducer(state = gameInitialState, action) {
             return {...state, whiteTime:action.payload}
         case actions.SET_BLACK_TIME:
             return {...state, blackTime:action.payload}
+        case actions.SET_BLACK_SCORE:
+            return {...state, blackScore:action.payload}
+        case actions.SET_WHITE_SCORE:
+            return {...state, whiteScore:action.payload}
         case actions.SET_LOADING_GAME_INFO:
             return {...state, loadingGameInfo:action.payload}
         default:

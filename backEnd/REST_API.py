@@ -230,6 +230,24 @@ def is_in_game():
             'whiteTime': game.timer.white_time
             }
 
+    if game.game_mode_id:
+        data = {"inGame": True,
+                "gameId": game.game_room_id,
+                "gameMode": game.game_mode_id,
+                'currentTurn': game.curr_turn,
+                "playingAs": playing_as,
+                "FEN": game.curr_FEN,
+                "opponent": {
+                    "username": opponent.username,
+                    "ELO": opponent.ELO,
+                    "playingAs": opponent.playing_as
+                },
+                'blackTime': game.timer.black_time,
+                'whiteTime': game.timer.white_time,
+                'whiteScore': game.defender_state.white_score,
+                'blackScore': game.defender_state.black_score
+                }
+
     return generate_response(data, 200)
 
 

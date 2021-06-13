@@ -14,7 +14,7 @@ import {
     Font,
     textures,
     scalar,
-    shelf_size, gameMode2_Margin, textsize,
+    shelf_size, gameMode2_Margin, textsize, gameMode,
 } from "./Main";
 import Piece from "./Piece";
 import {moves} from "./moves";
@@ -36,6 +36,7 @@ export default class Board {
         this.gameMode2_grid = [];
         let i = 0;
 
+
         for (var key in pieces_dict) {
             i += 1;
             if (playingAs === 'b') {
@@ -48,15 +49,13 @@ export default class Board {
         }
         this.FEN = "";
         this.load_FEN()
-        this.color_to_move = "w";
+        this.color_to_move = "";
         this.lastPawnMoveOrCapture = 0;
         this.lastmove = [-1, -1];
         this.numOfMoves = 1;
         this.check = 0;
         this.enPassant = "-";
-        this.SetupState = 50;
-
-
+        this.SetupState = 0;
     }
 
 
@@ -132,8 +131,11 @@ export default class Board {
 
     load_FEN() {
         let split_FEN = this.FEN.split(' ')
-
         this.color_to_move = split_FEN[1];   //setting color to move from fen
+        // if(gameMode!==1 && board.SetupState==-1){
+        //
+        // }
+
 
         let fenBoard = split_FEN[0];   // taking only pieces position (FEN.split[0]), discarding game info
         let file = 0;
