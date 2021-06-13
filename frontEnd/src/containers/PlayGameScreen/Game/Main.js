@@ -6,16 +6,16 @@ import {
     make_a_move, generate_pos_to_stocknot_dict
 } from "./moves";
 import CSquare from "./CSquare";
-import myFont from './Pieces/Inconsolata.otf'
+import myFont from '../../../fonts/Montserrat/Montserrat-Regular.ttf'
 import {add_piece} from "./gameMode2_moves";
-import {store} from "../../../index";
 
 export var Font;
 export var pos_to_stocknot_dict = [];
 export const max_canvas_size=720;
 export var canvas_width = 720;
 export var canvas_height = canvas_width;
-export var game_mode_defender_width=canvas_width+50+canvas_width/3;
+export var shelf_size= canvas_width/3;
+export var game_mode_defender_width=canvas_width+shelf_size;
 export var Checkboard_size = canvas_height
 export var size = Checkboard_size / 8
 export var Checkboard = [];
@@ -27,6 +27,8 @@ export const rows = Math.floor(Checkboard_size / size);
 export const cols = Math.floor(Checkboard_size / size);
 export var board;
 export var canvas;
+export var gameMode2_Margin =1.1
+export var textsize=size/1.5;
 
 function importAll(r) {
     let images = {};
@@ -148,10 +150,12 @@ export default function sketch(p5) {
     };
 
     function readjustCanvas(){
+        shelf_size= canvas_width/3;
         //full screen mode
         let resizeTo=p5.windowWidth;
         //for screen widths bigger then max size, set to max size
         if(p5.windowWidth>max_canvas_size) resizeTo=max_canvas_size;
+
 
         canvas_width=resizeTo;
         if(gameMode==="1"){
@@ -166,6 +170,17 @@ export default function sketch(p5) {
                 piece.scaled_size=size-scalar;
             }
         )
+        let i = 0
+        board.gameMode2_grid.forEach((piece)=>{
+            i+=1
+            piece.scaled_size=size-scalar;
+            piece.x = Checkboard_size+shelf_size/2 - size*0.666
+            piece.y = gameMode2_Margin*size * i
+            piece.old_x=Checkboard_size+shelf_size/2 - size*0.666
+            piece.old_y=gameMode2_Margin*size * i
+            }
+        )
+        textsize = size/1.5
 
         canvas.resize(canvas_width,canvas_height);
         calculatePixelPositions();
