@@ -12,7 +12,21 @@
     "player-info board disclaimers"
     "chat board buttons";
 }
+.PlayGameScreenContainer-enter {
+    opacity: 0;
+}
+.PlayGameScreenContainer-enter-active {
+    opacity: 1;
+    transition: opacity 500ms, scale 200ms;
 
+}
+.PlayGameScreenContainer-exit {
+    opacity: 1;
+}
+.PlayGameScreenContainer-exit-active {
+    opacity: 0;
+    transition: opacity 500ms, scale 200ms;
+}
 .chessDefenderGameScreen{
     grid-template-columns: 30rem 1010px auto;
 }

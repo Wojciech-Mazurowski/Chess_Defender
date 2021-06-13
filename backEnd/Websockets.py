@@ -287,13 +287,15 @@ def find_match(game_mode_id, player):
                 game_id_hash = hashlib.sha256(str(game_id).encode())
                 game_room_id = str(game_id_hash.hexdigest())
 
-                # notify the players
-                emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
-                emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
-
                 # create gameroom for the two players and add both of them
                 join_room(game_room_id, white_sid)
                 join_room(game_room_id, black_sid)
+
+                # notify the players of their positions and opponents socket status
+                emit("game_found", {'gameId': game_room_id, 'playingAs': 'w', 'gameMode': game_mode_id}, to=white_sid)
+                emit("game_found", {'gameId': game_room_id, 'playingAs': 'b', 'gameMode': game_mode_id}, to=black_sid)
+                emit('update_opponents_socket_status', {'status': 'connected'}, room=game_room_id)
+
 
                 # create game in server storage
                 games[game_room_id] = Game(game_id, game_room_id, game_mode_id, white_player, black_player, 'w',

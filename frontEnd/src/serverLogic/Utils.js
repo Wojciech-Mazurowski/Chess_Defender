@@ -26,3 +26,7 @@ export const formatTimeMinutes = (timer) => {
 
     return `${getMinutes} : ${getSeconds}`
 }
+
+export const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
