@@ -38,12 +38,13 @@ class GameButtons extends Component{
     render() {
         return (
             <section className="GameButtons">
-                {this.props.gameMode==="1" && <button onClick={this.makeAIMove}>MAKE AI MOVE</button>}
+
                 <button onClick={this.surrenderGame}>SURRENDER GAME</button>
             </section>
         );
     }
 }
+//   {this.props.gameMode==="1" && <button onClick={this.makeAIMove}>MAKE AI MOVE</button>}
 const mapStateToProps = (state) => {
     return {
         userId: state.user.userId,
