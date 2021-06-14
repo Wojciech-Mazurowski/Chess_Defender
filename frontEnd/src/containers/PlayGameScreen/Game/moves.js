@@ -643,7 +643,7 @@ export function make_a_move() {
                     moves = [];
                     opponent_moves = [];
 
-                    if(gameMode!==1 && board.SetupState==-1){
+                    if(gameMode!==1 || board.SetupState===-1){
                         let data = {
                             'startingSquare': StartingSquare,
                             'targetSquare': TargetSquare,

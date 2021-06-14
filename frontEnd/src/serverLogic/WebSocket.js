@@ -3,8 +3,15 @@ import {API_URL} from "./APIConfig";
 import {make_opponents_move} from "../containers/PlayGameScreen/Game/moves";
 import {store} from "../index";
 import {setSocketStatus} from "../redux/actions/socketActions";
-import {flipCurrentTurn, setBlackTime, setOpponentStatus, setWhiteTime} from "../redux/actions/gameActions";
+import {
+    flipCurrentTurn,
+    setBlackTime,
+    setCurrentFEN,
+    setOpponentStatus,
+    setWhiteTime
+} from "../redux/actions/gameActions";
 import {board} from "../containers/PlayGameScreen/Game/Main";
+import Board from "../containers/PlayGameScreen/Game/board";
 
 const socketPath = '';
 
@@ -98,9 +105,19 @@ export default class SocketClient {
     gameListeners() {
         this.on("make_move_local", data => {
             if (data === undefined) return;
+            console.log(data)
             make_opponents_move(data.startingSquare, data.targetSquare, data.mtype);
             store.dispatch(flipCurrentTurn());
         });
+
+        this.on("update_FEN",data=>{
+            if (data === undefined) return;
+            board.FEN=data.FEN;
+            board.change_Turn();
+            board.load_FEN()
+            store.dispatch(setCurrentFEN(data.FEN))
+            store.dispatch(flipCurrentTurn());
+        })
 
         this.on("place_defender_piece_local", data => {
             if (data === undefined) return;
@@ -108,6 +125,7 @@ export default class SocketClient {
             board.FEN=data.FEN;
             board.change_Turn();
             board.load_FEN();
+            store.dispatch(setCurrentFEN(data.FEN))
             store.dispatch(flipCurrentTurn());
         });
 

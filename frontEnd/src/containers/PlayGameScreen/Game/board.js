@@ -23,7 +23,7 @@ import {forEach} from "react-bootstrap/ElementChildren";
 
 
 export const default_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-export const default_FEN_Gamemode_2 = "8/8/8/8/8/8/8/8 w ---- - 0 1";
+export const default_FEN_Gamemode_2 = "8/8/8/8/8/8/8/8 w - - 0 1";
 export default class Board {
 
     constructor(p5) {
@@ -132,10 +132,9 @@ export default class Board {
     load_FEN() {
         let split_FEN = this.FEN.split(' ')
         this.color_to_move = split_FEN[1];   //setting color to move from fen
-        // if(gameMode!==1 && board.SetupState==-1){
-        //
-        // }
-
+        for (let i = 0; i < 64; i++) {
+            this.grid[i]=(new Piece("e", this.p5));
+        }
 
         let fenBoard = split_FEN[0];   // taking only pieces position (FEN.split[0]), discarding game info
         let file = 0;
