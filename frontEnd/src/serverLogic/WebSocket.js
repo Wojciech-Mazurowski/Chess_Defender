@@ -110,6 +110,12 @@ export default class SocketClient {
             store.dispatch(flipCurrentTurn());
         });
 
+        this.on("illegal_move",data=>{
+            if (data === undefined) return;
+            console.log("REJECTED MOVE")
+            board.set_FEN_by_rejected_move(data.startingSquare,data.targetSquare)
+        })
+
         this.on("update_FEN",data=>{
             if (data === undefined) return;
             board.FEN=data.FEN;

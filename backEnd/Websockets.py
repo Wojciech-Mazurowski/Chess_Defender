@@ -610,7 +610,7 @@ def make_move(data):
 
     # check for illegal moves?
     if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
-        # send invalid move packet
+        emit('illegal_move',move,to=request.sid)
         print("INVALID MOVE")
         return
 

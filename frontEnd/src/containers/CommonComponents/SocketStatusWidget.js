@@ -21,6 +21,11 @@ class SocketStatusWidget extends Component {
         let displayedSocketStatus= this.props.socketStatus;
         if (this.state.isOpponentSocket && this.props.opponentsStatus ){
             displayedSocketStatus=this.props.opponentsStatus;
+            //if player is disconnected show opponents status as unknown
+            if (this.props.socketStatus===SocketStatus.disconnected){
+                displayedSocketStatus=SocketStatus.unknown;
+            }
+           
         }
 
         return (

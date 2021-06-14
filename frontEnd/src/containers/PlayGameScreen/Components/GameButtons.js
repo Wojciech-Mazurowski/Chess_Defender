@@ -38,7 +38,6 @@ class GameButtons extends Component{
     render() {
         return (
             <section className="GameButtons">
-
                 <button onClick={this.surrenderGame}>SURRENDER GAME</button>
             </section>
         );
