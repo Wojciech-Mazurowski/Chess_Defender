@@ -93,7 +93,10 @@ export function Generate_moves(grid, check, gtype) {
     } else {
         moves = ally_moves;
     }
-    console.log(moves);
+    if (playingAs !== board.color_to_move)
+    {
+        moves = [];
+    }
 
 }
 
