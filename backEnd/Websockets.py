@@ -137,6 +137,11 @@ def join_queue(data):
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
+    players_game = get_is_player_in_game(player_id)
+    if not players_game:
+        print("PLAYER ALREADY IN GAME")
+        return
+    
     print("Player with id " + str(player_id) + " joined the queue for game mode" + str(game_mode_id))
     join_room('queue' + str(game_mode_id), request.sid)
 
