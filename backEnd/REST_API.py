@@ -155,8 +155,8 @@ def logout():
     del Sessions[str(user_id)]
 
     #delete authorized socket for user
-    if user_id in authorized_sockets:
-        del authorized_sockets[user_id]
+    # if user_id in authorized_sockets:
+    #     del authorized_sockets[user_id]
 
 
     # set cookie to a dummy one
