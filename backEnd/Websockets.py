@@ -607,10 +607,13 @@ def make_move(data):
         return
 
     # check for illegal moves?
-    if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
-        emit('illegal_move', move, to=request.sid)
-        print("INVALID MOVE")
-        return
+    try:
+        if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
+            emit('illegal_move', move, to=request.sid)
+            print("INVALID MOVE")
+            return
+    except Exception as ex:
+        print("Stockfish error"+ ex)
 
     # send move to opponent
     if white_id in authorized_sockets and black_id in authorized_sockets:
