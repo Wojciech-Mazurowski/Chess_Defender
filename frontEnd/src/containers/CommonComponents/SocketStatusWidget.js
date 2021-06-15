@@ -25,7 +25,7 @@ class SocketStatusWidget extends Component {
             if (this.props.socketStatus===SocketStatus.disconnected){
                 displayedSocketStatus=SocketStatus.unknown;
             }
-           
+
         }
 
         return (

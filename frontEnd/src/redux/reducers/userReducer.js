@@ -8,7 +8,7 @@ export const userInitialState = {
     username: localStorage.getItem('username'),
     elo: localStorage.getItem('elo'),
     sessionToken: 'none',
-    isInGame: sessionStorage.getItem('isInGame')
+    isInGame: localStorage.getItem('isInGame')
 };
 
 export default function userInfoReducer(state = userInitialState, action) {
@@ -25,7 +25,7 @@ export default function userInfoReducer(state = userInitialState, action) {
         case actions.SET_SESSION_TOKEN:
             return {...state,sessionToken:action.payload};
         case actions.SET_IS_IN_GAME:
-            sessionStorage.setItem('isInGame',action.payload);
+            localStorage.setItem('isInGame',action.payload);
             return {...state,isInGame:action.payload};
         default:
             return state

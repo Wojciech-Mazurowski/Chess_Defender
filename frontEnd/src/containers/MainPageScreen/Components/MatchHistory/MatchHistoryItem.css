@@ -32,6 +32,8 @@
     font-size: 3em;
     color: var(--text-color);
     margin-top: 0.4em;
+    width: 100%;
+    text-align: center;
 }
 
 .MatchHistoryItem-result h2{
@@ -40,6 +42,8 @@
     color: var(--text-color);
     margin-top: -1.5em;
     font-family: Montserrat-Light;
+    width: 100%;
+    text-align: center;
 }
 
 .MatchHistoryItem-info{

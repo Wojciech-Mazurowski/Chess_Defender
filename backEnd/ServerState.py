@@ -49,6 +49,18 @@ def get_player_from_queue(player_id, game_mode_id):
     return False
 
 
+def get_player_from_queue_by_id(player_id):
+
+    if player_id is None:
+        return False
+
+    for game_mode_id, queuedPlayers in queues.copy().items():
+        for player in queuedPlayers:
+            if player[0].id == player_id:
+                return [player, game_mode_id]
+
+    return False
+
 def get_player_from_queue_by_sid(sid):
     # get player ID from sid
     player_id = get_id_by_sid(sid)
@@ -77,6 +89,9 @@ def get_id_by_sid(sid):
 # which color the given player is playing ('w'/'b')
 # False if player not in game
 def get_is_player_in_game(playerId):
+    if playerId is None:
+        return
+
     for roomId, game in games.items():
         if game.white_player.id == playerId:
             return [game, 'w']

@@ -9,15 +9,34 @@ import {useEffect, useState,} from "react";
 import {mapAllStateToProps} from './redux/reducers/rootReducer'
 import {connect} from 'react-redux'
 import PrivateRoute from "./containers/CommonComponents/PrivateRouter";
-import {getSessionToken} from "./serverLogic/DataFetcher";
+import {getGameIsInGame, getSessionToken} from "./serverLogic/DataFetcher";
+import {setIsInGame} from "./redux/actions/userActions";
+import {setGameId, setGameMode, setPlayingAs} from "./redux/actions/gameActions";
 
 export const GAME_DEBUGING_MODE=false;
 
-function App({socket,sessionToken,userId,gameId,isInGame}) {
+function App({socket,sessionToken,userId,gameId,isInGame,dispatch}) {
     const history = useHistory();
     let routeToMain = () => history.push('/');
     const routeToGame = (gameId) => history.push('/play?id=' + gameId);
     const [loading,setLoading]=useState(true);
+
+    function checkIfIsInGame(){
+        let resp= getGameIsInGame(userId,sessionToken);
+        if (resp === undefined) return
+
+        //if not in game REROUTE back
+        if(!resp.inGame && !GAME_DEBUGING_MODE){
+            dispatch(setIsInGame(false));
+            return;
+        }
+        dispatch(setGameId(resp.gameId));
+        dispatch(setPlayingAs(resp.playingAs));
+        dispatch(setGameMode(resp.gameMode));
+        dispatch(setIsInGame(true));
+
+    }
+
 
     useEffect(() => {
         //try to regenerate the session on reload
@@ -27,8 +46,7 @@ function App({socket,sessionToken,userId,gameId,isInGame}) {
                     setLoading(false);
                     return;
                 }
-
-                if(isInGame){ routeToGame(gameId);}
+                if(isInGame==="true"){ routeToGame(gameId);}
                 else{ routeToMain();}
                 setLoading(false);
             }
@@ -48,10 +66,8 @@ function App({socket,sessionToken,userId,gameId,isInGame}) {
                   <ScrollToTop />
                   <Route path="/" component={NavBar}/>
                   <Switch>
-                      {!GAME_DEBUGING_MODE &&  <PrivateRoute path="/" exact component={MainPageScreen} /> }
-                      {!GAME_DEBUGING_MODE &&   <PrivateRoute path="/play" component={PlayGameScreen} />}
-                      {GAME_DEBUGING_MODE &&  <Route path="/" exact component={MainPageScreen} /> }
-                      {GAME_DEBUGING_MODE &&   <Route path="/play" component={PlayGameScreen} />}
+                      {<PrivateRoute path="/" exact component={MainPageScreen} /> }
+                      {<PrivateRoute path="/play" component={PlayGameScreen} />}
                       <Route path="/login" component={LogRegScreen} />
                       <Redirect from="*" to="/" />
                   </Switch>

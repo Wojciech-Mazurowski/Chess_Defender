@@ -78,7 +78,9 @@ export async function logout(){
         console.log(error);
     }
 
+    let isInGame= localStorage.getItem('isInGame');
     localStorage.clear();
+    localStorage.setItem('isInGame',isInGame);
     sessionStorage.clear();
     window.location.reload(true); //reload to reroute to loginpage
 }

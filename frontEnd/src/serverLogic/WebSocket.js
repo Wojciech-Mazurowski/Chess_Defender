@@ -145,7 +145,7 @@ export default class SocketClient {
 
         this.on('update_timers',data =>{
             if (data === undefined) return;
-            console.log("GOT TIMERS UPDATE "+data.whiteTime)
+            //console.log("GOT TIMERS UPDATE "+data.whiteTime)
             store.dispatch(setWhiteTime(data.whiteTime))
             store.dispatch(setBlackTime(data.blackTime))
         });
