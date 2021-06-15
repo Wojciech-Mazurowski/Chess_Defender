@@ -60,7 +60,6 @@ export default class SocketClient {
             this.socket.disconnect(() => {
                 this.is_authorized = false;
                 this.is_connected = false;
-                this.socket = null;
                 resolve();
             });
         });

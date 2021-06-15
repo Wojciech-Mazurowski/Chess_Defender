@@ -13,8 +13,8 @@ function RejoinGameWidget({dispatch, userId, sessionToken, gameId, isInGame}) {
 
     //routing after having succesfully found a game
     const history = useHistory();
-    const routeToGame = (gameId) => history.push('/play?id=' + gameId);
-
+    //const routeToGame = (gameId) => history.push('/play?id=' + gameId);
+    const routeToGame = (gameId) => window.location.reload(true);
     async function checkIfIsInGame(){
         setLoading(true)
         let resp = await getGameIsInGame(userId, sessionToken);

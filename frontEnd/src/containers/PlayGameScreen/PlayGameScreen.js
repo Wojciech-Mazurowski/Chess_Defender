@@ -45,6 +45,7 @@ class PlayGameScreen extends Component {
             showResult: false,
         }
     }
+
     async fetchGameData(){
         await this.props.dispatch(setLoadingGameInfo(true));
         //check if opponent is in game, if not REROUTE back
@@ -94,7 +95,6 @@ class PlayGameScreen extends Component {
             await this.props.dispatch(setLoadingGameInfo(false));
         }
 
-
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
     }
 
@@ -107,7 +107,6 @@ class PlayGameScreen extends Component {
         //style canvas programatically TODO maybe find a more elegant way?
 
         this.fetchGameData();
-
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
             this.setState({gameStatus: data.result, showResult: true});

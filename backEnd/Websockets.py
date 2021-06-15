@@ -613,11 +613,12 @@ def make_move(data):
         return
 
     # send move to opponent
-    opponent_sid = authorized_sockets[white_id]
-    if player_color == 'w':
-        opponent_sid = authorized_sockets[black_id]
+    if white_id in authorized_sockets and black_id in authorized_sockets:
+        opponent_sid = authorized_sockets[white_id]
+        if player_color == 'w':
+            opponent_sid = authorized_sockets[black_id]
 
-    emit('make_move_local', move, to=opponent_sid)
+        emit('make_move_local', move, to=opponent_sid)
 
     # update local game object
     if game_room_id not in games:

@@ -153,6 +153,12 @@ def logout():
 
     # delete session token for user
     del Sessions[str(user_id)]
+
+    #delete authorized socket for user
+    if user_id in authorized_sockets:
+        del authorized_sockets[user_id]
+
+
     # set cookie to a dummy one
     resp = generate_response({"logout": 'succesfull'}, 200)
     resp.set_cookie('refreshToken', 'none', domain=domain, samesite='None', secure='false')
