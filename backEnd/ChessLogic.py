@@ -44,9 +44,9 @@ def convert_stockfish_notation_to_pos(stock_move):
 
 # returns new fen if valid
 def is_valid_move(FEN, startSquare, targetSquare):
-    stockfish.set_fen_position(FEN)
+    board.set_fen(FEN)
     stockfish_move = convert_pos_to_stockfish_notation(startSquare) + convert_pos_to_stockfish_notation(targetSquare)
-    return stockfish.is_move_correct(stockfish_move)
+    return chess.Move.from_uci(stockfish_move) in board.legal_moves
 
 
 def is_checkmate(FEN):
@@ -64,18 +64,18 @@ def update_fen_with_turn_info(FEN, player_to_move):
 def get_best_move(FEN):
     stockfish.set_fen_position(FEN)
     stock_pred = stockfish.get_top_moves(3)[0]
-    stock_move=stock_pred['Move']
+    stock_move = stock_pred['Move']
     starting_square, target_square = convert_stockfish_notation_to_pos(stock_move)
     move = {
         'startingSquare': starting_square,
         'targetSquare': target_square,
         'mtype': 'cp'
     }
-    #get new FEN
+    # get new FEN
     board.set_fen(FEN)
-    board_move=chess.Move.from_uci(stock_move)
+    board_move = chess.Move.from_uci(stock_move)
     board.push(board_move)
 
-    return move,board.fen()
+    return move, board.fen()
 
 # TODO update given FEN by move to get a new FEN
