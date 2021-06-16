@@ -17,7 +17,7 @@ import {
     shelf_size, gameMode2_Margin, textsize, gameMode,
 } from "./Main";
 import Piece from "./Piece";
-import {moves} from "./moves";
+import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
 import CSquare from "./CSquare";
 import {forEach} from "react-bootstrap/ElementChildren";
 
@@ -125,6 +125,25 @@ export default class Board {
 
 
         board.change_Turn();
+        //print_board2();
+        this.set_FEN_from_grid()
+    }
+
+    //does the same thing as set_FEN_by_move but also generates moves
+    set_FEN_by_rejected_move(StartingSquare, TargetSquare) {
+        //TODO highlight rejected position
+
+
+        let temp = board.grid[StartingSquare];
+        board.grid[StartingSquare] = board.grid[TargetSquare];
+        board.grid[TargetSquare] = temp;
+        board.grid[TargetSquare].old_x = pixel_positions[TargetSquare][0];
+        board.grid[TargetSquare].old_y = pixel_positions[TargetSquare][1];
+
+        console.log(board.color_to_move)
+        board.change_Turn();
+        Generate_opponent_moves(board.grid);
+        Generate_moves(board.grid, board.check, "after_opponent");
         //print_board2();
         this.set_FEN_from_grid()
     }

@@ -67,7 +67,7 @@ export async function getMatchHistory(userId,sessionToken) {
     }
 }
 
-export async function getIsInGame(userId,sessionToken) {
+export async function getGameIsInGame(userId,sessionToken){
     try {
         //if session token expired/is not available, try getting a new one
         if(sessionToken==='none'){
@@ -83,6 +83,30 @@ export async function getIsInGame(userId,sessionToken) {
         };
 
         const response = await fetchWithTimeout(API_URL + '/is_in_game?userId=' + userId, requestOptions);
+        const respObj = await handleResponse(response);
+        if (FETCH_DEBUGGING_MODE) console.log(response);
+        return respObj;
+    } catch (error) {
+        console.log(error.name === 'AbortError');
+    }
+}
+
+export async function getGameInfo(gameRoomId, sessionToken) {
+    try {
+        //if session token expired/is not available, try getting a new one
+        if(sessionToken==='none'){
+            let resp= await getSessionToken();
+            sessionToken= resp.sessionToken;
+        }
+
+        const requestOptions = {
+            method: 'GET',
+            mode: 'cors',
+            headers: authHeader(sessionToken),
+            timeout: 6000
+        };
+
+        const response = await fetchWithTimeout(API_URL + '/get_game_info?gameRoomId='+gameRoomId, requestOptions);
         const respObj = await handleResponse(response);
         if (FETCH_DEBUGGING_MODE) console.log(response);
         return respObj;

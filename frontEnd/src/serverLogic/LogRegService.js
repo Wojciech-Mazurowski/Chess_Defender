@@ -3,6 +3,8 @@ import {API_URL} from "./APIConfig";
 import {handleResponse, fetchWithTimeout, FETCH_DEBUGGING_MODE, authHeader} from "./DataFetcher"
 import {store} from "../index";
 import {GAME_DEBUGING_MODE} from "../App";
+import {disconnectSocket, setSocketStatus} from "../redux/actions/socketActions";
+import {SocketStatus} from "./WebSocket";
 
 export async function login(username,password){
 
@@ -79,7 +81,9 @@ export async function logout(){
     }
 
     localStorage.clear();
-    sessionStorage.clear();
+    sessionStorage.clear()
+    store.dispatch(setSocketStatus( SocketStatus.disconnected));
+    store.dispatch(disconnectSocket());
     window.location.reload(true); //reload to reroute to loginpage
 }
 

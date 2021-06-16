@@ -4,7 +4,7 @@ import Chat from "./Components/Chat"
 
 import P5Wrapper from "react-p5-wrapper"
 import sketch from "./Game/Main";
-import {getIsInGame} from "../../serverLogic/DataFetcher";
+import {getGameInfo, getGameIsInGame} from "../../serverLogic/DataFetcher";
 import PlayersInfo from "./Components/PlayersInfo";
 import "./PlayGameScreen.css";
 import GameButtons from "./Components/GameButtons";
@@ -45,38 +45,55 @@ class PlayGameScreen extends Component {
             showResult: false,
         }
     }
+
     async fetchGameData(){
         await this.props.dispatch(setLoadingGameInfo(true));
         //check if opponent is in game, if not REROUTE back
         let playerId = this.props.userId;
+        if (this.props.gameroomId===undefined){
+            let resp= await getGameIsInGame(this.props.userId,this.props.sessionToken);
+            if (resp === undefined) return
 
-        let resp= await getIsInGame(playerId,this.props.sessionToken);
-        if (resp === undefined) return
-
-        //if not in game REROUTE back
-        if(!resp.inGame && !GAME_DEBUGING_MODE){
-            this.props.dispatch(setIsInGame(false));
-            this.props.history.push('/');
-            return;
-        }
-        console.log(resp)
-        await this.props.dispatch(setGameId(resp.gameId));
-        await this.props.dispatch(setGameMode(resp.gameMode));
-        await this.props.dispatch(setCurrentFEN(resp.FEN));
-        await this.props.dispatch(setPlayingAs(resp.playingAs));
-        await this.props.dispatch(setIsInGame(true));
-        await this.props.dispatch(setOpponentUsername(resp.opponent.username));
-        await this.props.dispatch(setOpponentELO(resp.opponent.ELO));
-        await this.props.dispatch(setCurrentTurn(resp.currentTurn));
-        await this.props.dispatch(setBlackTime(resp.blackTime));
-        await this.props.dispatch(setWhiteTime(resp.whiteTime))
-
-        if (resp.gameMode==1){
-            await this.props.dispatch(setWhiteScore(resp.whiteScore));
-            await this.props.dispatch(setBlackScore(resp.blackScore));
+            //if not in game REROUTE back
+            if(!resp.inGame && !GAME_DEBUGING_MODE){
+                this.props.dispatch(setIsInGame(false));
+                this.props.history.push('/');
+                return;
+            }
+            await this.props.dispatch(setGameId(resp.gameId));
+            await this.props.dispatch(setPlayingAs(resp.playingAs));
+            await this.props.dispatch(setGameMode(resp.gameMode));
+            await this.props.dispatch(setIsInGame(true));
         }
 
-        await this.props.dispatch(setLoadingGameInfo(false));
+        if(this.props.isInGame){
+            this.props.history.push('/play?id=' + this.props.gameId);
+            //get game info for game setup
+            let resp= await getGameInfo(this.props.gameId,this.props.sessionToken);
+            if (resp === undefined) return
+
+            console.log(resp)
+            await this.props.dispatch(setGameMode(resp.gameMode));
+            await this.props.dispatch(setCurrentFEN(resp.FEN));
+            //
+            if (this.props.playingAs ==="w"){
+                await this.props.dispatch(setOpponentUsername(resp.blackPlayer.username));
+                await this.props.dispatch(setOpponentELO(resp.blackPlayer.ELO));
+            }else{
+                await this.props.dispatch(setOpponentUsername(resp.whitePlayer.username));
+                await this.props.dispatch(setOpponentELO(resp.whitePlayer.ELO));
+            }
+            await this.props.dispatch(setCurrentTurn(resp.currentTurn));
+            await this.props.dispatch(setBlackTime(resp.blackTime));
+            await this.props.dispatch(setWhiteTime(resp.whiteTime))
+
+            if (resp.gameMode==1){
+                await this.props.dispatch(setWhiteScore(resp.whiteScore));
+                await this.props.dispatch(setBlackScore(resp.blackScore));
+            }
+
+            await this.props.dispatch(setLoadingGameInfo(false));
+        }
 
         if (GAME_DEBUGING_MODE) await this.setDebugingGameValues();
     }
@@ -90,11 +107,11 @@ class PlayGameScreen extends Component {
         //style canvas programatically TODO maybe find a more elegant way?
 
         this.fetchGameData();
-
         this.socket.on("game_ended", data => {
             if (data === undefined) return;
             this.setState({gameStatus: data.result, showResult: true});
             this.props.dispatch(setIsInGame(false));
+            this.props.dispatch(setGameId(""));
         });
     }
 

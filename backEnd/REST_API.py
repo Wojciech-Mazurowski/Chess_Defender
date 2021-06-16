@@ -78,9 +78,6 @@ def login():
     try:
         db = ChessDB.ChessDB()
         user = db.get_user(user_name)
-        user_id = str(user[0])
-        user_pass = str(user[2])
-        user_elo = str(user[5])
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
         return generate_response({"error": "Can't fetch from db"}, 503)
@@ -88,6 +85,10 @@ def login():
     # user wasn't found in the database ergo wrong username
     if user is None:
         return generate_response({"error": "Username doesn't exist"}, 403)
+
+    user_id = str(user[0])
+    user_pass = str(user[2])
+    user_elo = str(user[5])
 
     # actual user's password doesn't match given
     if user_pass != request_data['hashedPassword']:
@@ -152,6 +153,12 @@ def logout():
 
     # delete session token for user
     del Sessions[str(user_id)]
+
+    #delete authorized socket for user
+    # if user_id in authorized_sockets:
+    #     del authorized_sockets[user_id]
+
+
     # set cookie to a dummy one
     resp = generate_response({"logout": 'succesfull'}, 200)
     resp.set_cookie('refreshToken', 'none', domain=domain, samesite='None', secure='false')
@@ -210,37 +217,66 @@ def is_in_game():
     print(game)
 
     # seperate out opponent and player
-    if playing_as == 'w':
-        opponent = game.black_player
-    else:
-        opponent = game.white_player
+    data = {
+        "inGame": True,
+        "gameId": game.game_room_id,
+        "gameMode": game.game_mode_id,
+        "playingAs":playing_as
+    }
+
+    return generate_response(data, 200)
+
+
+@app.route('/get_game_info', methods=['GET', 'OPTIONS'])
+def get_game_info():
+    if request.method == "OPTIONS":
+        return generate_response({}, 200)
+
+    if debug_mode: print("GAME_INFO REQUEST " + str(request.args))
+    if 'gameRoomId' not in request.args:
+        print("MISSING ARGUMENT")
+        return generate_response({"error":'missing gameRoomId arg'}, 400)
+
+    game_room_id = request.args['gameRoomId']
+
+    # generate info
+    game = games[str(game_room_id)]
+    print(game)
 
     data = {"inGame": True,
             "gameId": game.game_room_id,
             "gameMode": game.game_mode_id,
             'currentTurn': game.curr_turn,
-            "playingAs": playing_as,
             "FEN": game.curr_FEN,
-            "opponent": {
-                "username": opponent.username,
-                "ELO": opponent.ELO,
-                "playingAs": opponent.playing_as
+            "whitePlayer": {
+                "username": game.white_player.username,
+                "ELO": game.white_player.ELO,
+                "playingAs": 'w'
+            },
+            "blackPlayer": {
+                "username": game.black_player.username,
+                "ELO": game.black_player.ELO,
+                "playingAs": 'b'
             },
             'blackTime': game.timer.black_time,
             'whiteTime': game.timer.white_time
             }
 
-    if game.game_mode_id:
+    if game.game_mode_id == 1:
         data = {"inGame": True,
                 "gameId": game.game_room_id,
                 "gameMode": game.game_mode_id,
                 'currentTurn': game.curr_turn,
-                "playingAs": playing_as,
                 "FEN": game.curr_FEN,
-                "opponent": {
-                    "username": opponent.username,
-                    "ELO": opponent.ELO,
-                    "playingAs": opponent.playing_as
+                "whitePlayer": {
+                    "username": game.white_player.username,
+                    "ELO": game.white_player.ELO,
+                    "playingAs": 'w'
+                },
+                "blackPlayer": {
+                    "username": game.black_player.username,
+                    "ELO": game.black_player.ELO,
+                    "playingAs": 'b'
                 },
                 'blackTime': game.timer.black_time,
                 'whiteTime': game.timer.white_time,

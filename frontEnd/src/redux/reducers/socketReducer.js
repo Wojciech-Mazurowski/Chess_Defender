@@ -9,6 +9,9 @@ export const socketInitialState = {
 
 export default function socketReducer(state = socketInitialState, action) {
     switch (action.type){
+        case actions.DISCONNECT_SOCKET:
+            state.socket.disconnect();
+            return {...state}
         case actions.UPDATE_SOCKET:
             return {...state, socket:action.payload}
         case actions.SET_SOCKET_STATUS:

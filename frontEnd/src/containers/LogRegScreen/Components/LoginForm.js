@@ -40,7 +40,6 @@ function LoginForm({dispatch}) {
             return;
         }
 
-
         dispatch(setUserId(resp.userId));
         dispatch(setUsername(username));
         dispatch(setUserElo(resp.userElo));

@@ -60,7 +60,6 @@ export default class SocketClient {
             this.socket.disconnect(() => {
                 this.is_authorized = false;
                 this.is_connected = false;
-                this.socket = null;
                 resolve();
             });
         });
@@ -110,6 +109,12 @@ export default class SocketClient {
             store.dispatch(flipCurrentTurn());
         });
 
+        this.on("illegal_move",data=>{
+            if (data === undefined) return;
+            console.log("REJECTED MOVE")
+            board.set_FEN_by_rejected_move(data.startingSquare,data.targetSquare)
+        })
+
         this.on("update_FEN",data=>{
             if (data === undefined) return;
             board.FEN=data.FEN;
@@ -139,7 +144,7 @@ export default class SocketClient {
 
         this.on('update_timers',data =>{
             if (data === undefined) return;
-            console.log("GOT TIMERS UPDATE "+data.whiteTime)
+            //console.log("GOT TIMERS UPDATE "+data.whiteTime)
             store.dispatch(setWhiteTime(data.whiteTime))
             store.dispatch(setBlackTime(data.blackTime))
         });

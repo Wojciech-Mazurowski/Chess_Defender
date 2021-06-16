@@ -8,7 +8,7 @@ debug_mode = True
 
 # SOCKET IO CONFIG
 app = app
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", ping_interval=5)
 thread = None
 timer_thread = None
 
@@ -29,23 +29,21 @@ def connect():
 
 @socketio.on('disconnect')
 def disconnect():
+    player_id = get_id_by_sid(request.sid)
+
     # delete player from queue if he's in it
-    to_be_removed = get_player_from_queue_by_sid(request.sid)
+    to_be_removed = get_player_from_queue_by_id(player_id)
     if to_be_removed:
         leave_room('queue' + str(to_be_removed[1]))
         queues[str(to_be_removed[1])].remove(to_be_removed[0])
 
     print('Player disconnected ', request.sid)
-
     # if he was in game notify opponent that the player disconnected
-    player_id = get_id_by_sid(request.sid)
-    if player_id is None:
-        return
 
     game_info = get_is_player_in_game(player_id)
     if game_info:
         game = game_info[0]
-        print("SENDING SOCKET STATUS UPDATE")
+        print('SENT OPONENT STATUS UPDATE ', request.sid)
         emit('update_opponents_socket_status', {'status': 'disconnected'}, room=game.game_room_id, include_self=False)
         leave_room(game.game_room_id, request.sid)
 
@@ -135,6 +133,11 @@ def join_queue(data):
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
         emit('unauthorized', {'error': 'Unauthorized access'})
+        return
+
+    players_game = get_is_player_in_game(player_id)
+    if players_game:
+        print("PLAYER ALREADY IN GAME")
         return
 
     print("Player with id " + str(player_id) + " joined the queue for game mode" + str(game_mode_id))
@@ -376,7 +379,7 @@ def surrender(data):
     # check if game even exists
     if game_room_id not in games:
         print("GAME ARLEADY GONE!! ")
-        emit('bad_move', {'error': 'Game already gone'})
+        emit('error', {'error': 'Game already gone'})
         return
 
     player_id = obj['playerId']
@@ -534,7 +537,7 @@ def make_AI_move(data):
     curr_FEN = data_obj['FEN']
     move, new_FEN = ChessLogic.get_best_move(curr_FEN)
 
-    emit('update_FEN', {"FEN":new_FEN}, room=game_room_id)
+    emit('update_FEN', {"FEN": new_FEN}, room=game_room_id)
 
     # update local game object
     if game_room_id not in games:
@@ -604,17 +607,21 @@ def make_move(data):
         return
 
     # check for illegal moves?
-    if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
-        # send invalid move packet
-        print("INVALID MOVE")
-        return
+    try:
+        if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
+            emit('illegal_move', move, to=request.sid)
+            print("INVALID MOVE")
+            return
+    except Exception as ex:
+        print("Stockfish error"+ ex)
 
     # send move to opponent
-    opponent_sid = authorized_sockets[white_id]
-    if player_color == 'w':
-        opponent_sid = authorized_sockets[black_id]
+    if white_id in authorized_sockets and black_id in authorized_sockets:
+        opponent_sid = authorized_sockets[white_id]
+        if player_color == 'w':
+            opponent_sid = authorized_sockets[black_id]
 
-    emit('make_move_local', move, to=opponent_sid)
+        emit('make_move_local', move, to=opponent_sid)
 
     # update local game object
     if game_room_id not in games:
