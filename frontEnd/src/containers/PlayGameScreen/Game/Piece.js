@@ -5,13 +5,14 @@ export default class Piece {
 
     /*
     Type:
-    None - int of nones in row
+
     King - k
     Pawn - p
     Knight - n
     Bishop - b
     Rook - r
     Queen - q
+    None - e
     Color:
     Letter case
     Uppercase - White

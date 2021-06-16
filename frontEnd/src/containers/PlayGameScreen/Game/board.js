@@ -40,10 +40,10 @@ export default class Board {
         for (var key in pieces_dict) {
             i += 1;
             if (playingAs === 'b') {
-                this.gameMode2_grid.push(new Piece(pieces_dict[key], this.p5, Checkboard_size+shelf_size/2 -size*0.666 ,  gameMode2_Margin*size * i));
+                this.gameMode2_grid.push(new Piece(pieces_dict[key], this.p5, Checkboard_size + shelf_size / 2 - size * 0.666, gameMode2_Margin * size * i));
             } else {
-                this.gameMode2_grid.push(new Piece(pieces_dict[key].toUpperCase(), this.p5, Checkboard_size+shelf_size/2- size*0.666, gameMode2_Margin*size * i));//dont ask why 0.666
-                this.gameMode2_grid[this.gameMode2_grid.length-1].color = 'w'; //TODO w konstrukotrze koloru nie da sie podac XD
+                this.gameMode2_grid.push(new Piece(pieces_dict[key].toUpperCase(), this.p5, Checkboard_size + shelf_size / 2 - size * 0.666, gameMode2_Margin * size * i));//dont ask why 0.666
+                this.gameMode2_grid[this.gameMode2_grid.length - 1].color = 'w'; //TODO w konstrukotrze koloru nie da sie podac XD
             }
 
         }
@@ -133,7 +133,7 @@ export default class Board {
         let split_FEN = this.FEN.split(' ')
         this.color_to_move = split_FEN[1];   //setting color to move from fen
         for (let i = 0; i < 64; i++) {
-            this.grid[i]=(new Piece("e", this.p5));
+            this.grid[i] = (new Piece("e", this.p5));
         }
 
         let fenBoard = split_FEN[0];   // taking only pieces position (FEN.split[0]), discarding game info
@@ -156,6 +156,11 @@ export default class Board {
                     this.grid[file * 8 + rank].y = temp[1];
                     this.grid[file * 8 + rank].old_x = temp[0];
                     this.grid[file * 8 + rank].old_y = temp[1];
+                    if ((file === 6 && this.grid[file * 8 + rank].color === 'w')||(file === 1 && this.grid[file * 8 + rank].color === 'b')) {
+                        this.grid[file * 8 + rank].did_move = 0;
+                    }else{
+                        this.grid[file * 8 + rank].did_move = 1;
+                    }
                     rank++;
                 }
             }
@@ -218,37 +223,37 @@ export default class Board {
             this.grid[dragged_index].draw_piece();
         }
         //images "hidden" under pieces, will apear when piece is dragged or when state is low enough
-        let rew=0;
-        for(var texture in textures)
-        {
+        let rew = 0;
+        for (var texture in textures) {
             rew += 1;
-            if(playingAs==='w'&&rew%2===1) {
+            if (playingAs === 'w' && rew % 2 === 1) {
                 this.p5.push()
                 this.p5.translate(scalar / 2, scalar / 2);
-                this.p5.tint(255,127);
-                this.p5.image(textures[texture], Checkboard_size+shelf_size/2- size*0.666,  gameMode2_Margin*size*(rew+1)/2 , size - scalar, size - scalar);
+                this.p5.tint(255, 127);
+                this.p5.image(textures[texture], Checkboard_size + shelf_size / 2 - size * 0.666, gameMode2_Margin * size * (rew + 1) / 2, size - scalar, size - scalar);
                 this.p5.pop()
-            }else if(playingAs==='b'&&rew%2===0){
+            } else if (playingAs === 'b' && rew % 2 === 0) {
 
                 this.p5.push()
                 this.p5.translate(scalar / 2, scalar / 2);
-                this.p5.tint(200,127);
-                this.p5.image(textures[texture],Checkboard_size+shelf_size/2- size*0.666, gameMode2_Margin*size * rew/2, size - scalar, size - scalar);
+                this.p5.tint(200, 127);
+                this.p5.image(textures[texture], Checkboard_size + shelf_size / 2 - size * 0.666, gameMode2_Margin * size * rew / 2, size - scalar, size - scalar);
                 this.p5.pop()
 
             }
 
 
-        }rew=0;
+        }
+        rew = 0;
 
         //making pieces for gamemode2 purposes they only appear above the image for setupstate
-        if (this.SetupState >-1) {
+        if (this.SetupState > -1) {
 
             this.p5.push();
             this.p5.textFont(Font);
             this.p5.textSize(textsize);
-            this.p5.fill(0,0,0);
-            this.p5.text(this.SetupState.toString(),Checkboard_size + shelf_size/2 -textsize*0.833,size);
+            this.p5.fill(0, 0, 0);
+            this.p5.text(this.SetupState.toString(), Checkboard_size + shelf_size / 2 - textsize * 0.833, size);
             this.p5.pop();
             this.GameMode2_checkState()
             for (let z = 0; z < this.gameMode2_grid.length; z++) {
@@ -265,8 +270,7 @@ export default class Board {
 
             }
 
-        }else if(this.SetupState<0&&this.gameMode2_grid.length===1)
-        {
+        } else if (this.SetupState < 0 && this.gameMode2_grid.length === 1) {
             this.gameMode2_grid = [];
         }
 
@@ -277,27 +281,22 @@ export default class Board {
     }
 
 
-    GameMode2_checkState(){
+    GameMode2_checkState() {
 
-        if(this.SetupState<1&&this.gameMode2_grid.length>1)
-        {
+        if (this.SetupState < 1 && this.gameMode2_grid.length > 1) {
             this.gameMode2_grid.pop();
         }
-        if(this.SetupState<3&&this.gameMode2_grid.length>2)
-        {
+        if (this.SetupState < 3 && this.gameMode2_grid.length > 2) {
             this.gameMode2_grid.pop();
         }
-        if(this.SetupState<3&&this.gameMode2_grid.length>3)
-        {
+        if (this.SetupState < 3 && this.gameMode2_grid.length > 3) {
             this.gameMode2_grid.pop();
             this.gameMode2_grid.pop();
         }
-        if(this.SetupState<5&&this.gameMode2_grid.length>4)
-        {
+        if (this.SetupState < 5 && this.gameMode2_grid.length > 4) {
             this.gameMode2_grid.pop();
         }
-        if(this.SetupState<9&&this.gameMode2_grid.length>5)
-        {
+        if (this.SetupState < 9 && this.gameMode2_grid.length > 5) {
             this.gameMode2_grid.pop();
         }
 

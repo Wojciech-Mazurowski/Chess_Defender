@@ -151,9 +151,9 @@ export default function sketch(p5) {
             } else {
                 board.FEN = default_FEN;
             }
-            board.load_FEN();
+
         } else {
-            if (startingFEN) {
+            if (startingFEN !== undefined) {
                 board.FEN = startingFEN;
             } else {
                 board.FEN = default_FEN_Gamemode_2;
@@ -173,7 +173,7 @@ export default function sketch(p5) {
             console.log("nie dostaem");
             board.color_to_move="w";
         }
-
+        board.load_FEN();
         calculatePixelPositions();
         count_squares_to_edge();
         Generate_moves(board.grid, board.check, "setup");
