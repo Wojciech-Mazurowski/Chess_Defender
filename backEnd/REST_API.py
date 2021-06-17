@@ -9,9 +9,13 @@ import RatingSystem
 from ServerState import *
 
 domain = '34.118.14.151'
-frontend_url = 'http://' + domain
-frontend_dns = 'http://chess-defence.ddns.net'
-allowed_origins = ["http://localhost:3000",frontend_url, frontend_dns]
+dns_domain = 'chess-defence.ddns.net'
+local_port=str(3000)
+local_domain = 'localhost:'+local_port
+orgin_prefix = "http://"
+allowed_domains = [domain, dns_domain, local_domain, '127.0.0.1','127.0.0.1:'+local_port, 'localhost']
+# add http:// before each allowed domain to get orgin
+allowed_origins = [orgin_prefix + dom for dom in allowed_domains]
 debug_mode = True
 
 # FLASK CONFIG
@@ -19,6 +23,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkey'
 app.config['DEBUG'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
+
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 # TODO Uncomment below when ssl is installed (secure cookies)
 # app.config.update(
@@ -36,8 +41,8 @@ app.config.update(
 
 
 # generates response for given data and code with appropriate headers
-def generate_response(request, data, HTTP_code):
-    origin = request.environ.get('HTTP_ORIGIN', 'default value')
+def generate_response(request_got, data, HTTP_code):
+    origin = request_got.environ.get('HTTP_ORIGIN', 'default value')
 
     if origin in allowed_origins:
         resp = make_response(jsonify(data), HTTP_code)
@@ -46,7 +51,7 @@ def generate_response(request, data, HTTP_code):
         resp.headers['Access-Control-Allow-Methods'] = '*'
         resp.headers['Access-Control-Allow-Credentials'] = 'true'
         return resp
-    
+
     return make_response({}, 400)
 
 
@@ -70,6 +75,18 @@ def authorize_user(user_id, session_token):
         return False
 
     return True
+
+
+def get_domain_from_url(url):
+    if ':' in url:
+        url = url.split(":")[1]
+
+    dom = url[2:]
+    #replace localhost with localhost ip
+    if dom == "localhost":
+        dom = '127.0.0.1'
+
+    return dom
 
 
 @app.route('/login', methods=['POST', 'OPTIONS'])
@@ -108,8 +125,13 @@ def login():
     print(refresh_token)
     # create cookie with refresh token, and send back payload with sessionToken
     resp = generate_response(request, {"userId": user_id, "userElo": user_elo, "sessionToken": session_token}, 200)
+
     # create resfresh token cookie that is only ever sent to /refresh_session path
-    resp.set_cookie('refreshToken', refresh_token, domain=domain, samesite='strict')  # path="/refresh_session"
+    req_url = request.environ.get('HTTP_ORIGIN', 'default value')
+    curr_domain = get_domain_from_url(req_url)
+    if curr_domain in allowed_domains:
+        resp.set_cookie('refreshToken', refresh_token, domain=curr_domain, samesite='None',
+                        secure='false')  # path="/refresh_session"
     return resp
 
 
@@ -166,7 +188,11 @@ def logout():
 
     # set cookie to a dummy one
     resp = generate_response(request, {"logout": 'succesfull'}, 200)
-    resp.set_cookie('refreshToken', 'none', domain=domain, samesite='None', secure='false')
+    req_url = request.environ.get('HTTP_ORIGIN', 'default value')
+    curr_domain = get_domain_from_url(req_url)
+    if curr_domain in allowed_domains:
+        resp.set_cookie('refreshToken', 'none', domain=curr_domain, samesite='None',
+                        secure='false')  # path="/refresh_session"
     return resp
 
 
