@@ -8,8 +8,10 @@ from flask_cors import CORS
 import RatingSystem
 from ServerState import *
 
-frontend_url = 'http://localhost:3000'
-domain = '127.0.0.1'
+domain = '34.118.14.151'
+frontend_url = 'http://' + domain
+frontend_dns = 'http://chess-defence.ddns.net'
+allowed_origins = ["http://localhost:3000",frontend_url, frontend_dns]
 debug_mode = True
 
 # FLASK CONFIG
@@ -34,13 +36,18 @@ app.config.update(
 
 
 # generates response for given data and code with appropriate headers
-def generate_response(data, HTTP_code):
-    resp = make_response(jsonify(data), HTTP_code)
-    resp.headers['Access-Control-Allow-Origin'] = frontend_url
-    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    resp.headers['Access-Control-Allow-Methods'] = '*'
-    resp.headers['Access-Control-Allow-Credentials'] = 'true'
-    return resp
+def generate_response(request, data, HTTP_code):
+    origin = request.environ.get('HTTP_ORIGIN', 'default value')
+
+    if origin in allowed_origins:
+        resp = make_response(jsonify(data), HTTP_code)
+        resp.headers['Access-Control-Allow-Origin'] = origin
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        resp.headers['Access-Control-Allow-Methods'] = '*'
+        resp.headers['Access-Control-Allow-Credentials'] = 'true'
+        return resp
+    
+    return make_response({}, 400)
 
 
 # LOGIN SERVICE HELPERS
@@ -68,7 +75,7 @@ def authorize_user(user_id, session_token):
 @app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     request_data = request.get_json()
     if debug_mode: print("LOGIN REQUEST " + str(request_data))
@@ -80,11 +87,11 @@ def login():
         user = db.get_user(user_name)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
-        return generate_response({"error": "Can't fetch from db"}, 503)
+        return generate_response(request, {"error": "Can't fetch from db"}, 503)
 
     # user wasn't found in the database ergo wrong username
     if user is None:
-        return generate_response({"error": "Username doesn't exist"}, 403)
+        return generate_response(request, {"error": "Username doesn't exist"}, 403)
 
     user_id = str(user[0])
     user_pass = str(user[2])
@@ -92,7 +99,7 @@ def login():
 
     # actual user's password doesn't match given
     if user_pass != request_data['hashedPassword']:
-        return generate_response({"error": "Incorrect password"}, 403)
+        return generate_response(request, {"error": "Incorrect password"}, 403)
 
     # generate session and refresh token for user
     session_token = generate_session_token(user_id)
@@ -100,10 +107,9 @@ def login():
     Sessions[user_id] = {'refresh_token': refresh_token, 'session_token': session_token}
     print(refresh_token)
     # create cookie with refresh token, and send back payload with sessionToken
-    resp = generate_response({"userId": user_id, "userElo": user_elo, "sessionToken": session_token}, 200)
+    resp = generate_response(request, {"userId": user_id, "userElo": user_elo, "sessionToken": session_token}, 200)
     # create resfresh token cookie that is only ever sent to /refresh_session path
-    resp.set_cookie('refreshToken', refresh_token, domain=domain, samesite='None',
-                    secure='false')  # path="/refresh_session"
+    resp.set_cookie('refreshToken', refresh_token, domain=domain, samesite='strict')  # path="/refresh_session"
     return resp
 
 
@@ -111,7 +117,7 @@ def login():
 @app.route('/refresh_session', methods=['GET', 'OPTIONS'])
 def refresh_session():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if debug_mode: print("REFRESH_SESSION REQUEST " + " " + str(request.cookies))
     user_id = str(request.args['userId'])
@@ -119,48 +125,47 @@ def refresh_session():
     # check if it even contains refresh token cookie
     if not request.cookies.get('refreshToken'):
         if debug_mode: print("Missing refresh token cookie.")
-        return generate_response({"error": "Missing refresh token cookie."}, 401)
+        return generate_response(request, {"error": "Missing refresh token cookie."}, 401)
 
     refresh_token = str(request.cookies.get('refreshToken'))
     # check if refresh token is valid
     if (user_id not in Sessions) or Sessions[user_id]['refresh_token'] != str(refresh_token):
         if debug_mode: print("Wrong refresh token.")
-        return generate_response({"error": "Wrong refresh token."}, 401)
+        return generate_response(request, {"error": "Wrong refresh token."}, 401)
 
     if debug_mode: print("GOT TOKEN: " + refresh_token)
     if debug_mode: print("HAVE TOKEN: " + Sessions[user_id]['refresh_token'])
 
     new_session_token = generate_session_token(user_id)
     Sessions[user_id]['session_token'] = new_session_token
-    return generate_response({"sessionToken": str(new_session_token)}, 200)
+    return generate_response(request, {"sessionToken": str(new_session_token)}, 200)
 
 
 @app.route('/logout', methods=['GET', 'OPTIONS'])
 def logout():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if request.args is None:
         if debug_mode: print('No player id in logout')
-        return generate_response({"error": "Missing playerId"}, 400)
+        return generate_response(request, {"error": "Missing playerId"}, 400)
 
     if debug_mode: print("LOGOUT REQUEST " + str(request.args))
     user_id = request.args['userId']
 
     session_token = request.headers['Authorization']
     if not authorize_user(user_id, session_token):
-        return generate_response({"error": "Authorisation failed."}, 401)
+        return generate_response(request, {"error": "Authorisation failed."}, 401)
 
     # delete session token for user
     del Sessions[str(user_id)]
 
-    #delete authorized socket for user
+    # delete authorized socket for user
     # if user_id in authorized_sockets:
     #     del authorized_sockets[user_id]
 
-
     # set cookie to a dummy one
-    resp = generate_response({"logout": 'succesfull'}, 200)
+    resp = generate_response(request, {"logout": 'succesfull'}, 200)
     resp.set_cookie('refreshToken', 'none', domain=domain, samesite='None', secure='false')
     return resp
 
@@ -168,7 +173,7 @@ def logout():
 @app.route('/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     request_data = request.get_json()
     username = request_data['username']
@@ -180,21 +185,21 @@ def register():
         db = ChessDB.ChessDB()
         user = db.get_user(username)
         if user is not None:
-            return generate_response({"error": "Username already taken"}, 403)
+            return generate_response(request, {"error": "Username already taken"}, 403)
         # add to database
         db.add_user(username, hashed_password, 'PL', RatingSystem.starting_ELO, RatingSystem.starting_ELO_deviation,
                     RatingSystem.starting_ELO_volatility)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
-        return generate_response({"error": "Database error"}, 503)
+        return generate_response(request, {"error": "Database error"}, 503)
 
-    return generate_response({"registration": 'succesfull'}, 200)
+    return generate_response(request, {"registration": 'succesfull'}, 200)
 
 
 @app.route('/is_in_game', methods=['GET', 'OPTIONS'])
 def is_in_game():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if debug_mode: print("IS_IN_GAME REQUEST " + str(request.args))
     user_id = request.args['userId']
@@ -203,14 +208,14 @@ def is_in_game():
     session_token = request.headers['Authorization']
     if not authorize_user(user_id, session_token):
         if debug_mode: print('Authorization failed')
-        return generate_response({"error": "Authorisation failed."}, 401)
+        return generate_response(request, {"error": "Authorisation failed."}, 401)
 
     # generate info
     data = {"inGame": False}
     game_info = get_is_player_in_game(user_id)
     if not game_info:
         if debug_mode: print('Player not in game!')
-        return generate_response(data, 200)
+        return generate_response(request, data, 200)
 
     game = game_info[0]
     playing_as = game_info[1]
@@ -220,21 +225,21 @@ def is_in_game():
         "inGame": True,
         "gameId": game.game_room_id,
         "gameMode": game.game_mode_id,
-        "playingAs":playing_as
+        "playingAs": playing_as
     }
 
-    return generate_response(data, 200)
+    return generate_response(request, data, 200)
 
 
 @app.route('/get_game_info', methods=['GET', 'OPTIONS'])
 def get_game_info():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if debug_mode: print("GAME_INFO REQUEST " + str(request.args))
     if 'gameRoomId' not in request.args:
         print("MISSING ARGUMENT")
-        return generate_response({"error":'missing gameRoomId arg'}, 400)
+        return generate_response(request, {"error": 'missing gameRoomId arg'}, 400)
 
     game_room_id = request.args['gameRoomId']
 
@@ -283,13 +288,13 @@ def get_game_info():
                 'blackScore': game.defender_state.black_score
                 }
 
-    return generate_response(data, 200)
+    return generate_response(request, data, 200)
 
 
 @app.route('/player_stats', methods=['GET', 'OPTIONS'])
 def get_player_stats():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if debug_mode: print("PLAYER_STATS REQUEST " + str(request.args))
     user_id = request.args['userId']
@@ -298,7 +303,7 @@ def get_player_stats():
     session_token = request.headers['Authorization']
     if not authorize_user(user_id, session_token):
         if debug_mode: print('Authorization failed')
-        return generate_response({"error": "Authorisation failed."}, 401)
+        return generate_response(request, {"error": "Authorisation failed."}, 401)
 
     try:
         db = ChessDB.ChessDB()
@@ -312,7 +317,7 @@ def get_player_stats():
         draws = db.count_draws(user_id)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
-        return generate_response({"error": "Database error"}, 503)
+        return generate_response(request, {"error": "Database error"}, 503)
 
     data = {
         'elo': elo,
@@ -323,7 +328,7 @@ def get_player_stats():
         'draws': draws
     }
 
-    return generate_response(data, 200)
+    return generate_response(request, data, 200)
 
 
 def generate_example_match_data():
@@ -345,7 +350,7 @@ def generate_example_match_data():
 @app.route('/match_history', methods=['GET', 'OPTIONS'])
 def get_history():
     if request.method == "OPTIONS":
-        return generate_response({}, 200)
+        return generate_response(request, {}, 200)
 
     if debug_mode: print("PLAYER_HISTORY REQUEST " + str(request.args))
     user_id = request.args['userId']
@@ -354,7 +359,7 @@ def get_history():
     session_token = request.headers['Authorization']
     if not authorize_user(user_id, session_token):
         if debug_mode: print('Authorization failed')
-        return generate_response({"error": "Authorisation failed."}, 401)
+        return generate_response(request, {"error": "Authorisation failed."}, 401)
 
     # set page to 0 if not given in request
     page = 0
@@ -372,7 +377,7 @@ def get_history():
         game_history = db.get_games(user_id, start, end)
     except Exception as ex:
         if debug_mode: ("DB ERROR" + str(ex))
-        return generate_response({"error": "Database error"}, 503)
+        return generate_response(request, {"error": "Database error"}, 503)
 
     history = []
     # maps results from numbers to strings
@@ -405,7 +410,7 @@ def get_history():
             history.append(match)
         except Exception as ex:
             if debug_mode: ("DB ERROR" + str(ex))
-            return generate_response({"error": "Cannot fetch from db"}, 503)
+            return generate_response(request, {"error": "Cannot fetch from db"}, 503)
 
     if debug_mode: print(game_history)
-    return generate_response(json.dumps(history), 200)
+    return generate_response(request, json.dumps(history), 200)
