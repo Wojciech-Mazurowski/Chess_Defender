@@ -50,6 +50,7 @@
     ]
   },
   "devDependencies": {
+    "react-blink-text": "^1.0.5",
     "react-redux": "^7.2.4"
   }
 }

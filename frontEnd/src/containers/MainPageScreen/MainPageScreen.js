@@ -3,14 +3,15 @@ import FindGameWidget from "./Components/FindGameWidget";
 import MatchHistory from "./Components/MatchHistory/MatchHistory";
 import Section from "../CommonComponents/Section";
 import StatsContainer from "./Components/Stats/StatsContainer"
-import {connect} from "react-redux";
-import {mapAllStateToProps} from "../../redux/reducers/rootReducer";
 import RejoinGameWidget from "./Components/MatchHistory/RejoinGameWidget";
+import Blink from 'react-blink-text';
+import TextFlashComponent from "../CommonComponents/TextFlashComponent";
 
 function MainPageScreen() {
 
     return (
         <div>
+            <TextFlashComponent/>
             <RejoinGameWidget/>
             <FindGameWidget/>
             <Section section="STATS">

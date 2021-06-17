@@ -216,7 +216,6 @@ def is_in_game():
     playing_as = game_info[1]
     print(game)
 
-    # seperate out opponent and player
     data = {
         "inGame": True,
         "gameId": game.game_room_id,
@@ -262,7 +261,7 @@ def get_game_info():
             'whiteTime': game.timer.white_time
             }
 
-    if game.game_mode_id == 1:
+    if str(game.game_mode_id) == '1':
         data = {"inGame": True,
                 "gameId": game.game_room_id,
                 "gameMode": game.game_mode_id,

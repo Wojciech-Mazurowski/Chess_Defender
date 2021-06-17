@@ -115,12 +115,9 @@ export default class SocketClient {
             board.set_FEN_by_rejected_move(data.startingSquare,data.targetSquare)
         })
 
-        this.on("update_FEN",data=>{
+        this.on("make_AI_move_local",data=>{
             if (data === undefined) return;
-            board.FEN=data.FEN;
-            board.change_Turn();
-            board.load_FEN()
-            store.dispatch(setCurrentFEN(data.FEN))
+            board.set_FEN_by_rejected_move(data.startingSquare,data.targetSquare)
             store.dispatch(flipCurrentTurn());
         })
 

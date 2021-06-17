@@ -1,10 +1,11 @@
-from stockfish import Stockfish
 import chess
+import chess.engine
 
-stockfish = Stockfish("./StockFish/stockfish_13_win.exe", parameters={"Threads": 1, "Write Debug Log": "true"})
-# linux config
-# stockfish = Stockfish("StockFish/stockfish_13_linux.exe", parameters={"Threads": 1, "Write Debug Log": "true"})
 board = chess.Board()
+engine = chess.engine.SimpleEngine.popen_uci("./StockFish/stockfish_13_win.exe")
+# LINUX VESION
+# engine = chess.engine.SimpleEngine.popen_uci("/StockFish/stockfish_13_linux")
+limit = chess.engine.Limit(time=2.0)
 
 
 def generate_pos_to_stocknot_dict():
@@ -46,12 +47,14 @@ def convert_stockfish_notation_to_pos(stock_move):
 def is_valid_move(FEN, startSquare, targetSquare):
     board.set_fen(FEN)
     stockfish_move = convert_pos_to_stockfish_notation(startSquare) + convert_pos_to_stockfish_notation(targetSquare)
-    return chess.Move.from_uci(stockfish_move) in board.legal_moves
+    board_move = chess.Move.from_uci(stockfish_move)
+    print(board.legal_moves)
+    return chess.Move.from_uci(stockfish_move) in board.legal_moves, board_move
 
 
 def is_checkmate(FEN):
-    stockfish.set_fen_position(FEN)
-    return stockfish.get_evaluation()
+    board.set_fen(FEN)
+    return board.is_checkmate()
 
 
 def update_fen_with_turn_info(FEN, player_to_move):
@@ -61,21 +64,37 @@ def update_fen_with_turn_info(FEN, player_to_move):
     return separator.join(split_fen)
 
 
+def update_FEN_by_AN_move(old_FEN, move):
+    board.set_fen(old_FEN)
+    board.push(move)
+    return board.fen()
+
+
 def get_best_move(FEN):
-    stockfish.set_fen_position(FEN)
-    stock_pred = stockfish.get_top_moves(3)[0]
-    stock_move = stock_pred['Move']
-    starting_square, target_square = convert_stockfish_notation_to_pos(stock_move)
-    move = {
-        'startingSquare': starting_square,
-        'targetSquare': target_square,
-        'mtype': 'cp'
-    }
-    # get new FEN
     board.set_fen(FEN)
-    board_move = chess.Move.from_uci(stock_move)
-    board.push(board_move)
+    result = engine.play(board, limit)
+    board_move = result.move
+    moving_piece_type = board.piece_type_at(board_move.from_square)
+    board.push(result.move)
 
-    return move, board.fen()
+    move_type = "n"
+    if board.is_en_passant(board_move): move_type = "CP"
+    if board.is_capture(board_move): move_type = "C"
+    if board.is_kingside_castling(board_move): move_type = "r"
+    if board.is_queenside_castling(board_move): move_type = "R"
+    # check for P TYPE, moved to enpassant
+    if moving_piece_type == 1 and abs(board_move.to_square - board_move.from_square) == 16:
+        move_type = "P"
 
-# TODO update given FEN by move to get a new FEN
+    start_move = (63 - board_move.from_square) % 64
+    target_move = (63 - board_move.to_square) % 64
+
+    move = {
+        'startingSquare': start_move,
+        'targetSquare': target_move,
+        'mtype': move_type
+    }
+
+    return board.fen(), move
+
+

@@ -1,12 +1,12 @@
 .GameTimer{
-    background: var(--text-color);
+    background: var(--section-bg-color);
     padding: 0.5rem 2rem;
     width: 10rem;
     text-align: center;
     margin-top: 1rem;
 }
 .GameTimer > div{
-    color: var(--body-color);
+    color: var(--text-color);
     font-size: 2.5rem;
     opacity: 0.6;
 }

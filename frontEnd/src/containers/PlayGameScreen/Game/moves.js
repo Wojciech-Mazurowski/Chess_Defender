@@ -14,7 +14,8 @@ class move {
     constructor(starting_square, ending_square, type) {
         this.StartSquare = starting_square;
         this.EndSquare = ending_square;
-        this.type = arguments.length === 3 ? type : "n";  // typy ruchow R - roszada dluga, r - roszada krotka , C - capture, P - pion wysuniety do en passant
+        this.type = arguments.length === 3 ? type : "n";
+        // typy ruchow R - roszada dluga, r - roszada krotka , C - capture, P - pion wysuniety do en passant
         //CP - zbicie przez en passant
     }
 }

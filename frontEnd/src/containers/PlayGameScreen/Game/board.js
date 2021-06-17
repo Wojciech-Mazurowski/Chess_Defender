@@ -14,7 +14,7 @@ import {
     Font,
     textures,
     scalar,
-    shelf_size, gameMode2_Margin, textsize, gameMode,
+    shelf_size, gameMode2_Margin, textsize, gameMode, currentTurn,
 } from "./Main";
 import Piece from "./Piece";
 import {check_if_check, Generate_moves, Generate_opponent_moves, moves} from "./moves";
@@ -56,6 +56,7 @@ export default class Board {
         this.check = 0;
         this.enPassant = "-";
         this.SetupState = 0;
+        this.waveFunction=0; //used for calculating wave animation timing
     }
 
 
@@ -187,12 +188,79 @@ export default class Board {
 
     }
 
+    //signals to the player which side of the board he's operating
+    highlightBoardSide(side,highlight_color){
+        let modifier=0; //decides which side is being drawn, start drawing on sqr 0 for black, sqr 32 for white
+        if (side==='w'){ modifier=32;}
+        for (let i = modifier; i < board.grid.length-(modifier+board.grid.length/2)%board.grid.length  ; i++) {
+            let highlight = pixel_positions[i];
+            this.p5.push()
+            this.p5.noStroke();
+            this.p5.translate(5,5)
+            let squareColor = this.p5.color(highlight_color.r, highlight_color.g, highlight_color.b);
+            squareColor.setAlpha(48);
+            this.p5.fill(squareColor);
+            this.p5.rect(highlight[0], highlight[1], size-10, size-10);
+            this.p5.pop();
+
+        }
+    }
+
+    highlightAroundPieces(side,highlight_color){
+        for (let k = 0; k < this.grid.length; k++) {
+            let piece = this.grid[k];
+            if (piece.color===side){
+                this.p5.push()
+                let squareColor = this.p5.color(highlight_color.r, highlight_color.g, highlight_color.b);
+                squareColor.setAlpha(48);
+                this.p5.background(squareColor); // translucent background (creates trails)
+                // make a x and y grid of ellipses
+                for (let x = 0; x <= this.p5.width; x = x + 30) {
+                    for (let y = 0; y <= this.p5.height; y = y + 30) {
+                        // starting point of each circle depends on mouse position
+                        const xAngle = this.p5.map(this.p5.mouseX, 0, this.p5.width, -4 *  this.p5.PI, 4 *  this.p5.PI , true);
+                        const yAngle = this.p5.map(this.p5.mouseY, 0, this.p5.height, -4 *  this.p5.PI , 4 *  this.p5.PI , true);
+                        // and also varies based on the particle's location
+                        const angle = xAngle * (x / this.p5.width) + yAngle * (y / this.p5.height);
+
+                        // each particle moves in a circle
+                        const myX = x + 20 * Math.cos(2 *  this.p5.PI * this.waveFunction  + angle);
+                        const myY = y + 20 * Math.sin(2 *  this.p5.PI * this.waveFunction  + angle);
+
+                        this.p5.ellipse(myX, myY, 10); // draw particle
+                    }
+                    this.p5.pop();
+                }
+                this.waveFunction = this.waveFunction + 0.01; // update time
+            }
+
+
+        }
+    }
 
     draw_board() {
         let i = 0;
         let dragged_index = -1;
         let dragged_index2 = -1;
         let j = 0;
+
+        if(currentTurn===playingAs){
+            let color={r:105,g:172,b:162};
+            //this.highlightBoardSide(playingAs,color);
+        }
+
+        if(currentTurn===playingAs && this.lastmove[0]!==-1){
+            this.p5.push()
+            this.p5.noStroke();
+            //this.p5.translate(0, 3*size/4);
+            this.p5.fill(this.p5.color(108, 169, 82,255/2));
+            let startHighlight = pixel_positions[this.lastmove.StartSquare];
+            let endHighlight = pixel_positions[this.lastmove.EndSquare];
+            this.p5.rect(startHighlight[0],startHighlight[1],size,size)
+            this.p5.fill(this.p5.color(108, 169, 82,255/2));
+            this.p5.rect(endHighlight[0],endHighlight[1],size,size)
+            this.p5.pop();
+        }
 
 
         for (let i = 0; i < moves.length; i++) {
@@ -217,6 +285,7 @@ export default class Board {
                 }
             }
         }
+
 
         for (let k = 0; k < this.grid.length; k++) {
             let piece = this.grid[k];

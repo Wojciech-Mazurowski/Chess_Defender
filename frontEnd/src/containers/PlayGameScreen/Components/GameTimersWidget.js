@@ -5,26 +5,26 @@ import useTimer from "../../CommonComponents/Timer";
 import GameTimer from "./GameTimer";
 
 
-function GameTimersWidget({playingAs}) {
-    const {timer, handlePause, handleResume, setTime} = useTimer(600, -1);
+function GameTimersWidget({playingAs,children}) {
     const [whiteOrder, setWhiteOrder] = useState(-1)
     const [blackOrder, setBlackOrder] = useState(-1)
 
     //on intialization
     useEffect(() => {
         if (playingAs == 'w') {
-            setWhiteOrder(1);
+            setWhiteOrder(2);
             setBlackOrder(0);
             return;
         }
         setWhiteOrder(0);
-        setBlackOrder(1);
+        setBlackOrder(2);
     }, [playingAs]);
 
 
     return (
         <div className="GameTimersWidget">
             <GameTimer style={{'order': whiteOrder}} playerColor='w'/>
+            {children}
             <GameTimer style={{'order': blackOrder}} playerColor='b'/>
         </div>
     );

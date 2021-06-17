@@ -36,7 +36,11 @@
 .PlayGameScreen  .GameContainer { grid-area: board; }
 .PlayGameScreen  .PlayersInfo { grid-area: player-info; }
 .PlayGameScreen  .Chat { grid-area: chat; }
-.PlayGameScreen  .Game-info { grid-area: game-info; }
+.PlayGameScreen  .Game-info {
+    grid-area: game-info;
+    display: flex;
+    flex-direction: column;
+}
 .PlayGameScreen  .disclaimers { grid-area: disclaimers; }
 
 

@@ -55,6 +55,7 @@ def authorize(data):
         emit('unauthorized', {'error': 'Unauthorized access'})
         return
 
+    print(data)
     session_token = data['sessionToken']
     player_id = str(data['userId'])
 
@@ -108,6 +109,7 @@ def join_queue(data):
     def run_match_maker():
         match_maker()
 
+    print(data)
     global thread
     if thread is None:
         thread = socketio.start_background_task(run_match_maker)
@@ -174,6 +176,7 @@ def leave_queue(data):
     player_id = data_obj['playerId']
     game_mode_id = data_obj['gameModeId']
 
+    print(data)
     # authorize player
     if not check_auth(request.sid, player_id):
         print("Unathorized!! ")
@@ -519,14 +522,14 @@ def make_AI_move(data):
     black_id = game_info.black_player.id
     curr_turn = game_info.curr_turn
 
-    if game_info.game_mode_id != '1':
-        print("Not a defender game")
-        return
+    # if game_info.game_mode_id != '1':
+    #     print("Not a defender game")
+    #     return
 
-    # # defender game already in making moves phase
-    if game_info.defender_state.phase != 1:
-        print("Defender game not in making moves phase yet")
-        return
+    # # # defender game already in making moves phase
+    # if game_info.defender_state.phase != 1:
+    #     print("Defender game not in making moves phase yet")
+    #     return
 
     # check if it's coming from the wrong player
     if str(curr_turn) != str(player_color):
@@ -535,9 +538,14 @@ def make_AI_move(data):
         return
 
     curr_FEN = data_obj['FEN']
-    move, new_FEN = ChessLogic.get_best_move(curr_FEN)
+    try:
+        new_FEN,move = ChessLogic.get_best_move(curr_FEN)
+    except Exception as ex:
+        print("STOCKFISH DIED COZ "+str(ex))
+        return
 
-    emit('update_FEN', {"FEN": new_FEN}, room=game_room_id)
+    print(move)
+    emit('make_AI_move_local', move, room=game_room_id)
 
     # update local game object
     if game_room_id not in games:
@@ -553,17 +561,16 @@ def make_AI_move(data):
         opp_turn = 'b'
     games[game_room_id].curr_turn = opp_turn
 
-    try:
-        game_id = game_info.game_id
-        db = ChessDB.ChessDB()
-        db.add_move(game_id, str(curr_turn).upper(), move_order, move)
-    except Exception as ex:
-        print("DB ERROR" + str(ex))
+    # try:
+    #     game_id = game_info.game_id
+    #     db = ChessDB.ChessDB()
+    #     db.add_move(game_id, str(curr_turn).upper(), move_order, move)
+    # except Exception as ex:
+    #     print("DB ERROR" + str(ex))
 
     # check for checkmates
-    eval = ChessLogic.is_checkmate(games[game_room_id].curr_FEN)
-    print(eval)
-    if eval['type'] == 'mate' and eval['value'] == 0:
+    is_mate = ChessLogic.is_checkmate(games[game_room_id].curr_FEN)
+    if is_mate:
         finish_game(game_info, curr_turn)
 
 
@@ -606,14 +613,13 @@ def make_move(data):
         print("NOT UR TURN")
         return
 
-    # check for illegal moves?
-    try:
-        if not ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'], move['targetSquare']):
-            emit('illegal_move', move, to=request.sid)
-            print("INVALID MOVE")
-            return
-    except Exception as ex:
-        print("Stockfish error"+ ex)
+
+    is_move_legal, move_AN_notation = ChessLogic.is_valid_move(game_info.curr_FEN, move['startingSquare'],
+                                                               move['targetSquare'])
+    if not is_move_legal:
+        emit('illegal_move', move, to=request.sid)
+        print("INVALID MOVE")
+        return
 
     # send move to opponent
     if white_id in authorized_sockets and black_id in authorized_sockets:
@@ -628,7 +634,9 @@ def make_move(data):
         print("NO_SUCH_GAME_EXISTS")
         return
 
-    games[game_room_id].curr_FEN = data_obj['FEN']
+
+    new_FEN= ChessLogic.update_FEN_by_AN_move(game_info.curr_FEN,move_AN_notation)
+    games[game_room_id].curr_FEN = new_FEN
     move_order = game_info.num_of_moves
     games[game_room_id].num_of_moves = move_order + 1
     # get opposite turn
@@ -640,14 +648,15 @@ def make_move(data):
     try:
         game_id = game_info.game_id
         db = ChessDB.ChessDB()
-        db.add_move(game_id, str(curr_turn).upper(), move_order, move)
+        print("ADDING MOVE TO BD " + move_AN_notation)
+        db.add_move(game_id, str(curr_turn).upper(), move_order, move_AN_notation)
     except Exception as ex:
         print("DB ERROR" + str(ex))
 
     # check for checkmates
-    eval = ChessLogic.is_checkmate(games[game_room_id].curr_FEN)
-    print(eval)
-    if eval['type'] == 'mate' and eval['value'] == 0:
+    is_checkmate = ChessLogic.is_checkmate(games[game_room_id].curr_FEN)
+    print(is_checkmate)
+    if is_checkmate:
         finish_game(game_info, curr_turn)
 
 

@@ -33,6 +33,7 @@ import GameTimer from "./Components/GameTimer";
 import {sleep} from "../../serverLogic/Utils";
 import {CSSTransition} from "react-transition-group";
 import GameTimersWidget from "./Components/GameTimersWidget";
+import TurnIndicator from "./Components/TurnIndicator";
 
 class PlayGameScreen extends Component {
 
@@ -87,7 +88,7 @@ class PlayGameScreen extends Component {
             await this.props.dispatch(setBlackTime(resp.blackTime));
             await this.props.dispatch(setWhiteTime(resp.whiteTime))
 
-            if (resp.gameMode==1){
+            if (resp.gameMode==="1"){
                 await this.props.dispatch(setWhiteScore(resp.whiteScore));
                 await this.props.dispatch(setBlackScore(resp.blackScore));
             }
@@ -180,8 +181,11 @@ class PlayGameScreen extends Component {
                         </GameContainer>
 
                         <div className="Game-info">
+
+                            <GameTimersWidget>
+                                <TurnIndicator/>
+                            </GameTimersWidget>
                             <GameButtons/>
-                            <GameTimersWidget/>
                         </div>
 
                     </div>
